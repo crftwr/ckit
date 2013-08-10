@@ -813,8 +813,7 @@ class Document:
             raise UnicodeError
 
         lines = data.splitlines(True)
-        for line in lines:
-            self.lines.append( Line(line) )
+        self.lines = [ Line(line) for line in lines ]
 
         # 空か、改行で終わっている場合は、最後に行を追加する
         if len(self.lines)==0 or self.lines[-1].end:
