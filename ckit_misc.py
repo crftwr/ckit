@@ -67,6 +67,7 @@ class TextEncoding:
 ## テキストのエンコードを検出する
 #
 #  @param data 検出する文字列
+#  @param maxlen 調査する最大byte数
 #  @param maxline 調査する最大行数
 #  @param ascii_as asciiだと検出された場合の代替のエンコーディング
 #  @return 検出結果を格納した TextEncoding オブジェクト
@@ -84,7 +85,7 @@ class TextEncoding:
 #
 #  またバイナリデータであると推測された場合は、TextEncoding の encoding には None が入ります。
 #
-def detectTextEncoding( data, maxline=1000, ascii_as=None ):
+def detectTextEncoding( data, maxlen=100000, maxline=1000, ascii_as=None ):
 
     result = TextEncoding()
 
@@ -104,6 +105,9 @@ def detectTextEncoding( data, maxline=1000, ascii_as=None ):
     if data.find(b'\0')>=0 :
         result.encoding = None
         return result
+
+    if len(data) > maxlen:
+        data = data[:maxlen]
 
     lines = data.splitlines()
 
