@@ -856,6 +856,9 @@ class Document:
         else:
             stop = min( stop, len(self.lines) )
         
+        if max_lex==None:
+            max_lex = len(self.lines)
+        
         line = start
         num_lex = 0
 
@@ -885,10 +888,7 @@ class Document:
 
             line += 1
 
-            if stop!=None and line>=stop:
-                break
-
-            if max_lex!=None and num_lex>=max_lex:
+            if line>=stop or num_lex>=max_lex:
                 break
 
         if line < len(self.lines):
