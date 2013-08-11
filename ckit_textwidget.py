@@ -695,8 +695,8 @@ class Document:
 
         self.mode = None
         self.lexer = None
-        self.lex_ctx_dirty = True   # FIXME : Dirtyな範囲で表現する
-        self.lex_token_dirty = True # FIXME : Dirtyな範囲で表現する
+        self.lex_ctx_dirty_top = 0
+        self.lex_token_dirty_top = 0
         self.minor_mode_list = []
 
         self.setMode(mode)
@@ -750,8 +750,8 @@ class Document:
         for line in self.lines:
             line.ctx = None
             line.tokens = None
-        self.lex_ctx_dirty = True
-        self.lex_token_dirty = True
+        self.lex_ctx_dirty_top = 0
+        self.lex_token_dirty_top = 0
 
     def appendMinorMode( self, mode ):
         self.minor_mode_list.append(mode)
@@ -824,8 +824,8 @@ class Document:
         else:
             self.lineend = DEFAULT_LINEEND
 
-        self.lex_ctx_dirty = True
-        self.lex_token_dirty = True
+        self.lex_ctx_dirty_top = 0
+        self.lex_token_dirty_top = 0
 
     def writeFile( self, fd ):
 
@@ -844,12 +844,11 @@ class Document:
             end = line.end.encode( self.encoding.encoding )
             fd.write(end)
 
-    def updateSyntaxContext( self, start=None, stop=None, max_lex=None ):
+    def updateSyntaxContext( self, stop=None, max_lex=None ):
 
-        #print( "updateSyntaxContext begin", start, stop, max_lex )
+        #print( "updateSyntaxContext", stop, max_lex )
 
-        if start==None:
-            start = 0
+        start = self.lex_ctx_dirty_top
 
         if stop==None:
             stop = len(self.lines)
@@ -858,6 +857,9 @@ class Document:
 
         if max_lex==None:
             max_lex = len(self.lines)
+
+        if self.lex_ctx_dirty_top==None or self.lex_ctx_dirty_top>=stop:
+            return
 
         line = start
         num_lex = 0
@@ -887,17 +889,18 @@ class Document:
             if line>=stop or num_lex>=max_lex:
                 break
 
-        if line < len(self.lines):
+        if line<len(self.lines):
             if prev_line_dirty:
                 self.lines[line].ctx = None
+            self.lex_ctx_dirty_top = line
         else:
-            self.lex_ctx_dirty = False
+            self.lex_ctx_dirty_top = None
 
 
     def updateSyntaxTokens( self, start=None, stop=None, max_lex=None ):
     
-        #print( "updateSyntaxTokens begin", start, stop, max_lex )
-        
+        #print( "updateSyntaxTokens", start, stop, max_lex )
+
         if start==None:
             start = 0
 
@@ -908,6 +911,9 @@ class Document:
 
         if max_lex==None:
             max_lex = len(self.lines)
+
+        if self.lex_token_dirty_top==None or self.lex_token_dirty_top>=stop:
+            return
 
         num_lex = 0
 
@@ -922,21 +928,15 @@ class Document:
                 if num_lex>=max_lex:
                     break
         
-        if start==0 and line==len(self.lines)-1:
-            self.lex_token_dirty = False
+        if start<=self.lex_token_dirty_top and line==len(self.lines)-1:
+            self.lex_token_dirty_top = None
 
     def updateSyntaxTimer(self):
-        
-        # FIXME : 毎回１行目から実行してしまっている
-        # FIXME : 巨大ファイルで、この処理が重くなる
-
-        if self.lex_ctx_dirty:
-            self.updateSyntaxContext( max_lex=1000 )
-        elif self.lex_token_dirty:
-            self.updateSyntaxTokens( max_lex=100 )
+        self.updateSyntaxContext( max_lex=1000 )
+        self.updateSyntaxTokens( start=self.lex_token_dirty_top, max_lex=100 )
 
     def isSyntaxDirty(self):
-        return (self.lex_ctx_dirty or self.lex_token_dirty)
+        return (self.lex_ctx_dirty_top!=None or self.lex_token_dirty_top!=None)
 
 #--------------------------------------------------------------------
 
@@ -1644,7 +1644,7 @@ class TextWidget(ckit_widget.Widget):
                 undo_info.new_cursor = cursor.copy()
                 
                 self.appendUndo(undo_info)
-        
+
 
         # 変更カウント
         if self.doc.modcount!=None:
@@ -1657,11 +1657,18 @@ class TextWidget(ckit_widget.Widget):
             self.setCursor( cursor, paint=False )
 
         # シンタックスハイライトの再計算が必要
-        if cursor.line+1<len(self.doc.lines):
-            self.doc.lines[cursor.line+1].ctx = None
-        self.doc.lex_ctx_dirty = True
-        self.doc.lines[cursor.line].tokens = None
-        self.doc.lex_token_dirty = True
+        if left.line+1<len(self.doc.lines):
+            self.doc.lines[left.line+1].ctx = None
+            if self.doc.lex_ctx_dirty_top==None:
+                self.doc.lex_ctx_dirty_top = left.line+1
+            else:
+                self.doc.lex_ctx_dirty_top = min( self.doc.lex_ctx_dirty_top, left.line+1 )
+
+        self.doc.lines[left.line].tokens = None
+        if self.doc.lex_token_dirty_top==None:
+            self.doc.lex_token_dirty_top = left.line
+        else:
+            self.doc.lex_token_dirty_top = min( self.doc.lex_token_dirty_top, left.line )
 
         if notify_modified:
             self._notifyTextModified(left, right, cursor)
@@ -2215,14 +2222,9 @@ class TextWidget(ckit_widget.Widget):
         self.plane_scrollbar1.setPosSize( scrollbar_topleft[0], scrollbar1_y , scrollbar0_width, scrollbar1_height )
 
         # テキストのシンタックスハイライトの更新
-        if self.doc.lex_ctx_dirty:
-            self.doc.updateSyntaxContext( stop=self.visible_first_line + self.height )
-        if self.doc.lex_token_dirty:
-            for line in range( self.visible_first_line, self.visible_first_line + self.height ):
-                if line < len(self.doc.lines):
-                    if self.doc.lines[line].tokens==None:
-                        self.doc.updateSyntaxTokens( line, self.visible_first_line + self.height )
-                        break
+        visible_bottom = self.visible_first_line + self.height
+        self.doc.updateSyntaxContext( stop=visible_bottom )
+        self.doc.updateSyntaxTokens( start=self.visible_first_line, stop=visible_bottom )
 
         # テキストの描画
         x2 = x+lineno_width
