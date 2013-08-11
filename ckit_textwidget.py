@@ -855,36 +855,32 @@ class Document:
             stop = len(self.lines)
         else:
             stop = min( stop, len(self.lines) )
-        
+
         if max_lex==None:
             max_lex = len(self.lines)
-        
+
         line = start
         num_lex = 0
+        prev_line_dirty = (self.lines[line].ctx==None)
 
-        if self.lines[line].ctx==None:
-            self.lines[line].ctx = rootContext()
-
-        ctx = self.lines[line].ctx
-        prev_line_dirty = True
-        
         while True:
     
             if self.lines[line].ctx==None or prev_line_dirty:
 
                 if line==0:
-                    self.lines[line].ctx = rootContext()
+                    ctx = rootContext()
                 else:
                     prev_line = self.lines[line-1]
                     ctx = self.lexer.lex( prev_line.ctx, prev_line.s, False )
-                    num_lex += 1
 
-                    if self.lines[line].ctx != ctx:
-                        self.lines[line].ctx = ctx
-                        self.lines[line].tokens = None
-                        prev_line_dirty = True
-                    else:
-                        prev_line_dirty = False
+                if self.lines[line].ctx != ctx:
+                    self.lines[line].ctx = ctx
+                    self.lines[line].tokens = None
+                    prev_line_dirty = True
+                else:
+                    prev_line_dirty = False
+
+                num_lex += 1
 
             line += 1
 
@@ -910,6 +906,9 @@ class Document:
         else:
             stop = min( stop, len(self.lines) )
 
+        if max_lex==None:
+            max_lex = len(self.lines)
+
         num_lex = 0
 
         for line in range( start, stop ):
@@ -920,13 +919,17 @@ class Document:
                 self.lines[line].tokens = Token.pack( tokens )
 
                 num_lex += 1
-                if max_lex!=None and num_lex>=max_lex:
+                if num_lex>=max_lex:
                     break
         
         if start==0 and line==len(self.lines)-1:
             self.lex_token_dirty = False
 
     def updateSyntaxTimer(self):
+        
+        # FIXME : 毎回１行目から実行してしまっている
+        # FIXME : 巨大ファイルで、この処理が重くなる
+
         if self.lex_ctx_dirty:
             self.updateSyntaxContext( max_lex=1000 )
         elif self.lex_token_dirty:
