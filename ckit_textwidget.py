@@ -1903,7 +1903,7 @@ class TextWidget(ckit_widget.Widget):
                 line.bg = 0
             self.doc.diff_mode = False
 
-    def seek( self, direction, func ):
+    def seek( self, direction, func, move_cursor=True ):
 
         cursor = self.selection.cursor()
         
@@ -1917,12 +1917,13 @@ class TextWidget(ckit_widget.Widget):
                 cursor = self.point( line, 0 )
                 break
         else:
-            return False
+            return None
 
-        self.setCursor( cursor, make_visible=False, paint=False )
-        self.makeVisible( cursor, jump_mode=True )
-        
-        return True
+        if move_cursor:
+            self.setCursor( cursor, make_visible=False, paint=False )
+            self.makeVisible( cursor, jump_mode=True )
+
+        return cursor
 
     def search( self, search_object=None, point=None, direction=1, oneline=False, move_cursor=True, select=True, hitmark=True, paint=True, message=True ):
     
@@ -2758,37 +2759,37 @@ class TextWidget(ckit_widget.Widget):
         cursor = self.selection.cursor().correspondingBracket(self.doc.mode.bracket)
         self.setCursor(cursor)
 
-    def command_SeekModifiedLinePrev( self, info ):
+    def command_CursorModifiedLinePrev( self, info ):
         def func(line):
             return line.modified
         if not self.seek( -1, func ):
             self.setMessage( ckit_resource.strings["modified_line_not_found"], 1000, error=True )
 
-    def command_SeekModifiedLineNext( self, info ):
+    def command_CursorModifiedLineNext( self, info ):
         def func(line):
             return line.modified
         if not self.seek( +1, func ):
             self.setMessage( ckit_resource.strings["modified_line_not_found"], 1000, error=True )
 
-    def command_SeekBookmarkPrev( self, info ):
+    def command_CursorBookmarkPrev( self, info ):
         def func(line):
             return line.bookmark
         if not self.seek( -1, func ):
             self.setMessage( ckit_resource.strings["bookmark_not_found"], 1000, error=True )
 
-    def command_SeekBookmarkNext( self, info ):
+    def command_CursorBookmarkNext( self, info ):
         def func(line):
             return line.bookmark
         if not self.seek( +1, func ):
             self.setMessage( ckit_resource.strings["bookmark_not_found"], 1000, error=True )
 
-    def command_SeekModifiedOrBookmarkPrev( self, info ):
+    def command_CursorModifiedOrBookmarkPrev( self, info ):
         def func(line):
             return line.modified or line.bookmark
         if not self.seek( -1, func ):
             self.setMessage( ckit_resource.strings["modified_line_or_bookmark_not_found"], 1000, error=True )
 
-    def command_SeekModifiedOrBookmarkNext( self, info ):
+    def command_CursorModifiedOrBookmarkNext( self, info ):
         def func(line):
             return line.modified or line.bookmark
         if not self.seek( +1, func ):
@@ -2901,6 +2902,84 @@ class TextWidget(ckit_widget.Widget):
         anchor = self.selection.anchor()
 
         self.setSelection(anchor,cursor)
+
+    def command_SelectModifiedLinePrev( self, info ):
+
+        def func(line):
+            return line.modified
+
+        cursor = self.seek( -1, func, move_cursor=False )
+        anchor = self.selection.anchor()
+
+        if cursor:
+            self.setSelection(anchor,cursor)
+        else:
+            self.setMessage( ckit_resource.strings["modified_line_not_found"], 1000, error=True )
+
+    def command_SelectModifiedLineNext( self, info ):
+
+        def func(line):
+            return line.modified
+
+        cursor = self.seek( +1, func, move_cursor=False )
+        anchor = self.selection.anchor()
+
+        if cursor:
+            self.setSelection(anchor,cursor)
+        else:
+            self.setMessage( ckit_resource.strings["modified_line_not_found"], 1000, error=True )
+
+    def command_SelectBookmarkPrev( self, info ):
+
+        def func(line):
+            return line.bookmark
+
+        cursor = self.seek( -1, func, move_cursor=False )
+        anchor = self.selection.anchor()
+
+        if cursor:
+            self.setSelection(anchor,cursor)
+        else:
+            self.setMessage( ckit_resource.strings["bookmark_not_found"], 1000, error=True )
+
+    def command_SelectBookmarkNext( self, info ):
+
+        def func(line):
+            return line.bookmark
+
+        cursor = self.seek( +1, func, move_cursor=False )
+        anchor = self.selection.anchor()
+
+        if cursor:
+            self.setSelection(anchor,cursor)
+        else:
+            self.setMessage( ckit_resource.strings["bookmark_not_found"], 1000, error=True )
+
+    def command_SelectModifiedOrBookmarkPrev( self, info ):
+
+        def func(line):
+            return line.modified or line.bookmark
+
+        cursor = self.seek( -1, func, move_cursor=False )
+        anchor = self.selection.anchor()
+
+        if cursor:
+            self.setSelection(anchor,cursor)
+        else:
+            self.setMessage( ckit_resource.strings["modified_line_or_bookmark_not_found"], 1000, error=True )
+
+    def command_SelectModifiedOrBookmarkNext( self, info ):
+
+        def func(line):
+            return line.modified or line.bookmark
+
+        cursor = self.seek( +1, func, move_cursor=False )
+        anchor = self.selection.anchor()
+
+        if cursor:
+            self.setSelection(anchor,cursor)
+        else:
+            self.setMessage( ckit_resource.strings["modified_line_or_bookmark_not_found"], 1000, error=True )
 
     def command_SelectDocumentBegin( self, info ):
 
