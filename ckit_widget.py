@@ -737,21 +737,21 @@ class EditWidget(Widget):
 
             if vk==VK_LEFT:
                 self.appendUndo(None)
-                new_cursor_pos = self.word_break_handler( self.text, self.selection[1]-1, -1 )
+                new_cursor_pos = self.word_break_handler( self.text, self.selection[1], -1 )
                 self.selection = [ new_cursor_pos, new_cursor_pos ]
                 self.makeVisible( self.selection[1] )
                 self.paint()
 
             elif vk==VK_RIGHT:
                 self.appendUndo(None)
-                new_cursor_pos = self.word_break_handler( self.text, self.selection[1]+1, +1 )
+                new_cursor_pos = self.word_break_handler( self.text, self.selection[1], +1 )
                 self.selection = [ new_cursor_pos, new_cursor_pos ]
                 self.makeVisible( self.selection[1] )
                 self.paint()
 
             elif vk==VK_BACK:
                 if self.selection[0]==self.selection[1] and self.selection[0]>0:
-                    selection_left = self.word_break_handler( self.text, self.selection[1]-1, -1 )
+                    selection_left = self.word_break_handler( self.text, self.selection[1], -1 )
                     selection_right = self.selection[1]
                     update_info = EditWidget.UpdateInfo(
                         self.text[ : selection_left ] + self.text[ selection_right : ],
@@ -885,13 +885,13 @@ class EditWidget(Widget):
 
             if vk==VK_LEFT:
                 self.appendUndo(None)
-                self.selection[1] = self.word_break_handler( self.text, self.selection[1]-1, -1 )
+                self.selection[1] = self.word_break_handler( self.text, self.selection[1], -1 )
                 self.makeVisible( self.selection[1] )
                 self.paint()
 
             elif vk==VK_RIGHT:
                 self.appendUndo(None)
-                self.selection[1] = self.word_break_handler( self.text, self.selection[1]+1, +1 )
+                self.selection[1] = self.word_break_handler( self.text, self.selection[1], +1 )
                 self.makeVisible( self.selection[1] )
                 self.paint()
 
