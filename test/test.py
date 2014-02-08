@@ -25,6 +25,7 @@ class Test1( ckit.Window ):
             sysmenu=True,
             activate_handler = self.onActivate,
             size_handler = self.onSize,
+            close_handler = self.onClose,
             keydown_handler = self.onKeyDown,
             keyup_handler = self.onKeyUp,
             char_handler = self.onChar,
@@ -34,8 +35,13 @@ class Test1( ckit.Window ):
         print( "onActivate", active )
 
     def onSize( self, width, height ):
+        print( "onSize" )
         self.putString( 0, 0, 10, 1, ckit.Attribute( fg=(255,255,255), bg=(0,0,0) ), " %d, %d " % (width, height) )
         self.putString( 0, 1, 10, 1, ckit.Attribute( fg=(50,50,50), bg=(200,200,200) ), " 幅  高 " )
+
+    def onClose(self):
+        print( "onClose" )
+        self.quit()
 
     def onKeyDown( self, vk, mod ):
         print( "onKeyDown", vk, mod )
@@ -98,4 +104,9 @@ class Test2( ckit.Window ):
 
 term1 = Test1()
 
+print( "before messageLoop" )
+
 term1.messageLoop()
+
+print( "after messageLoop" )
+
