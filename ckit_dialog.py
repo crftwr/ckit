@@ -128,7 +128,11 @@ class Dialog( ckitcore.Window ):
 
     def getResult(self):
         if self.result:
-            return [ self.pattern_edit.getText(), self.recursive_checkbox.getValue(), self.regexp_checkbox.getValue(), self.ignorecase_checkbox.getValue() ]
+            values = {}
+            for item in self.items:
+                if item.id!=None:
+                    values[item.id] = item.getValue()
+            return values
         else:
             return None
 
@@ -137,7 +141,7 @@ class Dialog( ckitcore.Window ):
     class StaticText:
 
         def __init__( self, indent, text ):
-            self.id = id
+            self.id = None
             self.indent = indent
             self.text = text
 
@@ -184,6 +188,9 @@ class Dialog( ckitcore.Window ):
 
         def focusable(self):
             return True
+
+        def getValue(self):
+            return self.widget.getText()
 
         def onKeyDown( self, vk, mod ):
 
@@ -235,6 +242,9 @@ class Dialog( ckitcore.Window ):
         def focusable(self):
             return True
 
+        def getValue(self):
+            return self.widget.getValue()
+
         def onKeyDown( self, vk, mod ):
             return self.widget.onKeyDown( vk, mod )
 
@@ -269,6 +279,9 @@ class Dialog( ckitcore.Window ):
 
         def focusable(self):
             return True
+
+        def getValue(self):
+            return self.widget.getValue()
 
         def onKeyDown( self, vk, mod ):
             return self.widget.onKeyDown( vk, mod )

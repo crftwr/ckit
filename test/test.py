@@ -73,7 +73,10 @@ class Test1( ckit.Window ):
                 ckit.Dialog.Choice( "dialog_choice2", 4, "Choice2", [ "選択１", "選択２", "選択３" ], 1 ),
             ])
             dialog.messageLoop()
+            result = dialog.getResult()
             dialog.destroy()
+            
+            print(result)
 
     def onKeyUp( self, vk, mod ):
         print( "onKeyUp", vk, mod )
