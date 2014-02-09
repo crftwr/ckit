@@ -60,6 +60,8 @@ class Test1( ckit.Window ):
             dialog = ckit.Dialog( self, "DialogTest", items=[
                 ckit.Dialog.Edit( "dialog_edit1", "Edit1", "default value", 40 ),
                 ckit.Dialog.Edit( "dialog_edit2", "Edit2", "", 40 ),
+                ckit.Dialog.CheckBox( "dialog_checkbox1", "CheckBox1", False ),
+                ckit.Dialog.CheckBox( "dialog_checkbox2", "CheckBox2", True ),
             ])
             dialog.messageLoop()
             dialog.destroy()

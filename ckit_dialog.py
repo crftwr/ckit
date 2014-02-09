@@ -59,12 +59,6 @@ class Dialog( ckitcore.Window ):
             )
         self.show(True)
 
-        """
-        self.recursive_checkbox = ckit.CheckBoxWidget( self, 2, 3, self.width()-4, 1, "サブディレクトリ", recursive )
-        self.regexp_checkbox = ckit.CheckBoxWidget( self, 2, 4, self.width()-4, 1, "正規表現", regexp )
-        self.ignorecase_checkbox = ckit.CheckBoxWidget( self, 2, 5, self.width()-4, 1, "大文字/小文字を無視", ignorecase )
-        """
-
         self.focus = 0
         self.result = Dialog.RESULT_CANCEL
 
@@ -99,6 +93,7 @@ class Dialog( ckitcore.Window ):
                 if self.items[focus].focusable():
                     self.focus = focus
                     self.paint()
+                    return
 
         elif vk==VK_DOWN or vk==VK_TAB:
             focus = self.focus
@@ -109,27 +104,16 @@ class Dialog( ckitcore.Window ):
                 if self.items[focus].focusable():
                     self.focus = focus
                     self.paint()
+                    return
 
     def onChar( self, ch, mod ):
         item = self.items[self.focus]
         item.onChar( ch, mod )
 
     def paint(self):
-
         for item in self.items:
             focused = (item == self.items[self.focus])
             item.paint( self, focused )
-
-        """
-        self.recursive_checkbox.enableCursor(self.focus==GrepWindow.FOCUS_RECURSIVE)
-        self.recursive_checkbox.paint()
-
-        self.regexp_checkbox.enableCursor(self.focus==GrepWindow.FOCUS_REGEXP)
-        self.regexp_checkbox.paint()
-
-        self.ignorecase_checkbox.enableCursor(self.focus==GrepWindow.FOCUS_IGNORECASE)
-        self.ignorecase_checkbox.paint()
-        """
 
     def getResult(self):
         if self.result:
@@ -160,7 +144,6 @@ class Dialog( ckitcore.Window ):
             return True
 
         def onKeyDown( self, vk, mod ):
-            print( "Edit.onKeyDown", vk, mod )
 
             """
             if self.widget.isListOpened():
@@ -174,12 +157,9 @@ class Dialog( ckitcore.Window ):
             return self.widget.onKeyDown( vk, mod )
 
         def onChar( self, ch, mod ):
-            print( "Edit.onChar", ch, mod )
             self.widget.onChar( ch, mod )
 
         def paint( self, window, focused ):
-
-            print( "Edit.paint", focused )
 
             if focused:
                 attr = ckitcore.Attribute( fg=ckit_theme.getColor("select_fg"), bg=ckit_theme.getColor("select_bg"))
@@ -188,6 +168,37 @@ class Dialog( ckitcore.Window ):
 
             window.putString( self.x, self.y, window.width()-2*2, 1, attr, self.text )
 
+            self.widget.enableCursor(focused)
+            self.widget.paint()
+
+    #--------------------------------------------------------------------
+
+    class CheckBox:
+
+        def __init__( self, id, text, value ):
+            self.id = id
+            self.text = text
+            self.value = value
+
+        def build( self, window, x, y ):
+            self.x = x
+            self.y = y
+            self.width = window.getStringWidth(self.text) + 3
+            self.widget = ckit_widget.CheckBoxWidget( window, x, y, self.width, 1, self.text, self.value )
+
+        def size(self):
+            return (self.width,1)
+
+        def focusable(self):
+            return True
+
+        def onKeyDown( self, vk, mod ):
+            return self.widget.onKeyDown( vk, mod )
+
+        def onChar( self, ch, mod ):
+            pass
+
+        def paint( self, window, focused ):
             self.widget.enableCursor(focused)
             self.widget.paint()
 
