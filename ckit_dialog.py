@@ -95,7 +95,7 @@ class Dialog( ckitcore.Window ):
         elif vk==VK_ESCAPE:
             self.onClose()
 
-        elif vk==VK_UP or (vk==VK_TAB and mod==MODKEY_SHIFT):
+        elif vk==VK_UP:
             focus = self.focus
             while True:
                 focus -= 1
@@ -106,7 +106,7 @@ class Dialog( ckitcore.Window ):
                     self.paint()
                     return
 
-        elif vk==VK_DOWN or vk==VK_TAB:
+        elif vk==VK_DOWN:
             focus = self.focus
             while True:
                 focus += 1
@@ -167,18 +167,20 @@ class Dialog( ckitcore.Window ):
 
     class Edit:
 
-        def __init__( self, id, indent, text, value, width ):
+        def __init__( self, id, indent, width, text, value, candidate_handler=None, candidate_remove_handler=None ):
             self.id = id
             self.indent = indent
+            self.width = width
             self.text = text
             self.value = value
-            self.width = width
+            self.candidate_handler = candidate_handler
+            self.candidate_remove_handler = candidate_remove_handler
 
         def build( self, window, x, y ):
             self.x = x
             self.y = y
             label_width = window.getStringWidth(self.text) + 2
-            self.widget = ckit_widget.EditWidget( window, x+self.indent+label_width, y, self.width-self.indent-label_width, 1, self.value, [ 0, len(self.value) ] )
+            self.widget = ckit_widget.EditWidget( window, x+self.indent+label_width, y, self.width-self.indent-label_width, 1, self.value, [ 0, len(self.value) ], candidate_handler=self.candidate_handler, candidate_remove_handler=self.candidate_remove_handler )
 
         def size(self):
             return (self.width+self.indent,1)
@@ -191,15 +193,20 @@ class Dialog( ckitcore.Window ):
 
         def onKeyDown( self, vk, mod ):
 
-            """
+            # Spaceで補完しない
+            if vk==VK_SPACE:
+                return False
+            
             if self.widget.isListOpened():
+                # Enter/Esc で補完候補を閉じる
                 if vk==VK_RETURN or vk==VK_ESCAPE:
                     self.widget.closeList()
                     return True
-                else:
-                    return self.widget.onKeyDown( vk, mod )
-            """
-
+            else:
+                # Up/Down で補完候補を出さない
+                if vk==VK_UP or vk==VK_DOWN:
+                    return False
+            
             return self.widget.onKeyDown( vk, mod )
 
         def onChar( self, ch, mod ):

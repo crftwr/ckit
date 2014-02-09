@@ -1155,7 +1155,7 @@ class EditWidget(Widget):
         self.list_window_prepared_info = None    
 
     def isListOpened(self):
-        return self.list_window.numItems()!=0
+        return self.list_window and self.list_window.numItems()!=0
 
     def closeList(self):
         if self.candidate_handler:

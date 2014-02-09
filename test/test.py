@@ -57,12 +57,29 @@ class Test1( ckit.Window ):
             test2.destroy()
             
         elif vk==VK_D:
+            
+            string_list = [
+                "Candidate1",
+                "Candidate2",
+                "Candidate3",
+            ]
+            
+            def candidate_String( update_info ):
+
+                candidates = []
+
+                for s in string_list:
+                    if s.lower().startswith( update_info.text.lower() ):
+                        candidates.append( s )
+
+                return candidates, 0
+        
             dialog = ckit.Dialog( self, "DialogTest", items=[
                 ckit.Dialog.StaticText(0,"StaticText1"),
                 ckit.Dialog.StaticText(0,""),
-                ckit.Dialog.Edit( "dialog_edit1", 4, "Edit1", "default value", 40 ),
+                ckit.Dialog.Edit( "dialog_edit1", 4, 40, "Edit1", "default value" ),
                 ckit.Dialog.StaticText(0,""),
-                ckit.Dialog.Edit( "dialog_edit2", 4, "Edit2", "", 40 ),
+                ckit.Dialog.Edit( "dialog_edit2", 4, 40, "Edit2", "", candidate_handler=candidate_String ),
                 ckit.Dialog.StaticText(0,""),
                 ckit.Dialog.CheckBox( "dialog_checkbox1", 4, "CheckBox1", False ),
                 ckit.Dialog.CheckBox( "dialog_checkbox2", 4, "CheckBox2", True ),
