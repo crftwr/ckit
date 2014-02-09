@@ -127,14 +127,11 @@ class Dialog( ckitcore.Window ):
             item.paint( self, focused )
 
     def getResult(self):
-        if self.result:
-            values = {}
-            for item in self.items:
-                if item.id!=None:
-                    values[item.id] = item.getValue()
-            return values
-        else:
-            return None
+        values = {}
+        for item in self.items:
+            if item.id!=None:
+                values[item.id] = item.getValue()
+        return ( self.result, values )
 
     #--------------------------------------------------------------------
 
