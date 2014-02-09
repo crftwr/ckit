@@ -2,11 +2,17 @@ __init__.py
 
 ckit_command.py
 ckit_const.py
+ckit_dialog.py
 ckit_key.py
+ckit_migemo.py
 ckit_misc.py
+ckit_resource.py
+ckit_stdlib.py
 ckit_subprocess.py
+ckit_textwidget.py
 ckit_theme.py
 ckit_threadutil.py
+ckit_userconfig.py
 ckit_widget.py
 
 ckitcore/ckitcore.cpp
