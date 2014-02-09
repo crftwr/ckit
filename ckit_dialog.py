@@ -13,13 +13,13 @@ class Dialog( ckitcore.Window ):
     def __init__( self, parent_window, text, items ):
 
         parent_window_rect = parent_window.getWindowRect()
-        x, y = (parent_window_rect[0] + parent_window_rect[2])//2, (parent_window_rect[1] + parent_window_rect[3])//2
+        window_x, window_y = (parent_window_rect[0] + parent_window_rect[2])//2, (parent_window_rect[1] + parent_window_rect[3])//2
 
         ckitcore.Window.__init__(
             self,
-            x=x,
-            y=y,
-            width=2,
+            x=window_x,
+            y=window_y,
+            width=1,
             height=1,
             origin= ORIGIN_X_CENTER | ORIGIN_Y_CENTER,
             parent_window=parent_window,
@@ -51,8 +51,8 @@ class Dialog( ckitcore.Window ):
         window_height = y+1
 
         self.setPosSize(
-            x=x,
-            y=y,
+            x=window_x,
+            y=window_y,
             width=window_width,
             height=window_height,
             origin= ORIGIN_X_CENTER | ORIGIN_Y_CENTER
