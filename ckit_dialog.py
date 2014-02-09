@@ -39,6 +39,7 @@ class Dialog( ckitcore.Window ):
 
         self.setCursorPos( -1, -1 )
 
+        # 部品初期化
         x = 2
         y = 1
         window_width = 0 + 2*2
@@ -50,6 +51,7 @@ class Dialog( ckitcore.Window ):
             y += h
         window_height = y+1
 
+        # ウインドウサイズ調整
         self.setPosSize(
             x=window_x,
             y=window_y,
@@ -59,7 +61,16 @@ class Dialog( ckitcore.Window ):
             )
         self.show(True)
 
+        # 初期フォーカス位置
         self.focus = 0
+        while True:
+            if self.focus >= len(self.items):
+                self.focus = None
+                break
+            if self.items[self.focus].focusable():
+                break
+            self.focus += 1
+
         self.result = Dialog.RESULT_CANCEL
 
         self.paint()
@@ -123,10 +134,41 @@ class Dialog( ckitcore.Window ):
 
     #--------------------------------------------------------------------
 
+    class StaticText:
+
+        def __init__( self, indent, text ):
+            self.id = id
+            self.indent = indent
+            self.text = text
+
+        def build( self, window, x, y ):
+            self.x = x
+            self.y = y
+            self.width = window.getStringWidth(self.text)
+
+        def size(self):
+            return (self.width+self.indent,1)
+
+        def focusable(self):
+            return False
+
+        def onKeyDown( self, vk, mod ):
+            pass
+
+        def onChar( self, ch, mod ):
+            pass
+
+        def paint( self, window, focused ):
+            attr = ckitcore.Attribute( fg=ckit_theme.getColor("fg"))
+            window.putString( self.x+self.indent, self.y, window.width(), 1, attr, self.text )
+
+    #--------------------------------------------------------------------
+
     class Edit:
 
-        def __init__( self, id, text, value, width ):
+        def __init__( self, id, indent, text, value, width ):
             self.id = id
+            self.indent = indent
             self.text = text
             self.value = value
             self.width = width
@@ -135,10 +177,10 @@ class Dialog( ckitcore.Window ):
             self.x = x
             self.y = y
             label_width = window.getStringWidth(self.text) + 2
-            self.widget = ckit_widget.EditWidget( window, x+label_width, y, self.width-label_width, 1, self.value, [ 0, len(self.value) ] )
+            self.widget = ckit_widget.EditWidget( window, x+self.indent+label_width, y, self.width-self.indent-label_width, 1, self.value, [ 0, len(self.value) ] )
 
         def size(self):
-            return (self.width,1)
+            return (self.width+self.indent,1)
 
         def focusable(self):
             return True
@@ -166,7 +208,7 @@ class Dialog( ckitcore.Window ):
             else:
                 attr = ckitcore.Attribute( fg=ckit_theme.getColor("fg"))
 
-            window.putString( self.x, self.y, window.width()-2*2, 1, attr, self.text )
+            window.putString( self.x+self.indent, self.y, window.width(), 1, attr, self.text )
 
             self.widget.enableCursor(focused)
             self.widget.paint()
@@ -175,8 +217,9 @@ class Dialog( ckitcore.Window ):
 
     class CheckBox:
 
-        def __init__( self, id, text, value ):
+        def __init__( self, id, indent, text, value ):
             self.id = id
+            self.indent = indent
             self.text = text
             self.value = value
 
@@ -184,10 +227,10 @@ class Dialog( ckitcore.Window ):
             self.x = x
             self.y = y
             self.width = window.getStringWidth(self.text) + 3
-            self.widget = ckit_widget.CheckBoxWidget( window, x, y, self.width, 1, self.text, self.value )
+            self.widget = ckit_widget.CheckBoxWidget( window, x+self.indent, y, self.width, 1, self.text, self.value )
 
         def size(self):
-            return (self.width,1)
+            return (self.width+self.indent,1)
 
         def focusable(self):
             return True
@@ -206,8 +249,9 @@ class Dialog( ckitcore.Window ):
 
     class Choice:
 
-        def __init__( self, id, text, items, value ):
+        def __init__( self, id, indent, text, items, value ):
             self.id = id
+            self.indent = indent
             self.text = text
             self.items = items
             self.value = value
@@ -218,10 +262,10 @@ class Dialog( ckitcore.Window ):
             self.width = window.getStringWidth(self.text)
             for item in self.items:
                 self.width += window.getStringWidth(item) + 2
-            self.widget = ckit_widget.ChoiceWidget( window, x, y, self.width, 1, self.text, self.items, self.value )
+            self.widget = ckit_widget.ChoiceWidget( window, x+self.indent, y, self.width, 1, self.text, self.items, self.value )
 
         def size(self):
-            return (self.width,1)
+            return (self.width+self.indent,1)
 
         def focusable(self):
             return True
