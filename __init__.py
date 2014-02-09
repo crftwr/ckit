@@ -11,6 +11,7 @@ from ckit.ckit_stdlib import *
 from ckit.ckit_migemo import *
 from ckit.ckit_widget import *
 from ckit.ckit_textwidget import *
+from ckit.ckit_dialog import *
 from ckit.ckit_key import *
 from ckit.ckit_command import *
 from ckit.ckit_userconfig import *

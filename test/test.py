@@ -10,6 +10,8 @@ from ckit.ckit_const import *
 
 ckit.registerWindowClass( "CkitTest" )
 
+ckit.setTheme( "black", {} )
+
 class Test1( ckit.Window ):
 
     def __init__(self):
@@ -47,11 +49,19 @@ class Test1( ckit.Window ):
         print( "onKeyDown", vk, mod )
         if vk==VK_RETURN:
             rect = self.getWindowRect()
-            dialog = Test2( (rect[0]+rect[2])//2, (rect[1]+rect[3])//2, self.getHWND() )
+            test2 = Test2( (rect[0]+rect[2])//2, (rect[1]+rect[3])//2, self.getHWND() )
             self.enable(False)
-            dialog.messageLoop()
+            test2.messageLoop()
             self.enable(True)
             self.activate()
+            test2.destroy()
+            
+        elif vk==VK_D:
+            dialog = ckit.Dialog( self, "DialogTest", items=[
+                ckit.Dialog.Edit( "dialog_edit1", "Edit1", "default value", 40 ),
+                ckit.Dialog.Edit( "dialog_edit2", "Edit2", "", 40 ),
+            ])
+            dialog.messageLoop()
             dialog.destroy()
 
     def onKeyUp( self, vk, mod ):
@@ -102,11 +112,11 @@ class Test2( ckit.Window ):
         print( "onChar", ch, mod )
 
 
-term1 = Test1()
+test1 = Test1()
 
 print( "before messageLoop" )
 
-term1.messageLoop()
+test1.messageLoop()
 
 print( "after messageLoop" )
 
