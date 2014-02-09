@@ -62,6 +62,8 @@ class Test1( ckit.Window ):
                 ckit.Dialog.Edit( "dialog_edit2", "Edit2", "", 40 ),
                 ckit.Dialog.CheckBox( "dialog_checkbox1", "CheckBox1", False ),
                 ckit.Dialog.CheckBox( "dialog_checkbox2", "CheckBox2", True ),
+                ckit.Dialog.Choice( "dialog_choice1", "Choice1", [ "Option1", "Option2", "Option3" ], 1 ),
+                ckit.Dialog.Choice( "dialog_choice2", "Choice2", [ "選択１", "選択２", "選択３" ], 1 ),
             ])
             dialog.messageLoop()
             dialog.destroy()

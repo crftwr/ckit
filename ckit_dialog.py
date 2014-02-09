@@ -202,3 +202,37 @@ class Dialog( ckitcore.Window ):
             self.widget.enableCursor(focused)
             self.widget.paint()
 
+    #--------------------------------------------------------------------
+
+    class Choice:
+
+        def __init__( self, id, text, items, value ):
+            self.id = id
+            self.text = text
+            self.items = items
+            self.value = value
+
+        def build( self, window, x, y ):
+            self.x = x
+            self.y = y
+            self.width = window.getStringWidth(self.text)
+            for item in self.items:
+                self.width += window.getStringWidth(item) + 2
+            self.widget = ckit_widget.ChoiceWidget( window, x, y, self.width, 1, self.text, self.items, self.value )
+
+        def size(self):
+            return (self.width,1)
+
+        def focusable(self):
+            return True
+
+        def onKeyDown( self, vk, mod ):
+            return self.widget.onKeyDown( vk, mod )
+
+        def onChar( self, ch, mod ):
+            pass
+
+        def paint( self, window, focused ):
+            self.widget.enableCursor(focused)
+            self.widget.paint()
+
