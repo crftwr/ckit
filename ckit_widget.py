@@ -147,13 +147,18 @@ class CheckBoxWidget(Widget):
 
         self.paint()
 
+    def destroy(self):
+        if self.plane:
+            self.plane.destroy()
+
     def onKeyDown( self, vk, mod ):
 
         #print( "onKeyDown", vk )
 
         if vk==VK_SPACE:
             self.check = not self.check
-        self.paint()
+            self.paint()
+            return True
 
     def paint(self):
 
@@ -207,10 +212,13 @@ class ChoiceWidget(Widget):
         if vk==VK_LEFT:
             self.select -= 1
             if self.select<0 : self.select=0
+            self.paint()
+            return True
         elif vk==VK_RIGHT:
             self.select += 1
             if self.select>len(self.item_list)-1 : self.select=len(self.item_list)-1
-        self.paint()
+            self.paint()
+            return True
 
     def paint(self):
 

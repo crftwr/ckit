@@ -40,23 +40,15 @@ class Dialog( ckitcore.Window ):
         self.setCursorPos( -1, -1 )
 
         # 部品初期化
-        x = 2
-        y = 1
-        window_width = 0 + 2*2
         self.items = items
-        for item in self.items:
-            item.build( self, x, y )
-            w,h = item.size()
-            window_width = max( window_width, w + 2*2 )
-            y += h
-        window_height = y+1
-
+        self.rebuildItems()
+        
         # ウインドウサイズ調整
         self.setPosSize(
             x=window_x,
             y=window_y,
-            width=window_width,
-            height=window_height,
+            width=self.window_width,
+            height=self.window_height,
             origin= ORIGIN_X_CENTER | ORIGIN_Y_CENTER
             )
         self.show(True)
@@ -83,10 +75,32 @@ class Dialog( ckitcore.Window ):
         self.result = Dialog.RESULT_OK
         self.quit()
 
+    def rebuildItems(self):
+        x = 2
+        y = 1
+        self.window_width = 0 + 2*2
+        for item in self.items:
+            item.build( self, x, y )
+            w,h = item.size()
+            self.window_width = max( self.window_width, w + 2*2 )
+            y += h
+        self.window_height = y+1
+
+        window_rect = self.getWindowRect()
+        self.setPosSize(
+            x=window_rect[0],
+            y=window_rect[1],
+            width=self.window_width,
+            height=self.window_height,
+            origin= ORIGIN_X_LEFT | ORIGIN_Y_TOP
+            )
+
     def onKeyDown( self, vk, mod ):
 
         item = self.items[self.focus]
         if item.onKeyDown( vk, mod ):
+            self.rebuildItems()
+            self.paint()
             return
 
         if vk==VK_RETURN:
@@ -124,7 +138,13 @@ class Dialog( ckitcore.Window ):
     def paint(self):
         for item in self.items:
             focused = (item == self.items[self.focus])
-            item.paint( self, focused )
+            item.paint( focused )
+
+    def getValueById(self,id):
+        for item in self.items:
+            if item.id==id:
+                return item.getValue()
+        raise KeyError(id)
 
     def getResult(self):
         values = {}
@@ -135,20 +155,34 @@ class Dialog( ckitcore.Window ):
 
     #--------------------------------------------------------------------
 
-    class StaticText:
+    class Item:
+        
+        def __init__( self, visible=None ):
+            self.dialog = None
+            self.visible = visible
+        
+        def isVisible(self):
+            return ( self.visible==None or self.visible(self.dialog) )
 
-        def __init__( self, indent, text ):
+    class StaticText(Item):
+
+        def __init__( self, indent, text, visible=None ):
+            Dialog.Item.__init__(self,visible)
             self.id = None
             self.indent = indent
             self.text = text
 
-        def build( self, window, x, y ):
+        def build( self, dialog, x, y ):
+            self.dialog = dialog
             self.x = x
             self.y = y
-            self.width = window.getStringWidth(self.text)
+            self.width = self.dialog.getStringWidth(self.text)
 
         def size(self):
-            return (self.width+self.indent,1)
+            if self.isVisible():
+                return (self.width+self.indent,1)
+            else:
+                return (0,0)
 
         def focusable(self):
             return False
@@ -159,37 +193,61 @@ class Dialog( ckitcore.Window ):
         def onChar( self, ch, mod ):
             pass
 
-        def paint( self, window, focused ):
+        def paint( self, focused ):
+            if not self.isVisible(): return
             attr = ckitcore.Attribute( fg=ckit_theme.getColor("fg"))
-            window.putString( self.x+self.indent, self.y, window.width(), 1, attr, self.text )
+            self.dialog.putString( self.x+self.indent, self.y, self.dialog.width(), 1, attr, self.text )
 
     #--------------------------------------------------------------------
 
-    class Edit:
+    class Edit(Item):
 
-        def __init__( self, id, indent, width, text, value, candidate_handler=None, candidate_remove_handler=None ):
+        def __init__( self, id, indent, width, text, value, auto_complete=False, autofix_list=None, update_handler=None, candidate_handler=None, candidate_remove_handler=None, word_break_handler=None, visible=None ):
+            Dialog.Item.__init__(self,visible)
             self.id = id
             self.indent = indent
             self.width = width
             self.text = text
             self.value = value
+            self.selection = [ 0, len(self.value) ]
+            self.auto_complete = auto_complete
+            self.autofix_list = autofix_list
+            self.update_handler = update_handler
             self.candidate_handler = candidate_handler
             self.candidate_remove_handler = candidate_remove_handler
+            self.word_break_handler = word_break_handler
+            self.widget = None
 
-        def build( self, window, x, y ):
+        def build( self, dialog, x, y ):
+
+            self.dialog = dialog
             self.x = x
             self.y = y
-            label_width = window.getStringWidth(self.text) + 2
-            self.widget = ckit_widget.EditWidget( window, x+self.indent+label_width, y, self.width-self.indent-label_width, 1, self.value, [ 0, len(self.value) ], candidate_handler=self.candidate_handler, candidate_remove_handler=self.candidate_remove_handler )
+
+            if self.isVisible():
+                if not self.widget:
+                    label_width = self.dialog.getStringWidth(self.text) + 2
+                    self.widget = ckit_widget.EditWidget( self.dialog, x+self.indent+label_width, y, self.width-label_width, 1, self.value, [ 0, len(self.value) ], auto_complete = self.auto_complete, autofix_list = self.autofix_list, update_handler = self.update_handler, candidate_handler=self.candidate_handler, candidate_remove_handler=self.candidate_remove_handler, word_break_handler = self.word_break_handler )
+            else:
+                if self.widget:
+                    self.value = self.widget.getText()
+                    self.widget.destroy()
+                    self.widget = None
 
         def size(self):
-            return (self.width+self.indent,1)
+            if self.widget:
+                return (self.width+self.indent,1)
+            else:
+                return (0,0)
 
         def focusable(self):
-            return True
+            return self.isVisible()
 
         def getValue(self):
-            return self.widget.getText()
+            if self.widget:
+                return self.widget.getText()
+            else:
+                return self.value
 
         def onKeyDown( self, vk, mod ):
 
@@ -212,42 +270,62 @@ class Dialog( ckitcore.Window ):
         def onChar( self, ch, mod ):
             self.widget.onChar( ch, mod )
 
-        def paint( self, window, focused ):
+        def paint( self, focused ):
+            
+            if not self.widget: return
 
             if focused:
                 attr = ckitcore.Attribute( fg=ckit_theme.getColor("select_fg"), bg=ckit_theme.getColor("select_bg"))
             else:
                 attr = ckitcore.Attribute( fg=ckit_theme.getColor("fg"))
 
-            window.putString( self.x+self.indent, self.y, window.width(), 1, attr, self.text )
+            self.dialog.putString( self.x+self.indent, self.y, self.dialog.width(), 1, attr, self.text )
 
             self.widget.enableCursor(focused)
             self.widget.paint()
 
     #--------------------------------------------------------------------
 
-    class CheckBox:
+    class CheckBox(Item):
 
-        def __init__( self, id, indent, text, value ):
+        def __init__( self, id, indent, text, value, visible=None ):
+            Dialog.Item.__init__(self,visible)
             self.id = id
             self.indent = indent
             self.text = text
             self.value = value
+            self.widget = None
 
-        def build( self, window, x, y ):
+        def build( self, dialog, x, y ):
+
+            self.dialog = dialog
             self.x = x
             self.y = y
-            self.width = window.getStringWidth(self.text) + 3
-            self.widget = ckit_widget.CheckBoxWidget( window, x+self.indent, y, self.width, 1, self.text, self.value )
+
+            if self.isVisible():
+                if not self.widget:
+                    self.width = self.dialog.getStringWidth(self.text) + 3
+                    self.widget = ckit_widget.CheckBoxWidget( self.dialog, x+self.indent, y, self.width, 1, self.text, self.value )
+            else:
+                if self.widget:
+                    self.value = self.widget.getValue()
+                    self.widget.destroy()
+                    self.widget = None
 
         def size(self):
-            return (self.width+self.indent,1)
+            if self.widget:
+                return (self.width+self.indent,1)
+            else:
+                return (0,0)
 
         def focusable(self):
-            return True
+            return self.isVisible()
 
         def getValue(self):
-            return self.widget.getValue()
+            if self.widget:
+                return self.widget.getValue()
+            else:
+                return self.value
 
         def onKeyDown( self, vk, mod ):
             return self.widget.onKeyDown( vk, mod )
@@ -255,37 +333,56 @@ class Dialog( ckitcore.Window ):
         def onChar( self, ch, mod ):
             pass
 
-        def paint( self, window, focused ):
+        def paint( self, focused ):
+            if not self.widget: return
             self.widget.enableCursor(focused)
             self.widget.paint()
 
     #--------------------------------------------------------------------
 
-    class Choice:
+    class Choice(Item):
 
-        def __init__( self, id, indent, text, items, value ):
+        def __init__( self, id, indent, text, items, value, visible=None ):
+            Dialog.Item.__init__(self,visible)
             self.id = id
             self.indent = indent
             self.text = text
             self.items = items
             self.value = value
+            self.widget = None
 
-        def build( self, window, x, y ):
+        def build( self, dialog, x, y ):
+
+            self.dialog = dialog
             self.x = x
             self.y = y
-            self.width = window.getStringWidth(self.text)
-            for item in self.items:
-                self.width += window.getStringWidth(item) + 2
-            self.widget = ckit_widget.ChoiceWidget( window, x+self.indent, y, self.width, 1, self.text, self.items, self.value )
+
+            if self.isVisible():
+                if not self.widget:
+                    self.width = self.dialog.getStringWidth(self.text)
+                    for item in self.items:
+                        self.width += self.dialog.getStringWidth(item) + 2
+                    self.widget = ckit_widget.ChoiceWidget( self.dialog, x+self.indent, y, self.width, 1, self.text, self.items, self.value )
+            else:
+                if self.widget:
+                    self.value = self.widget.getValue()
+                    self.widget.destroy()
+                    self.widget = None
 
         def size(self):
-            return (self.width+self.indent,1)
+            if self.widget:
+                return (self.width+self.indent,1)
+            else:
+                return (0,0)
 
         def focusable(self):
-            return True
+            return self.isVisible()
 
         def getValue(self):
-            return self.widget.getValue()
+            if self.widget:
+                return self.widget.getValue()
+            else:
+                return self.value
 
         def onKeyDown( self, vk, mod ):
             return self.widget.onKeyDown( vk, mod )
@@ -293,7 +390,8 @@ class Dialog( ckitcore.Window ):
         def onChar( self, ch, mod ):
             pass
 
-        def paint( self, window, focused ):
+        def paint( self, focused ):
+            if not self.widget: return
             self.widget.enableCursor(focused)
             self.widget.paint()
 
