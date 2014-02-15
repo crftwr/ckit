@@ -727,15 +727,19 @@ class EditWidget(Widget):
                     return self.list_window.onKeyDown( vk, mod )
 
             elif vk==VK_LEFT:
+                self.closeList()
                 self.appendUndo(None)
                 self.selection[1] = max( self.selection[1]-1, 0 )
             elif vk==VK_RIGHT:
+                self.closeList()
                 self.appendUndo(None)
                 self.selection[1] = min( self.selection[1]+1, len(self.text) )
             elif vk==VK_HOME:
+                self.closeList()
                 self.appendUndo(None)
                 self.selection[1] = 0
             elif vk==VK_END:
+                self.closeList()
                 self.appendUndo(None)
                 self.selection[1] = len(self.text)
             self.makeVisible( self.selection[1] )
@@ -744,6 +748,7 @@ class EditWidget(Widget):
         elif mod==MODKEY_CTRL:
 
             if vk==VK_LEFT:
+                self.closeList()
                 self.appendUndo(None)
                 new_cursor_pos = self.word_break_handler( self.text, self.selection[1], -1 )
                 self.selection = [ new_cursor_pos, new_cursor_pos ]
@@ -751,6 +756,7 @@ class EditWidget(Widget):
                 self.paint()
 
             elif vk==VK_RIGHT:
+                self.closeList()
                 self.appendUndo(None)
                 new_cursor_pos = self.word_break_handler( self.text, self.selection[1], +1 )
                 self.selection = [ new_cursor_pos, new_cursor_pos ]
@@ -792,6 +798,7 @@ class EditWidget(Widget):
                     self.popupList()
 
             elif vk==VK_A:
+                self.closeList()
                 self.appendUndo(None)
                 self.selection = [ 0, len(self.text) ]
                 self.makeVisible( self.selection[1] )
@@ -892,12 +899,14 @@ class EditWidget(Widget):
         elif mod==MODKEY_SHIFT|MODKEY_CTRL:
 
             if vk==VK_LEFT:
+                self.closeList()
                 self.appendUndo(None)
                 self.selection[1] = self.word_break_handler( self.text, self.selection[1], -1 )
                 self.makeVisible( self.selection[1] )
                 self.paint()
 
             elif vk==VK_RIGHT:
+                self.closeList()
                 self.appendUndo(None)
                 self.selection[1] = self.word_break_handler( self.text, self.selection[1], +1 )
                 self.makeVisible( self.selection[1] )
@@ -989,17 +998,21 @@ class EditWidget(Widget):
 
             elif self.selection[0]==self.selection[1]:
                 if vk==VK_LEFT:
+                    self.closeList()
                     self.appendUndo(None)
                     new_cursor_pos = max( self.selection[1]-1, 0 )
                     self.selection = [ new_cursor_pos, new_cursor_pos ]
                 elif vk==VK_RIGHT:
+                    self.closeList()
                     self.appendUndo(None)
                     new_cursor_pos = min( self.selection[1]+1, len(self.text) )
                     self.selection = [ new_cursor_pos, new_cursor_pos ]
                 elif vk==VK_HOME:
+                    self.closeList()
                     self.appendUndo(None)
                     self.selection = [ 0, 0 ]
                 elif vk==VK_END:
+                    self.closeList()
                     self.appendUndo(None)
                     self.selection = [ len(self.text), len(self.text) ]
                 elif vk==VK_DELETE:
@@ -1028,17 +1041,21 @@ class EditWidget(Widget):
                 self.paint()
             else:
                 if vk==VK_LEFT:
+                    self.closeList()
                     self.appendUndo(None)
                     new_cursor_pos = min( self.selection[0], self.selection[1] )
                     self.selection = [ new_cursor_pos, new_cursor_pos ]
                 elif vk==VK_RIGHT:
+                    self.closeList()
                     self.appendUndo(None)
                     new_cursor_pos = max( self.selection[0], self.selection[1] )
                     self.selection = [ new_cursor_pos, new_cursor_pos ]
                 elif vk==VK_HOME:
+                    self.closeList()
                     self.appendUndo(None)
                     self.selection = [ 0, 0 ]
                 elif vk==VK_END:
+                    self.closeList()
                     self.appendUndo(None)
                     self.selection = [ len(self.text), len(self.text) ]
                 elif vk==VK_DELETE or vk==VK_BACK:
