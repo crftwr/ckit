@@ -455,6 +455,7 @@ Window::Window( Param & param )
     ime_on = false;
     ime_context = (HIMC)NULL;
     menu = NULL;
+	perf_fillrect_count = 0;
 	perf_drawtext_count = 0;
 	perf_drawplane_count = 0;
 
@@ -623,10 +624,12 @@ void Window::clearDirtyRect()
 		/*
 		printf( "clearDirtyRect\n" );
 		printf( "  dirty_rect : %d, %d, %d, %d\n", dirty_rect.left, dirty_rect.top, dirty_rect.right, dirty_rect.bottom );
+		printf( "  perf_fillrect_count : %d\n", perf_fillrect_count );
 		printf( "  perf_drawtext_count : %d\n", perf_drawtext_count );
 		printf( "  perf_drawplane_count : %d\n", perf_drawplane_count );
 		*/
 
+		perf_fillrect_count = 0;
 		perf_drawtext_count = 0;
 		perf_drawplane_count = 0;
 
@@ -873,6 +876,8 @@ void Window::_drawTextLayer( HDC hDC, const RECT & paint_rect, bool clear_bg, bo
 					};
 
 					FillRect( hDC, &rect, bg_brush );
+
+					perf_fillrect_count ++;
 				}
 			}
 
@@ -1563,8 +1568,6 @@ LRESULT CALLBACK Window::_wndProc( HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
             SetProp( hwnd, L"ckit_userdata", window );
 
 	        window->enableIme(false);
-
-			GetCaretBlinkTime();
 
             SetTimer(hwnd, TIMER_PAINT, TIMER_PAINT_INTERVAL, NULL);
             SetTimer(hwnd, TIMER_CURSOR_BLINK, GetCaretBlinkTime(), NULL);

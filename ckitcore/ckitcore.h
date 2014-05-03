@@ -406,6 +406,7 @@ namespace ckit
         RECT ime_rect;
         bool _dirty;
         RECT dirty_rect;
+		int perf_fillrect_count;
 		int perf_drawtext_count;
 		int perf_drawplane_count;
         bool ncpaint;
