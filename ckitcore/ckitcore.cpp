@@ -202,7 +202,7 @@ Plane::~Plane()
 	Py_XDECREF(pyobj); pyobj=NULL;
 
 	RECT dirty_rect = { x, y, x+width, y+height };
-	window->appendDirtyRect( dirty_rect );
+	window->appendDirtyRect( dirty_rect, false );
 }
 
 void Plane::SetPyObject( PyObject * _pyobj )
@@ -226,7 +226,7 @@ void Plane::Show( bool _show )
 	show = _show;
 
 	RECT dirty_rect = { x, y, x+width, y+height };
-	window->appendDirtyRect( dirty_rect );
+	window->appendDirtyRect( dirty_rect, false );
 }
 
 void Plane::SetPos( int _x, int _y )
@@ -236,13 +236,13 @@ void Plane::SetPos( int _x, int _y )
 	if( x==_x && y==_y ) return;
 
 	RECT dirty_rect = { x, y, x+width, y+height };
-	window->appendDirtyRect( dirty_rect );
+	window->appendDirtyRect( dirty_rect, false );
 
 	x = _x;
 	y = _y;
 
 	RECT dirty_rect2 = { x, y, x+width, y+height };
-	window->appendDirtyRect( dirty_rect2 );
+	window->appendDirtyRect( dirty_rect2, false );
 }
 
 void Plane::SetSize( int _width, int _height )
@@ -252,13 +252,13 @@ void Plane::SetSize( int _width, int _height )
 	if( width==_width && height==_height ) return;
 
 	RECT dirty_rect = { x, y, x+width, y+height };
-	window->appendDirtyRect( dirty_rect );
+	window->appendDirtyRect( dirty_rect, false );
 
 	width = _width;
 	height = _height;
 
 	RECT dirty_rect2 = { x, y, x+width, y+height };
-	window->appendDirtyRect( dirty_rect2 );
+	window->appendDirtyRect( dirty_rect2, false );
 }
 
 void Plane::SetPriority( float _priority )
@@ -270,7 +270,7 @@ void Plane::SetPriority( float _priority )
 	priority = _priority;
 
 	RECT dirty_rect = { x, y, x+width, y+height };
-	window->appendDirtyRect( dirty_rect );
+	window->appendDirtyRect( dirty_rect, false );
 }
 
 void Plane::SetImage( Image * _image )
@@ -288,7 +288,7 @@ void Plane::SetImage( Image * _image )
 	if(image) image->AddRef();
 
 	RECT dirty_rect = { x, y, x+width, y+height };
-	window->appendDirtyRect( dirty_rect );
+	window->appendDirtyRect( dirty_rect, false );
 }
 
 void Plane::SetIcon( Icon * _icon )
@@ -306,7 +306,7 @@ void Plane::SetIcon( Icon * _icon )
 	if(icon) icon->AddRef();
 
 	RECT dirty_rect = { x, y, x+width, y+height };
-	window->appendDirtyRect( dirty_rect );
+	window->appendDirtyRect( dirty_rect, false );
 }
 
 //-----------------------------------------------------------------------------
@@ -441,6 +441,9 @@ Window::Window( Param & param )
     memset( &last_valid_window_rect, 0, sizeof(last_valid_window_rect) );
 	offscreen_dc = NULL;
 	offscreen_bmp = NULL;
+	text_offscreen_dc = NULL;
+	text_offscreen_bmp = NULL;
+    text_offscreen_buf = NULL;
 	offscreen_size.cx = 0;
 	offscreen_size.cy = 0;
 	bg_brush = NULL;
@@ -579,6 +582,8 @@ Window::~Window()
     if(cursor1_brush) { DeleteObject(cursor1_brush); cursor1_brush = NULL; }
 	if(offscreen_bmp) { DeleteObject(offscreen_bmp); offscreen_bmp = NULL; };
 	if(offscreen_dc) { DeleteObject(offscreen_dc); offscreen_dc = NULL; };
+	if(text_offscreen_bmp) { DeleteObject(text_offscreen_bmp); text_offscreen_bmp = NULL; };
+	if(text_offscreen_dc) { DeleteObject(text_offscreen_dc); text_offscreen_dc = NULL; };
 }
 
 void Window::SetPyObject( PyObject * _pyobj )
@@ -621,13 +626,14 @@ void Window::clearDirtyRect()
 {
 	if(_dirty)
 	{
-		/*
-		printf( "clearDirtyRect\n" );
-		printf( "  dirty_rect : %d, %d, %d, %d\n", dirty_rect.left, dirty_rect.top, dirty_rect.right, dirty_rect.bottom );
-		printf( "  perf_fillrect_count : %d\n", perf_fillrect_count );
-		printf( "  perf_drawtext_count : %d\n", perf_drawtext_count );
-		printf( "  perf_drawplane_count : %d\n", perf_drawplane_count );
-		*/
+		if(0)
+		{
+			printf( "perf info\n" );
+			printf( "  dirty_rect : %d, %d, %d, %d\n", dirty_rect.left, dirty_rect.top, dirty_rect.right, dirty_rect.bottom );
+			printf( "  perf_fillrect_count : %d\n", perf_fillrect_count );
+			printf( "  perf_drawtext_count : %d\n", perf_drawtext_count );
+			printf( "  perf_drawplane_count : %d\n", perf_drawplane_count );
+		}
 
 		perf_fillrect_count = 0;
 		perf_drawtext_count = 0;
@@ -661,6 +667,8 @@ void Window::setDirtyTextLayerRect( const RECT & rect )
 void Window::scroll( int x, int y, int width, int height, int delta_x, int delta_y )
 {
 	FUNC_TRACE;
+
+	BOOL ret;
 
 	// まだ描いてないものがあれば描く
     flushPaint( NULL, false );
@@ -732,9 +740,17 @@ void Window::scroll( int x, int y, int width, int height, int delta_x, int delta
 		(y+delta_y) * font_h + border_top, 
 		(x+width+delta_x) * font_w + border_left, 
 		(y+height+delta_y) * font_h + border_top };
-
-	BOOL ret = ScrollDC( 
+	
+	ret = ScrollDC( 
 		offscreen_dc, 
+		delta_x * font_w,
+		delta_y * font_h,
+		&src_rect,
+		NULL, NULL, NULL );
+	assert(ret);
+
+	ret = ScrollDC( 
+		text_offscreen_dc, 
 		delta_x * font_w,
 		delta_y * font_h,
 		&src_rect,
@@ -744,60 +760,12 @@ void Window::scroll( int x, int y, int width, int height, int delta_x, int delta
 	appendDirtyRect( dst_rect, false );
 }
 
-void Window::_drawBorder( HDC hDC, const RECT & paint_rect )
+void Window::_drawBackground( HDC hDC, const RECT & paint_rect )
 {
-    RECT client_rect;
-    GetClientRect(hwnd, &client_rect);
-
-	RECT rect;
-	
-	// 上
-	rect.left = 0;
-	rect.top = 0;
-	rect.right = client_rect.right;
-	rect.bottom = border_top;
-
-	if( RectVisible( hDC, &rect ) )
-	{
-		FillRect( hDC, &rect, bg_brush );
-	}
-
-	// 下
-	rect.left = 0;
-	rect.top = height() * font_h + border_top;
-	rect.right = client_rect.right;
-	rect.bottom = client_rect.bottom;
-
-	if( RectVisible( hDC, &rect ) )
-	{
-		FillRect( hDC, &rect, bg_brush );
-	}
-
-	// 左
-	rect.left = 0;
-	rect.top = border_top;
-	rect.right = border_left;
-	rect.bottom = height() * font_h + border_top;
-
-	if( RectVisible( hDC, &rect ) )
-	{
-		FillRect( hDC, &rect, bg_brush );
-	}
-
-	// 右
-	rect.left = width() * font_w + border_left;
-	rect.top = border_top;
-	rect.right = client_rect.right;
-	rect.bottom = height() * font_h + border_top;
-
-	if( RectVisible( hDC, &rect ) )
-	{
-		FillRect( hDC, &rect, bg_brush );
-	}
+	FillRect( hDC, &paint_rect, bg_brush );
 }
 
-// テキストレイヤーの描画
-void Window::_drawTextLayer( HDC hDC, const RECT & paint_rect, bool clear_bg, bool draw_text )
+void Window::_drawText( HDC hDC )
 {
 	FUNC_TRACE;
 
@@ -806,17 +774,14 @@ void Window::_drawTextLayer( HDC hDC, const RECT & paint_rect, bool clear_bg, bo
     unsigned int work_len;
 	bool work_dirty;
 
+	SelectObject(hDC, font_handle);
+
     for( int y=visible_rect.top ; y<(int)char_buffer.size() && y<visible_rect.bottom ; ++y )
     {
-    	if( (y+1)*font_h+border_top <= paint_rect.top ) continue;
-    	if( y*font_h+border_top >= paint_rect.bottom ) break;
-
         Line & line = *(char_buffer[y]);
 
         for( int x=visible_rect.left ; x<(int)line.size() && x<visible_rect.right ; ++x )
         {
-	    	if( x*font_w+border_left >= paint_rect.right ) break;
-
             Char & chr = line[x];
 
             work_len = 0;
@@ -854,34 +819,11 @@ void Window::_drawTextLayer( HDC hDC, const RECT & paint_rect, bool clear_bg, bo
 				if(chr2.dirty)
 				{
 					work_dirty = true;
-					
-					if(draw_text)
-					{
-						chr2.dirty = false;
-					}
+					chr2.dirty = false;
 				}
             }
 
-    		if( x2*font_w+border_left <= paint_rect.left ) continue;
-
-			if(clear_bg && work_dirty)
-			{
-				if( chr.attr.bg==0 )
-				{
-					RECT rect = {
-						(x-visible_rect.left) * font_w + border_left,
-						(y-visible_rect.top) * font_h + border_top,
-						(x2-visible_rect.left) * font_w + border_left,
-                		(y-visible_rect.top) * font_h + font_h + border_top
-					};
-
-					FillRect( hDC, &rect, bg_brush );
-
-					perf_fillrect_count ++;
-				}
-			}
-
-			if(draw_text && work_dirty)
+			if(work_dirty)
 			{
 				if( chr.attr.bg & Attribute::BG_Flat )
 				{
@@ -901,6 +843,8 @@ void Window::_drawTextLayer( HDC hDC, const RECT & paint_rect, bool clear_bg, bo
 
 					DeleteObject(hBrush);
 					DeleteObject(hPen);
+
+					perf_fillrect_count ++;
 				}
 				else if( chr.attr.bg & Attribute::BG_Gradation )
 				{
@@ -950,9 +894,34 @@ void Window::_drawTextLayer( HDC hDC, const RECT & paint_rect, bool clear_bg, bo
 						2,
 						GRADIENT_FILL_TRIANGLE
 					);
+
+					perf_fillrect_count ++;
+				}
+				else
+				{
+					HBRUSH brush = (HBRUSH)GetStockObject( BLACK_BRUSH );
+
+					RECT rect = {
+						(x-visible_rect.left) * font_w + border_left,
+						(y-visible_rect.top) * font_h + border_top,
+						(x2-visible_rect.left) * font_w + border_left,
+                		(y-visible_rect.top) * font_h + font_h + border_top
+					};
+
+					FillRect( hDC, &rect, brush );
+
+					perf_fillrect_count ++;
 				}
 
-	            SetTextColor( hDC, chr.attr.fg_color );
+				if(chr.attr.bg)
+				{
+					SetTextColor( hDC, chr.attr.fg_color );
+				}
+				else
+				{
+					SetTextColor( hDC, RGB(0xff, 0xff, 0xff) );
+				}
+
 	            SetBkMode( hDC, TRANSPARENT );
 
 	            ExtTextOut(
@@ -966,8 +935,52 @@ void Window::_drawTextLayer( HDC hDC, const RECT & paint_rect, bool clear_bg, bo
 
 				perf_drawtext_count ++;
 
+				if(chr.attr.bg)
+				{
+					RECT rect = {
+						(x-visible_rect.left) * font_w + border_left,
+						(y-visible_rect.top) * font_h + border_top,
+						(x2-visible_rect.left) * font_w + border_left,
+                		(y-visible_rect.top) * font_h + font_h + border_top
+					};
+
+					// Alphaを 255 で埋める
+					for( int py=rect.top ; py<rect.bottom ; ++py )
+					{
+						for( int px=rect.left ; px<rect.right ; ++px )
+						{
+							text_offscreen_buf[ (offscreen_size.cy-py-1) * offscreen_size.cx * 4 + px * 4 + 3 ] = 0xff;
+						}
+					}
+				}
+				else
+				{
+					RECT rect = {
+						(x-visible_rect.left) * font_w + border_left,
+						(y-visible_rect.top) * font_h + border_top,
+						(x2-visible_rect.left) * font_w + border_left,
+                		(y-visible_rect.top) * font_h + font_h + border_top
+					};
+
+					// Premultiplied Alpha 処理
+					for( int py=rect.top ; py<rect.bottom ; ++py )
+					{
+						for( int px=rect.left ; px<rect.right ; ++px )
+						{
+							int alpha = text_offscreen_buf[ (offscreen_size.cy-py-1) * offscreen_size.cx * 4 + px * 4 + 1 ];
+							text_offscreen_buf[ (offscreen_size.cy-py-1) * offscreen_size.cx * 4 + px * 4 + 0 ] = GetBValue(chr.attr.fg_color) * alpha / 255;
+							text_offscreen_buf[ (offscreen_size.cy-py-1) * offscreen_size.cx * 4 + px * 4 + 1 ] = GetGValue(chr.attr.fg_color) * alpha / 255;
+							text_offscreen_buf[ (offscreen_size.cy-py-1) * offscreen_size.cx * 4 + px * 4 + 2 ] = GetRValue(chr.attr.fg_color) * alpha / 255;
+							text_offscreen_buf[ (offscreen_size.cy-py-1) * offscreen_size.cx * 4 + px * 4 + 3 ] = alpha;
+						}
+					}
+				}
+
 				for( int line=0 ; line<2 ; ++line )
 				{
+					// FIXME : Line に Alpha値 を書く
+					// もしかしたら、バッファを直接操作するべきかも
+
 		            if( chr.attr.line[line] & (Attribute::Line_Left|Attribute::Line_Right|Attribute::Line_Top|Attribute::Line_Bottom) )
 		            {
 		            	HPEN hPen;
@@ -990,66 +1003,42 @@ void Window::_drawTextLayer( HDC hDC, const RECT & paint_rect, bool clear_bg, bo
 
 						if(chr.attr.line[line] & Attribute::Line_Left)
 						{
-				            MoveToEx(
-				            	hDC,
-				            	(x-visible_rect.left) * font_w + border_left,
-			                	(y-visible_rect.top) * font_h + border_top,
-			                	NULL
-				            	);
-
-				            LineTo(
-				            	hDC,
-				            	(x-visible_rect.left) * font_w + border_left,
-			                	(y-visible_rect.top) * font_h + font_h + border_top
-				            	);
+							_drawVerticalLine( 
+								(x-visible_rect.left) * font_w + border_left, 
+								(y-visible_rect.top) * font_h + border_top, 
+								(y-visible_rect.top) * font_h + font_h + border_top, 
+								chr.attr.line_color[line], 
+								(chr.attr.line[line] & Attribute::Line_Dot)!=0 );
 						}
 
 						if(chr.attr.line[line] & Attribute::Line_Bottom)
 						{
-				            MoveToEx(
-				            	hDC,
-				            	(x-visible_rect.left) * font_w + border_left,
-			                	(y-visible_rect.top) * font_h + font_h-1 + border_top,
-			                	NULL
-				            	);
-
-				            LineTo(
-				            	hDC,
-				            	(x2-visible_rect.left) * font_w + border_left,
-			                	(y-visible_rect.top) * font_h + font_h-1 + border_top
-				            	);
+							_drawHorizontalLine( 
+								(x-visible_rect.left) * font_w + border_left, 
+								(y-visible_rect.top) * font_h + font_h-1 + border_top, 
+								(x2-visible_rect.left) * font_w + border_left, 
+								chr.attr.line_color[line], 
+								(chr.attr.line[line] & Attribute::Line_Dot)!=0 );
 						}
 
 						if(chr.attr.line[line] & Attribute::Line_Right)
 						{
-				            MoveToEx(
-				            	hDC,
-				            	(x2-visible_rect.left) * font_w-1 + border_left,
+							_drawVerticalLine( 
+								(x2-visible_rect.left) * font_w-1 + border_left, 
 			                	(y-visible_rect.top) * font_h + border_top,
-			                	NULL
-				            	);
-
-				            LineTo(
-				            	hDC,
-				            	(x2-visible_rect.left) * font_w-1 + border_left,
-			                	(y-visible_rect.top) * font_h + font_h + border_top
-				            	);
+								(y-visible_rect.top) * font_h + font_h + border_top, 
+								chr.attr.line_color[line], 
+								(chr.attr.line[line] & Attribute::Line_Dot)!=0 );
 						}
 
 						if(chr.attr.line[line] & Attribute::Line_Top)
 						{
-				            MoveToEx(
-				            	hDC,
-				            	(x-visible_rect.left) * font_w + border_left,
+							_drawHorizontalLine( 
+								(x-visible_rect.left) * font_w + border_left, 
 			                	(y-visible_rect.top) * font_h + border_top,
-			                	NULL
-				            	);
-
-				            LineTo(
-				            	hDC,
 				            	(x2-visible_rect.left) * font_w + border_left,
-			                	(y-visible_rect.top) * font_h + border_top
-				            	);
+								chr.attr.line_color[line], 
+								(chr.attr.line[line] & Attribute::Line_Dot)!=0 );
 						}
 
 			            DeleteObject(hPen);
@@ -1061,8 +1050,62 @@ void Window::_drawTextLayer( HDC hDC, const RECT & paint_rect, bool clear_bg, bo
         }
     }
 
+    delete [] work_width;
+    delete [] work_text;
+}
+
+// テキスト用オフスクリーンバッファに水平ラインを描画する
+void Window::_drawHorizontalLine( int x1, int y1, int x2, COLORREF color, bool dotted )
+{
+	color = (0xff << 24) | (GetRValue(color) << 16) | (GetGValue(color) << 8) | GetBValue(color);
+	int step;
+	if(dotted) { step=2; } else { step=1; }
+
+	for( int x=x1 ; x<x2 ; x+=step )
+	{
+		*(int*)(&text_offscreen_buf[ (offscreen_size.cy-y1-1) * offscreen_size.cx * 4 + x * 4 + 0 ]) = color;
+	}
+}
+
+// テキスト用オフスクリーンバッファに垂直ラインを描画する
+void Window::_drawVerticalLine( int x1, int y1, int y2, COLORREF color, bool dotted )
+{
+	color = (0xff << 24) | (GetRValue(color) << 16) | (GetGValue(color) << 8) | GetBValue(color);
+	int step;
+	if(dotted) { step=2; } else { step=1; }
+
+	for( int y=y1 ; y<y2 ; y+=step )
+	{
+		*(int*)(&text_offscreen_buf[ (offscreen_size.cy-y-1) * offscreen_size.cx * 4 + x1 * 4 + 0 ]) = color;
+	}
+}
+
+// テキストレイヤーの描画
+void Window::_drawTextLayer( HDC hDC, const RECT & paint_rect )
+{
+	FUNC_TRACE;
+
+	// テキスト用オフスクリーンバッファからの AlphaBlend
+	{
+		int width = paint_rect.right - paint_rect.left;
+		int height = paint_rect.bottom - paint_rect.top;
+
+		BLENDFUNCTION bf;
+		bf.BlendOp = AC_SRC_OVER;
+		bf.BlendFlags = 0;
+		bf.AlphaFormat = AC_SRC_ALPHA;
+		//bf.AlphaFormat = 0;
+		bf.SourceConstantAlpha = 255;
+	
+		AlphaBlend(
+			hDC, paint_rect.left, paint_rect.top, width, height,
+			text_offscreen_dc, paint_rect.left, paint_rect.top, width, height,
+			bf
+			);
+	}
+
     // カーソルの描画
-    if( draw_text && cursor && cursor_blink )
+    if( cursor && cursor_blink )
     {
 	    if(visible_rect.top      <= cursor_position.Y &&
 	       visible_rect.bottom-1 >= cursor_position.Y &&
@@ -1084,9 +1127,6 @@ void Window::_drawTextLayer( HDC hDC, const RECT & paint_rect, bool clear_bg, bo
             PatBlt( hDC, pntX, pntY, 2, font_h, PATINVERT );
 	    }
     }
-
-    delete [] work_width;
-    delete [] work_text;
 }
 
 // ビットマップレイヤーの描画
@@ -1109,12 +1149,6 @@ void Window::_drawBitmapLayer( HDC hDC, const RECT & paint_rect, bool draw_low_p
    		{
    			continue;
    		}
-
-		// テキストより奥の Plane は上に乗っているテキストの再描画を促す
-		if(draw_low_priority)
-		{
-			setDirtyTextLayerRect(plane_rect);
-		}
 
    		if( plane->image )
    		{
@@ -1202,15 +1236,40 @@ void Window::flushPaint( HDC hDC, bool bitblt )
 	if( dirty_rect.right > client_rect.right ) dirty_rect.right = client_rect.right;
 	if( dirty_rect.bottom > client_rect.bottom ) dirty_rect.bottom = client_rect.bottom;
 
-	if( offscreen_dc==NULL || offscreen_bmp==NULL || offscreen_size.cx!=client_rect.right-client_rect.left || offscreen_size.cy!=client_rect.bottom-client_rect.top )
+	// オフスクリーンバッファ生成
+	if( offscreen_dc==NULL || offscreen_bmp==NULL || text_offscreen_dc==NULL || text_offscreen_bmp==NULL || offscreen_size.cx!=client_rect.right-client_rect.left || offscreen_size.cy!=client_rect.bottom-client_rect.top )
 	{
 		if(offscreen_dc){ DeleteObject(offscreen_dc); }
 		if(offscreen_bmp){ DeleteObject(offscreen_bmp); }
+		if(text_offscreen_dc){ DeleteObject(text_offscreen_dc); }
+		if(text_offscreen_bmp){ DeleteObject(text_offscreen_bmp); }
+		
+		int width = client_rect.right-client_rect.left;
+		int height = client_rect.bottom-client_rect.top;
+		if(width<1){ width=1; }
+		if(height<1){ height=1; }
+
+		// オフスクリーン
 		offscreen_dc = CreateCompatibleDC(hDC);
-		offscreen_bmp = CreateCompatibleBitmap(hDC, client_rect.right-client_rect.left, client_rect.bottom-client_rect.top);
+		offscreen_bmp = CreateCompatibleBitmap(hDC, width, height);
+		SelectObject(offscreen_dc, offscreen_bmp);
+
+		// テキスト用オフスクリーン
+		text_offscreen_dc = CreateCompatibleDC(hDC);
+		BITMAPINFO bmi;
+		ZeroMemory(&bmi, sizeof(BITMAPINFO));
+		bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+		bmi.bmiHeader.biWidth = width;
+		bmi.bmiHeader.biHeight = height;
+		bmi.bmiHeader.biPlanes = 1;
+		bmi.bmiHeader.biBitCount = 32;
+		bmi.bmiHeader.biCompression = BI_RGB;
+		bmi.bmiHeader.biSizeImage = width * height * 4;
+		text_offscreen_bmp = CreateDIBSection( text_offscreen_dc, &bmi, DIB_RGB_COLORS, (void**)&text_offscreen_buf, NULL, 0 );
+		SelectObject(text_offscreen_dc, text_offscreen_bmp);
+
 		offscreen_size.cx = client_rect.right-client_rect.left;
 		offscreen_size.cy = client_rect.bottom-client_rect.top;
-		SelectObject(offscreen_dc, offscreen_bmp);
 		
 		// オフスクリーンを作った直後は全て描く
 		dirty_rect = client_rect;
@@ -1218,20 +1277,20 @@ void Window::flushPaint( HDC hDC, bool bitblt )
 		FillRect( offscreen_dc, &dirty_rect, bg_brush );
 	}
 
+	// オフスクリーンへの描画
 	{
 	    IntersectClipRect( offscreen_dc, dirty_rect.left, dirty_rect.top, dirty_rect.right, dirty_rect.bottom );
 
-		SelectObject(offscreen_dc, font_handle);
-
-		_drawBorder( offscreen_dc, dirty_rect );
-		_drawTextLayer( offscreen_dc, dirty_rect, true, false );
+		_drawBackground( offscreen_dc, dirty_rect );
 		_drawBitmapLayer( offscreen_dc, dirty_rect, true, false );
-		_drawTextLayer( offscreen_dc, dirty_rect, false, true );
+		_drawText( text_offscreen_dc );
+		_drawTextLayer( offscreen_dc, dirty_rect );
 		_drawBitmapLayer( offscreen_dc, dirty_rect, false, true );
 
 		SelectClipRgn( offscreen_dc, NULL );
 	}
 
+	// オフスクリーンからウインドウに転送
 	if(bitblt)
 	{
 	    BOOL ret = BitBlt( hDC, dirty_rect.left, dirty_rect.top, dirty_rect.right-dirty_rect.left, dirty_rect.bottom-dirty_rect.top, offscreen_dc, dirty_rect.left, dirty_rect.top, SRCCOPY );
@@ -1517,7 +1576,7 @@ void Window::_onTimerCursorBlink()
 	if( cursor_position.X>=0 && cursor_position.Y>=0 )
 	{
 		RECT dirty_rect = { (cursor_position.X-1)*font_w+border_left, cursor_position.Y*font_h+border_top, (cursor_position.X+1)*font_w+border_left, (cursor_position.Y+1)*font_h+border_top };
-		appendDirtyRect( dirty_rect );
+		appendDirtyRect( dirty_rect, false );
 	}
 }
 
@@ -2653,7 +2712,7 @@ void Window::setBGColor( COLORREF color )
 
 	RECT dirty_rect;
     GetClientRect( hwnd, &dirty_rect );
-	appendDirtyRect( dirty_rect );
+	appendDirtyRect( dirty_rect, false );
 
 	RedrawWindow( hwnd, NULL, NULL, RDW_FRAME | RDW_INVALIDATE );
 }
@@ -2677,7 +2736,7 @@ void Window::setCursorColor( COLORREF color0, COLORREF color1 )
     cursor1_brush = CreateSolidBrush(color1);
 
 	RECT dirty_rect = { (cursor_position.X-1)*font_w+border_left, cursor_position.Y*font_h+border_top, (cursor_position.X+1)*font_w+border_left, (cursor_position.Y+1)*font_h+border_top };
-	appendDirtyRect( dirty_rect );
+	appendDirtyRect( dirty_rect, false );
 }
 
 void Window::_buildMenu( HMENU menu_handle, PyObject * pysequence, int depth, bool parent_enabled )
@@ -3370,13 +3429,13 @@ void Window::setCursorPos( int x, int y )
 	cursor_blink = 2;
 
 	RECT dirty_rect = { (cursor_position.X-1)*font_w+border_left, cursor_position.Y*font_h+border_top, (cursor_position.X+1)*font_w+border_left, (cursor_position.Y+1)*font_h+border_top };
-	appendDirtyRect( dirty_rect );
+	appendDirtyRect( dirty_rect, false );
 
 	cursor_position.X = x;
 	cursor_position.Y = y;
 	
 	RECT dirty_rect2 = { (cursor_position.X-1)*font_w+border_left, cursor_position.Y*font_h+border_top, (cursor_position.X+1)*font_w+border_left, (cursor_position.Y+1)*font_h+border_top };
-	appendDirtyRect( dirty_rect2 );
+	appendDirtyRect( dirty_rect2, false );
 }
 
 void Window::getCursorPos( int * x, int * y )

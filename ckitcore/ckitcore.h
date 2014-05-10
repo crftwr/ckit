@@ -342,8 +342,11 @@ namespace ckit
   		void setCursorColor( COLORREF color0, COLORREF color1 );
   		void setMenu( PyObject * menu );
 
-		void _drawBorder( HDC hDC, const RECT & paint_rect );
-        void _drawTextLayer( HDC hDC, const RECT & paint_rect, bool clear_bg, bool draw_text );
+		void _drawBackground( HDC hDC, const RECT & paint_rect );
+		void _drawText( HDC hDC );
+		void _drawHorizontalLine( int x1, int y1, int x2, COLORREF color, bool dotted );
+		void _drawVerticalLine( int x1, int y1, int y2, COLORREF color, bool dotted );
+        void _drawTextLayer( HDC hDC, const RECT & paint_rect );
         void _drawBitmapLayer( HDC hDC, const RECT & paint_rect, bool draw_low_priority, bool draw_high_priority );
         void _onNcPaint( HDC hDC );
         void _setConsoleWindowSize(LONG cols, LONG rows);
@@ -388,6 +391,9 @@ namespace ckit
         RECT last_valid_window_rect; // 最小化されていない状態のウインドウ矩形
 		HDC	offscreen_dc;
 		HBITMAP	offscreen_bmp;
+		HDC	text_offscreen_dc;
+		HBITMAP	text_offscreen_bmp;
+		unsigned char * text_offscreen_buf;
 		SIZE offscreen_size;
 		HBRUSH bg_brush;
         HPEN frame_pen;
