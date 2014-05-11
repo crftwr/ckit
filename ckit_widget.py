@@ -894,7 +894,7 @@ class EditWidget(Widget):
                 self.backSpace()
                 
             elif vk==VK_K:
-                self.removeCandidate()    
+                self.removeCandidate()
 
         elif mod==MODKEY_SHIFT|MODKEY_CTRL:
 
@@ -1221,7 +1221,11 @@ class EditWidget(Widget):
         if self.candidate_remove_handler:
             if not self.candidate_remove_handler( self.text ):
                 return False
-            self.insertText("")
+            if self.isListOpened():
+                selection = self.list_window.getSelection()
+                self.list_window.remove( selection )
+            else:
+                self.clear()
             return True
         return False
 
@@ -1538,6 +1542,26 @@ class CandidateWindow( ckitcore.Window ):
 
         if len(items):
             self.show( True, False )
+
+    def remove( self, index ):
+        
+        del self.items[index]
+        
+        if self.select > index:
+            self.select -= 1
+        
+        if not len(self.items):
+            self.select = -1
+            self.show( False, False )
+            return
+
+        if self.select<0 : self.select=0
+        if self.select>len(self.items)-1 : self.select=len(self.items)-1
+
+        if self.selchange_handler:
+            self.selchange_handler( self.select, self.items[self.select] )
+
+        self.paint()
 
     def onActivate( self, active ):
         if active:
