@@ -244,4 +244,5 @@ MOUSE_CURSOR_WAIT           = 14
 
 #--- global option ----------------------------
 
-GLOBAL_OPTION_WALKAROUND_KB436093 = 0x101
+GLOBAL_OPTION_XXXX = 0x101
+

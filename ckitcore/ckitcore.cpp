@@ -61,9 +61,7 @@ const int TIMER_PAINT		   			= 0x101;
 const int TIMER_PAINT_INTERVAL 			= 10;
 const int TIMER_CURSOR_BLINK   			= 0x102;
 
-const int GLOBAL_OPTION_WALKAROUND_KB436093 = 0x101; // http://support.microsoft.com/kb/436093/ja
-
-static bool walkaround_kb436093 = false;
+const int GLOBAL_OPTION_XXXX = 0x101;
 
 //-----------------------------------------------------------------------------
 
@@ -1966,51 +1964,21 @@ LRESULT CALLBACK Window::_wndProc( HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 
     case WM_PAINT:
     	{
-			if(walkaround_kb436093)
-    		{
-			    // WindowsXP ‚ÌƒoƒO‚Ì‘Îˆ
-			    // http://support.microsoft.com/kb/436093/ja
+		    PAINTSTRUCT ps;
+		    HDC	hDC = BeginPaint(hwnd, &ps);
 
-			    RECT client_rect;
-			    GetClientRect(hwnd, &client_rect);
+			BitBlt( 
+			hDC, 
+			ps.rcPaint.left, 
+			ps.rcPaint.top, 
+			ps.rcPaint.right - ps.rcPaint.left, 
+			ps.rcPaint.bottom - ps.rcPaint.top, 
+			window->offscreen_dc, 
+			ps.rcPaint.left, 
+			ps.rcPaint.top, 
+			SRCCOPY );
 
-				HDC hDC = GetDC(hwnd);
-				
-				BitBlt( 
-    				hDC, 
-    				client_rect.left, 
-    				client_rect.top, 
-    				client_rect.right - client_rect.left, 
-    				client_rect.bottom - client_rect.top, 
-    				window->offscreen_dc, 
-    				client_rect.left, 
-    				client_rect.top, 
-    				SRCCOPY );
-
-				ReleaseDC( hwnd, hDC );
-
-			    PAINTSTRUCT ps;
-			    hDC = BeginPaint(hwnd, &ps);
-		        EndPaint(hwnd, &ps);
-			}
-    		else
-    		{
-			    PAINTSTRUCT ps;
-			    HDC	hDC = BeginPaint(hwnd, &ps);
-
-				BitBlt( 
-    				hDC, 
-    				ps.rcPaint.left, 
-    				ps.rcPaint.top, 
-    				ps.rcPaint.right - ps.rcPaint.left, 
-    				ps.rcPaint.bottom - ps.rcPaint.top, 
-    				window->offscreen_dc, 
-    				ps.rcPaint.left, 
-    				ps.rcPaint.top, 
-    				SRCCOPY );
-
-		        EndPaint(hwnd, &ps);
-    		}
+	        EndPaint(hwnd, &ps);
     	}
         break;
 
@@ -7823,9 +7791,8 @@ static PyObject * _setGlobalOption( PyObject * self, PyObject * args )
 
 	switch(option)
 	{
-	case GLOBAL_OPTION_WALKAROUND_KB436093:
+	case GLOBAL_OPTION_XXXX:
 		{
-			walkaround_kb436093 = (enable!=0);
 		}
 		break;
 	
