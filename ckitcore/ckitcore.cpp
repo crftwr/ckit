@@ -151,28 +151,6 @@ Image::~Image()
 
 //-----------------------------------------------------------------------------
 
-Icon::Icon( const wchar_t * filename )
-	:
-	ref_count(0)
-{
-	FUNC_TRACE;
-
-	SHFILEINFO shfi;
-
-	::SHGetFileInfo( filename, 0, &shfi, sizeof(SHFILEINFO), SHGFI_ICON|SHGFI_SMALLICON );
-
-	handle = shfi.hIcon;
-}
-
-Icon::~Icon()
-{
-	FUNC_TRACE;
-
-	DestroyIcon(handle);
-}
-
-//-----------------------------------------------------------------------------
-
 Plane::Plane( Window * _window, int _x, int _y, int _width, int _height, float _priority )
 	:
 	window(_window),
@@ -183,8 +161,7 @@ Plane::Plane( Window * _window, int _x, int _y, int _width, int _height, float _
 	width(_width),
 	height(_height),
 	priority(_priority),
-	image(NULL),
-	icon(NULL)
+	image(NULL)
 {
 	FUNC_TRACE;
 }
@@ -194,7 +171,6 @@ Plane::~Plane()
 	FUNC_TRACE;
 
 	if(image) image->Release();
-	if(icon) icon->Release();
 
 	((Plane_Object*)pyobj)->p = NULL;
 	Py_XDECREF(pyobj); pyobj=NULL;
@@ -278,30 +254,10 @@ void Plane::SetImage( Image * _image )
 	if( image == _image ) return;
 
 	if(image) image->Release();
-	if(icon) icon->Release();
 
 	image = _image;
-	icon = NULL;
 
 	if(image) image->AddRef();
-
-	RECT dirty_rect = { x, y, x+width, y+height };
-	window->appendDirtyRect( dirty_rect, false );
-}
-
-void Plane::SetIcon( Icon * _icon )
-{
-	FUNC_TRACE;
-
-	if( icon == _icon ) return;
-
-	if(image) image->Release();
-	if(icon) icon->Release();
-
-	image = NULL;
-	icon = _icon;
-
-	if(icon) icon->AddRef();
 
 	RECT dirty_rect = { x, y, x+width, y+height };
 	window->appendDirtyRect( dirty_rect, false );
@@ -1205,10 +1161,6 @@ void Window::_drawBitmapLayer( HDC hDC, const RECT & paint_rect, bool draw_low_p
 			}
 
 	    	DeleteDC(compatibleDC);
-   		}
-   		else if( plane->icon )
-   		{
-   			DrawIconEx( hDC, plane->x, plane->y, plane->icon->handle, plane->width, plane->height, 0, NULL, DI_NORMAL );
    		}
     }
 }
@@ -4135,94 +4087,6 @@ PyTypeObject Image_Type = {
 //
 // ----------------------------------------------------------------------------
 
-static void Icon_dealloc(PyObject* self)
-{
-	FUNC_TRACE;
-
-    Icon * icon = ((Icon_Object*)self)->p;
-    icon->Release();
-	self->ob_type->tp_free(self);
-}
-
-static PyObject * Icon_fromFilename( PyObject * self, PyObject * args )
-{
-	FUNC_TRACE;
-
-	PyObject * pyfilename;
-
-	if( ! PyArg_ParseTuple(args,"O", &pyfilename ) )
-		return NULL;
-
-    std::wstring filename;
-    if(pyfilename)
-    {
-        if( !PythonUtil::PyStringToWideString( pyfilename, &filename ) )
-        {
-            return NULL;
-        }
-    }
-
-	Icon * icon = new Icon( filename.c_str() );;
-
-	Icon_Object * pyicon;
-	pyicon = PyObject_New( Icon_Object, &Icon_Type );
-	pyicon->p = icon;
-	icon->AddRef();
-
-	return (PyObject*)pyicon;
-}
-
-static PyMethodDef Icon_methods[] = {
-	{ "fromFilename", Icon_fromFilename, METH_STATIC|METH_VARARGS, "" },
-	{NULL,NULL}
-};
-
-PyTypeObject Icon_Type = {
-	PyVarObject_HEAD_INIT(NULL, 0)
-	"Icon",				/* tp_name */
-	sizeof(Icon_Object), /* tp_basicsize */
-	0,					/* tp_itemsize */
-	Icon_dealloc,		/* tp_dealloc */
-	0,					/* tp_print */
-	0,					/* tp_getattr */
-	0,					/* tp_setattr */
-	0,					/* tp_reserved */
-	0, 					/* tp_repr */
-	0,					/* tp_as_number */
-	0,					/* tp_as_sequence */
-	0,					/* tp_as_mapping */
-	0,					/* tp_hash */
-	0,					/* tp_call */
-	0,					/* tp_str */
-	PyObject_GenericGetAttr,/* tp_getattro */
-	PyObject_GenericSetAttr,/* tp_setattro */
-	0,					/* tp_as_buffer */
-	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,/* tp_flags */
-	"",					/* tp_doc */
-	0,					/* tp_traverse */
-	0,					/* tp_clear */
-	0,					/* tp_richcompare */
-	0,					/* tp_weaklistoffset */
-	0,					/* tp_iter */
-	0,					/* tp_iternext */
-	Icon_methods,		/* tp_methods */
-	0,					/* tp_members */
-	0,					/* tp_getset */
-	0,					/* tp_base */
-	0,					/* tp_dict */
-	0,					/* tp_descr_get */
-	0,					/* tp_descr_set */
-	0,					/* tp_dictoffset */
-	0,					/* tp_init */
-	0,					/* tp_alloc */
-	PyType_GenericNew,	/* tp_new */
-	0,					/* tp_free */
-};
-
-// ----------------------------------------------------------------------------
-//
-// ----------------------------------------------------------------------------
-
 static int Plane_instance_count = 0;
 
 static int Plane_init( PyObject * self, PyObject * args, PyObject * kwds)
@@ -4478,55 +4342,6 @@ static PyObject * Plane_setImage(PyObject* self, PyObject* args)
     return Py_None;
 }
 
-static PyObject * Plane_getIcon(PyObject* self, PyObject* args)
-{
-	FUNC_TRACE;
-
-	if( ! PyArg_ParseTuple(args, "" ) )
-        return NULL;
-
-	if( ! ((Plane_Object*)self)->p )
-	{
-		PyErr_SetString( PyExc_ValueError, "already destroyed." );
-		return NULL;
-	}
-
-    Icon * icon = ((Plane_Object*)self)->p->icon;
-    if(icon)
-    {
-		Icon_Object * pyicon;
-		pyicon = PyObject_New( Icon_Object, &Icon_Type );
-		pyicon->p = icon;
-		icon->AddRef();
-		return (PyObject*)pyicon;
-    }
-    else
-    {
-	    Py_INCREF(Py_None);
-	    return Py_None;
-    }
-}
-
-static PyObject * Plane_setIcon(PyObject* self, PyObject* args)
-{
-	FUNC_TRACE;
-
-    PyObject * icon;
-	if( ! PyArg_ParseTuple(args, "O", &icon ) )
-        return NULL;
-
-	if( ! ((Plane_Object*)self)->p )
-	{
-		PyErr_SetString( PyExc_ValueError, "already destroyed." );
-		return NULL;
-	}
-
-    ((Plane_Object*)self)->p->SetIcon( ((Icon_Object*)icon)->p );
-
-    Py_INCREF(Py_None);
-    return Py_None;
-}
-
 static PyMethodDef Plane_methods[] = {
 
 	{ "destroy", Plane_destroy, METH_VARARGS, "" },
@@ -4537,13 +4352,11 @@ static PyMethodDef Plane_methods[] = {
 	{ "getSize", Plane_getSize, METH_VARARGS, "" },
 	{ "getPriority", Plane_getPriority, METH_VARARGS, "" },
 	{ "getImage", Plane_getImage, METH_VARARGS, "" },
-	{ "getIcon", Plane_getIcon, METH_VARARGS, "" },
 
 	{ "setPos", Plane_setPos, METH_VARARGS, "" },
 	{ "setSize", Plane_setSize, METH_VARARGS, "" },
 	{ "setPriority", Plane_setPriority, METH_VARARGS, "" },
 	{ "setImage", Plane_setImage, METH_VARARGS, "" },
-	{ "setIcon", Plane_setIcon, METH_VARARGS, "" },
 
 	{NULL,NULL}
 };
@@ -7893,7 +7706,6 @@ extern "C" PyMODINIT_FUNC PyInit_ckitcore(void)
 
     if( PyType_Ready(&Attribute_Type)<0 ) return NULL;
     if( PyType_Ready(&Image_Type)<0 ) return NULL;
-    if( PyType_Ready(&Icon_Type)<0 ) return NULL;
     if( PyType_Ready(&Plane_Type)<0 ) return NULL;
     if( PyType_Ready(&MenuNode_Type)<0 ) return NULL;
     if( PyType_Ready(&Window_Type)<0 ) return NULL;
@@ -7910,9 +7722,6 @@ extern "C" PyMODINIT_FUNC PyInit_ckitcore(void)
 
     Py_INCREF(&Image_Type);
     PyModule_AddObject( m, "Image", (PyObject*)&Image_Type );
-
-    Py_INCREF(&Icon_Type);
-    PyModule_AddObject( m, "Icon", (PyObject*)&Icon_Type );
 
     Py_INCREF(&Plane_Type);
     PyModule_AddObject( m, "Plane", (PyObject*)&Plane_Type );

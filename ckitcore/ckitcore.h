@@ -138,18 +138,6 @@ namespace ckit
     	int ref_count;
     };
 
-    struct Icon
-    {
-    	Icon( const wchar_t * filename );
-    	~Icon();
-
-    	void AddRef() { ref_count++; /* printf("Icon::AddRef : %d\n", ref_count ); */ }
-    	void Release() { ref_count--; /* printf("Icon::Release : %d\n", ref_count ); */ if(ref_count==0) delete this; }
-
-    	HICON handle;
-    	int ref_count;
-    };
-
     struct Plane
     {
     	Plane( struct Window * window, int x, int y, int width, int height, float priority );
@@ -162,7 +150,6 @@ namespace ckit
     	void SetSize( int width, int height );
     	void SetPriority( float priority );
     	void SetImage( Image * image );
-    	void SetIcon( Icon * icon );
 
 		struct Window * window;
 		PyObject * pyobj;
@@ -170,7 +157,6 @@ namespace ckit
     	int x, y, width, height;
     	float priority;
     	Image * image;
-    	Icon * icon;
     };
 
     struct TimerInfo
@@ -514,16 +500,6 @@ struct Image_Object
 {
     PyObject_HEAD
     ckit::Image * p;
-};
-
-
-extern PyTypeObject Icon_Type;
-#define Icon_Check(op) PyObject_TypeCheck(op, &Icon_Type)
-
-struct Icon_Object
-{
-    PyObject_HEAD
-    ckit::Icon * p;
 };
 
 
