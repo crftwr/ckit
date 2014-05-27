@@ -33,6 +33,8 @@ class Test1( ckit.Window ):
             char_handler = self.onChar,
             )
 
+        self.putString( 0, 0, 10, 1, ckit.Attribute( fg=(255,255,255), bg=(0,0,0) ), "Hello!" )
+
     def onActivate( self, active ):
         print( "onActivate", active )
 
