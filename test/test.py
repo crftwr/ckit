@@ -12,16 +12,16 @@ ckit.registerWindowClass( "CkitTest" )
 
 ckit.setTheme( "black", {} )
 
-class Test1( ckit.Window ):
+class Test1( ckit.TextWindow ):
 
     def __init__(self):
         
-        ckit.Window.__init__(
+        ckit.TextWindow.__init__(
             self,
             x=20, 
             y=10, 
             width=80, 
-            height=32,
+            height=24,
             title_bar = True,
             title = "Ckit Test",
             sysmenu=True,
@@ -33,15 +33,15 @@ class Test1( ckit.Window ):
             char_handler = self.onChar,
             )
 
-        self.putString( 0, 0, 10, 1, ckit.Attribute( fg=(255,255,255), bg=(0,0,0) ), "Hello!" )
+        self.putString( 0, 0, 20, 1, ckit.Attribute( fg=(255,255,255), bg=(0,0,0) ), "Hello World!" )
 
     def onActivate( self, active ):
         print( "onActivate", active )
 
     def onSize( self, width, height ):
         print( "onSize" )
-        self.putString( 0, 0, 10, 1, ckit.Attribute( fg=(255,255,255), bg=(0,0,0) ), " %d, %d " % (width, height) )
-        self.putString( 0, 1, 10, 1, ckit.Attribute( fg=(50,50,50), bg=(200,200,200) ), " 幅  高 " )
+        self.putString( 0, 0, 20, 1, ckit.Attribute( fg=(255,255,255), bg=(0,0,0) ), " %d, %d     " % (width, height) )
+        self.putString( 0, 1, 20, 1, ckit.Attribute( fg=(50,50,50), bg=(200,200,200) ), " 幅  高 " )
 
     def onClose(self):
         print( "onClose" )

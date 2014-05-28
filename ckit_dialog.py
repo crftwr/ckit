@@ -1,11 +1,12 @@
 ﻿from ckit import ckitcore
+from ckit import ckit_textwindow
 from ckit import ckit_widget
 from ckit import ckit_theme
 from ckit.ckit_const import *
 
 #--------------------------------------------------------------------
 
-class Dialog( ckitcore.Window ):
+class Dialog( ckit_textwindow.TextWindow ):
 
     RESULT_CANCEL = 0
     RESULT_OK     = 1
@@ -15,7 +16,7 @@ class Dialog( ckitcore.Window ):
         parent_window_rect = parent_window.getWindowRect()
         window_x, window_y = (parent_window_rect[0] + parent_window_rect[2])//2, (parent_window_rect[1] + parent_window_rect[3])//2
 
-        ckitcore.Window.__init__(
+        ckit_textwindow.TextWindow.__init__(
             self,
             x=window_x,
             y=window_y,
@@ -24,20 +25,20 @@ class Dialog( ckitcore.Window ):
             origin= ORIGIN_X_CENTER | ORIGIN_Y_CENTER,
             parent_window=parent_window,
             bg_color = ckit_theme.getColor("bg"),
-            cursor0_color = ckit_theme.getColor("cursor0"),
-            cursor1_color = ckit_theme.getColor("cursor1"),
+            caret0_color = ckit_theme.getColor("caret0"),
+            caret1_color = ckit_theme.getColor("caret1"),
             show = False,
             resizable = False,
             title = text,
             minimizebox = False,
             maximizebox = False,
-            cursor = True,
+            caret = True,
             close_handler = self.onClose,
             keydown_handler = self.onKeyDown,
             char_handler = self.onChar,
             )
 
-        self.setCursorPos( -1, -1 )
+        self.setCaretPosition( -1, -1 )
 
         # 部品初期化
         self.items = items

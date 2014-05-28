@@ -7,6 +7,7 @@ import cProfile
 import pyauto
 
 from ckit import ckitcore
+from ckit import ckit_textwindow
 from ckit import ckit_widget
 from ckit import ckit_command
 from ckit import ckit_theme
@@ -3267,7 +3268,7 @@ class TextWidget(ckit_widget.Widget):
 
 #--------------------------------------------------------------------
 
-class CandidateWindow( ckitcore.Window ):
+class CandidateWindow( ckit_textwindow.TextWindow ):
 
     def __init__( self, x, y, min_width, min_height, max_width, max_height, parent_window, keydown_hook=None, selchange_handler=None ):
 
@@ -3280,7 +3281,7 @@ class CandidateWindow( ckitcore.Window ):
             (bg[2] + fg[2])//2,
         )
 
-        ckitcore.Window.__init__(
+        ckit_textwindow.TextWindow.__init__(
             self,
             x=x,
             y=y,
@@ -3289,8 +3290,8 @@ class CandidateWindow( ckitcore.Window ):
             origin= ORIGIN_X_LEFT | ORIGIN_Y_TOP,
             parent_window=parent_window,
             bg_color = ckit_theme.getColor("bg"),
-            cursor0_color = ckit_theme.getColor("cursor0"),
-            cursor1_color = ckit_theme.getColor("cursor1"),
+            caret0_color = ckit_theme.getColor("caret0"),
+            caret1_color = ckit_theme.getColor("caret1"),
             frame_color = frame_color,
             border_size = 0,
             transparency = 255, # チラつきを防ぐために WS_EX_LAYERED にする

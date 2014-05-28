@@ -59,7 +59,7 @@ const int ID_POPUP_MENUITEM_MAX   = ID_POPUP_MENUITEM+1024;
 
 const int TIMER_PAINT		   			= 0x101;
 const int TIMER_PAINT_INTERVAL 			= 10;
-const int TIMER_CURSOR_BLINK   			= 0x102;
+const int TIMER_CARET_BLINK   			= 0x102;
 
 const int GLOBAL_OPTION_XXXX = 0x101;
 
@@ -151,17 +151,88 @@ Image::~Image()
 
 //-----------------------------------------------------------------------------
 
+Font::Font( const wchar_t * name, int height )
+	:
+	handle(0),
+	char_width(0),
+	char_height(0),
+	ref_count(0)
+{
+	FUNC_TRACE;
+
+    memset( &logfont, 0, sizeof(logfont) );
+    logfont.lfHeight = -height;
+    logfont.lfWidth = 0;
+    logfont.lfEscapement = 0;
+    logfont.lfOrientation = 0;
+    logfont.lfWeight = FW_NORMAL;
+    logfont.lfItalic = 0;
+    logfont.lfUnderline = 0;
+    logfont.lfStrikeOut = 0;
+    logfont.lfCharSet = DEFAULT_CHARSET;
+    logfont.lfOutPrecision = OUT_DEFAULT_PRECIS;
+    logfont.lfClipPrecision = CLIP_DEFAULT_PRECIS;
+
+    logfont.lfQuality = DEFAULT_QUALITY; // OS の設定によっては CLEARTYPE_QUALITY と同じ動きになる
+	//logfont.lfQuality = CLEARTYPE_QUALITY; // ANTIALIASED_QUALITYよりなぜか速い
+	//logfont.lfQuality = ANTIALIASED_QUALITY; // なぜか ClearType 有効時に低速になってしまう
+
+    logfont.lfPitchAndFamily = FIXED_PITCH | FF_DONTCARE;
+    lstrcpy( logfont.lfFaceName, name );
+
+    handle = CreateFontIndirect(&logfont);
+    
+    HDC	hDC = GetDC(NULL);
+    HGDIOBJ	oldfont = SelectObject(hDC, handle);
+
+	{
+	    TEXTMETRIC met;
+	    GetTextMetrics(hDC, &met);
+
+		int * char_width_table = (int*)malloc(0x10000*sizeof(int));
+	    GetCharWidth32( hDC, 0, 0xffff, char_width_table );
+
+	    INT	width = 0;
+	    for(int i=0 ; i<26 ; i++)
+	    {
+	        width += char_width_table['A'+i];
+	        width += char_width_table['a'+i];
+	    }
+	    width /= 26 * 2;
+		char_width = width;
+	    char_height = met.tmHeight;
+
+		zenkaku_table.clear();
+	    for( int i=0 ; i<=0xffff ; i++ )
+	    {
+			zenkaku_table.push_back( char_width_table[i] > char_width );
+	    }
+
+	    free(char_width_table);
+	}
+
+    SelectObject(hDC, oldfont);
+    ReleaseDC(NULL, hDC);
+}
+
+Font::~Font()
+{
+	FUNC_TRACE;
+
+	DeleteObject(handle);
+}
+
+//-----------------------------------------------------------------------------
+
 Plane::Plane( Window * _window, int _x, int _y, int _width, int _height, float _priority )
 	:
 	window(_window),
-	pyobj(NULL),
 	show(true),
 	x(_x),
 	y(_y),
 	width(_width),
 	height(_height),
-	priority(_priority),
-	image(NULL)
+	priority(_priority)
 {
 	FUNC_TRACE;
 }
@@ -170,25 +241,8 @@ Plane::~Plane()
 {
 	FUNC_TRACE;
 
-	if(image) image->Release();
-
-	((Plane_Object*)pyobj)->p = NULL;
-	Py_XDECREF(pyobj); pyobj=NULL;
-
 	RECT dirty_rect = { x, y, x+width, y+height };
-	window->appendDirtyRect( dirty_rect, false );
-}
-
-void Plane::SetPyObject( PyObject * _pyobj )
-{
-	FUNC_TRACE;
-
-	if( pyobj != _pyobj )
-	{
-		Py_XDECREF(pyobj);
-		pyobj = _pyobj;
-		Py_XINCREF(pyobj);
-	}
+	window->appendDirtyRect( dirty_rect );
 }
 
 void Plane::Show( bool _show )
@@ -200,23 +254,23 @@ void Plane::Show( bool _show )
 	show = _show;
 
 	RECT dirty_rect = { x, y, x+width, y+height };
-	window->appendDirtyRect( dirty_rect, false );
+	window->appendDirtyRect( dirty_rect );
 }
 
-void Plane::SetPos( int _x, int _y )
+void Plane::SetPosition( int _x, int _y )
 {
 	FUNC_TRACE;
 
 	if( x==_x && y==_y ) return;
 
 	RECT dirty_rect = { x, y, x+width, y+height };
-	window->appendDirtyRect( dirty_rect, false );
+	window->appendDirtyRect( dirty_rect );
 
 	x = _x;
 	y = _y;
 
 	RECT dirty_rect2 = { x, y, x+width, y+height };
-	window->appendDirtyRect( dirty_rect2, false );
+	window->appendDirtyRect( dirty_rect2 );
 }
 
 void Plane::SetSize( int _width, int _height )
@@ -226,13 +280,13 @@ void Plane::SetSize( int _width, int _height )
 	if( width==_width && height==_height ) return;
 
 	RECT dirty_rect = { x, y, x+width, y+height };
-	window->appendDirtyRect( dirty_rect, false );
+	window->appendDirtyRect( dirty_rect );
 
 	width = _width;
 	height = _height;
 
 	RECT dirty_rect2 = { x, y, x+width, y+height };
-	window->appendDirtyRect( dirty_rect2, false );
+	window->appendDirtyRect( dirty_rect2 );
 }
 
 void Plane::SetPriority( float _priority )
@@ -244,10 +298,43 @@ void Plane::SetPriority( float _priority )
 	priority = _priority;
 
 	RECT dirty_rect = { x, y, x+width, y+height };
-	window->appendDirtyRect( dirty_rect, false );
+	window->appendDirtyRect( dirty_rect );
 }
 
-void Plane::SetImage( Image * _image )
+//-----------------------------------------------------------------------------
+
+ImagePlane::ImagePlane( Window * _window, int _x, int _y, int _width, int _height, float _priority )
+	:
+	Plane(_window,_x,_y,_width,_height,_priority),
+	pyobj(NULL),
+	image(NULL)
+{
+	FUNC_TRACE;
+}
+
+ImagePlane::~ImagePlane()
+{
+	FUNC_TRACE;
+
+	if(image) image->Release();
+
+	((ImagePlane_Object*)pyobj)->p = NULL;
+	Py_XDECREF(pyobj); pyobj=NULL;
+}
+
+void ImagePlane::SetPyObject( PyObject * _pyobj )
+{
+	FUNC_TRACE;
+
+	if( pyobj != _pyobj )
+	{
+		Py_XDECREF(pyobj);
+		pyobj = _pyobj;
+		Py_XINCREF(pyobj);
+	}
+}
+
+void ImagePlane::SetImage( Image * _image )
 {
 	FUNC_TRACE;
 
@@ -260,7 +347,783 @@ void Plane::SetImage( Image * _image )
 	if(image) image->AddRef();
 
 	RECT dirty_rect = { x, y, x+width, y+height };
-	window->appendDirtyRect( dirty_rect, false );
+	window->appendDirtyRect( dirty_rect );
+}
+
+void ImagePlane::Draw( const RECT & paint_rect )
+{
+	if( !show )
+	{
+		return;
+	}
+
+    RECT plane_rect = { x, y, x+width, y+height };
+   	if( plane_rect.left>=paint_rect.right || plane_rect.right<=paint_rect.left
+   		|| plane_rect.top>=paint_rect.bottom || plane_rect.bottom<=paint_rect.top )
+	{
+		return;
+	}
+
+   	if( image )
+   	{
+		HDC compatibleDC = CreateCompatibleDC(window->offscreen_dc);
+
+		SelectObject( compatibleDC, image->handle );
+
+		if(0)
+		{
+			printf( "StretchBlt : %d %d %d %d  %d %d %d %d\n",
+				x, y, width, height,
+				0, 0, image->width, image->height );
+		}
+
+		if( image->halftone )	
+		{
+			SetStretchBltMode( window->offscreen_dc, STRETCH_HALFTONE );
+		}
+		else
+		{
+			SetStretchBltMode( window->offscreen_dc, STRETCH_DELETESCANS );
+		}
+
+		if( image->transparent )
+		{
+			if(0)
+			{
+				BLENDFUNCTION bf;
+				bf.BlendOp = AC_SRC_OVER;
+				bf.BlendFlags = 0;
+				bf.AlphaFormat = AC_SRC_ALPHA;
+				bf.SourceConstantAlpha = 255;
+				
+				AlphaBlend(
+					window->offscreen_dc, x, y, width, height,
+					compatibleDC, 0, 0, image->width, image->height,
+					bf
+					);
+			}
+
+			TransparentBlt(
+				window->offscreen_dc, x, y, width, height,
+				compatibleDC, 0, 0, image->width, image->height,
+				image->transparent_color
+				);
+
+			window->perf_fillrect_count++;
+		}
+		else
+		{
+			StretchBlt(
+				window->offscreen_dc, x, y, width, height,
+				compatibleDC, 0, 0, image->width, image->height,
+				SRCCOPY
+				);
+
+			window->perf_fillrect_count++;
+		}
+
+	    DeleteDC(compatibleDC);
+   	}
+}
+
+//-----------------------------------------------------------------------------
+
+TextPlane::TextPlane( Window * _window, int _x, int _y, int _width, int _height, float _priority )
+	:
+	Plane(_window,_x,_y,_width,_height,_priority),
+	pyobj(NULL),
+	font(NULL),
+	offscreen_dc(0),
+	offscreen_bmp(0),
+    offscreen_buf(0),
+	dirty(true)
+{
+	FUNC_TRACE;
+
+	offscreen_size.cx = 0;
+	offscreen_size.cy = 0;
+}
+
+TextPlane::~TextPlane()
+{
+	FUNC_TRACE;
+
+	if(font){ font->Release(); }
+	if(offscreen_bmp) { DeleteObject(offscreen_bmp); }
+	if(offscreen_dc) { DeleteObject(offscreen_dc); }
+
+	{
+		std::vector<Line*>::iterator i;
+		for( i=char_buffer.begin() ; i!=char_buffer.end() ; i++ )
+		{
+			delete (*i);
+		}
+		char_buffer.clear();
+	}
+
+	((TextPlane_Object*)pyobj)->p = NULL;
+	Py_XDECREF(pyobj); pyobj=NULL;
+}
+
+void TextPlane::SetPyObject( PyObject * _pyobj )
+{
+	FUNC_TRACE;
+
+	if( pyobj != _pyobj )
+	{
+		Py_XDECREF(pyobj);
+		pyobj = _pyobj;
+		Py_XINCREF(pyobj);
+	}
+}
+
+void TextPlane::SetFont( Font * _font )
+{
+	FUNC_TRACE;
+
+	// FIXME : SetFontしないで TextPlane を使うと死んでしまうのを直したい
+
+	if( font == _font ) return;
+
+	if(font) font->Release();
+
+	font = _font;
+
+	if(font) font->AddRef();
+
+	// FIXME : オフスクリーン全域の強制再描画
+	dirty = true;
+
+	RECT dirty_rect = { x, y, x+width, y+height };
+	window->appendDirtyRect( dirty_rect );
+}
+
+static inline void PutChar( Line * line, int pos, const Char & chr, bool * modified )
+{
+	if( (int)line->size() <= pos )
+	{
+        line->push_back(chr);
+        *modified = true;
+	}
+	else
+	{
+		if( (*line)[pos] != chr )
+		{
+			(*line)[pos] = chr;
+	        *modified = true;
+		}
+	}
+}
+
+void TextPlane::PutString( int x, int y, int width, int height, const Attribute & attr, const wchar_t * str, int offset )
+{
+	FUNC_TRACE;
+	
+	if( x<0 || y<0 )
+	{
+		return;
+	}
+
+	bool modified = false;
+
+	while( (int)char_buffer.size() <= y )
+	{
+        Line * line = new Line();
+        char_buffer.push_back(line);
+
+        modified = true;
+	}
+
+    Line * line = char_buffer[y];
+
+	// 埋まっていなかったら空文字で進める
+	while( (int)line->size() < x )
+	{
+        line->push_back( Char( L' ' ) );
+
+        modified = true;
+	}
+
+	int pos = x + offset;
+
+    for( int i=0 ; str[i] ; i++ )
+    {
+		// いっぱいまで文字が埋まったら抜ける
+    	if( pos + 1 > x + width )
+    	{
+    		break;
+    	}
+
+		// 全角文字を入れる隙間がなかったら、スペースを埋めて抜ける
+    	if( font->zenkaku_table[str[i]] && pos + 2 > x + width )
+    	{
+	        PutChar( line, pos, Char( L' ', attr ), &modified );
+    		break;
+    	}
+
+		if( pos>=x )
+		{
+	        PutChar( line, pos, Char( str[i], attr ), &modified );
+			pos++;
+
+	        // 全角文字は、幅を合わせるために、後ろに無駄な文字を入れる
+	        if(font->zenkaku_table[str[i]])
+	        {
+		        PutChar( line, pos, Char(0), &modified );
+				pos++;
+	        }
+		}
+		else
+		{
+			pos++;
+	        if(font->zenkaku_table[str[i]])
+	        {
+	        	// 左端で全角文字の半分の位置から描画範囲に入る場合はスペースで埋める
+	        	if( pos>=x )
+	        	{
+			        PutChar( line, pos, Char( L' ', attr ), &modified );
+	        	}
+				pos++;
+	        }
+		}
+    }
+
+    if( modified )
+    {
+		dirty = true;
+
+		// FIXME : PutString全域ではなく、変更のあった最小限の領域を dirty_rect にしたい
+		RECT dirty_rect = { x * font->char_width + this->x, y * font->char_height + this->y, pos * font->char_width + this->x, (y+height) * font->char_height + this->y };
+		window->appendDirtyRect( dirty_rect );
+    }
+}
+
+int TextPlane::GetStringWidth( const wchar_t * str, int tab_width, int offset, int columns[] )
+{
+	FUNC_TRACE;
+
+	int width = 0;
+
+	int i;
+    for( i=0 ; str[i] ; i++ )
+    {
+    	if(columns)
+    	{
+    		columns[i] = width;
+    	}
+
+		if(str[i]=='\t')
+		{
+			width = width + (tab_width - width % tab_width);
+			continue;
+		}
+    
+		width++;
+
+        if(font->zenkaku_table[str[i]])
+        {
+			width++;
+        }
+    }
+
+	if(columns)
+	{
+		columns[i] = width;
+	}
+
+	return width;
+}
+
+void TextPlane::Scroll( int x, int y, int width, int height, int delta_x, int delta_y )
+{
+	FUNC_TRACE;
+
+	BOOL ret;
+
+	// テキスト用オフスクリーンにまだ描いてないものがあれば描く
+    DrawOffscreen();
+
+	// 埋まっていなかったら空文字で進める
+	while( (int)char_buffer.size() <= y+height+delta_y )
+	{
+        Line * line = new Line();
+        char_buffer.push_back(line);
+	}
+
+	// キャラクタバッファをコピー
+	if(delta_y<0)
+	{
+		for( int i=0 ; i<height ; ++i )
+		{
+			*char_buffer[y+i+delta_y] = *char_buffer[y+i];
+		}
+	}
+	else if(delta_y>0)
+	{
+		for( int i=height-1 ; i>=0 ; --i )
+		{
+			*char_buffer[y+i+delta_y] = *char_buffer[y+i];
+		}
+	}
+	else
+	{
+		// 埋まっていなかったら空文字で進める
+		for( int i=0 ; i<height ; ++i )
+		{
+		    Line * line = char_buffer[y+i];
+			while( (int)line->size() < x+width+delta_x )
+			{
+		        line->push_back( Char( L' ' ) );
+			}
+		}
+
+		if(delta_x<0)
+		{
+			for( int i=0 ; i<height ; ++i )
+			{
+				for( int j=0 ; j<width ; ++j )
+				{
+					(*char_buffer[y+i+delta_y])[x+j+delta_x] = (*char_buffer[y+i])[x+j];
+				}
+			}
+		}
+		else
+		{
+			for( int i=0 ; i<height ; ++i )
+			{
+				for( int j=width-1 ; j>=0 ; --j )
+				{
+					(*char_buffer[y+i+delta_y])[x+j+delta_x] = (*char_buffer[y+i])[x+j];
+				}
+			}
+		}
+	}
+
+	RECT src_rect = { 
+		x * font->char_width, 
+		y * font->char_height, 
+		(x+width) * font->char_width, 
+		(y+height) * font->char_height };
+
+	ret = ScrollDC( 
+		offscreen_dc, 
+		delta_x * font->char_width,
+		delta_y * font->char_height,
+		&src_rect,
+		NULL, NULL, NULL );
+	assert(ret);
+
+	RECT dirty_rect = { 
+		(x+delta_x) * font->char_width + this->x, 
+		(y+delta_y) * font->char_height + this->y, 
+		(x+width+delta_x) * font->char_width + this->x, 
+		(y+height+delta_y) * font->char_height + this->y };
+	
+	window->appendDirtyRect( dirty_rect );
+}
+
+void TextPlane::DrawOffscreen()
+{
+    if(!dirty){ return; }
+
+	FUNC_TRACE;
+
+	bool offscreen_rebuilt = false;
+
+	// オフスクリーンバッファ生成
+	if( offscreen_dc==NULL || offscreen_bmp==NULL || offscreen_size.cx!=width || offscreen_size.cy!=height )
+	{
+		if(offscreen_dc){ DeleteObject(offscreen_dc); }
+		if(offscreen_bmp){ DeleteObject(offscreen_bmp); }
+
+		offscreen_size.cx = width;
+		offscreen_size.cy = height;
+
+		if(offscreen_size.cx<1){ offscreen_size.cx=1; }
+		if(offscreen_size.cy<1){ offscreen_size.cy=1; }
+
+		offscreen_dc = CreateCompatibleDC(window->offscreen_dc);
+		BITMAPINFO bmi;
+		ZeroMemory(&bmi, sizeof(BITMAPINFO));
+		bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+		bmi.bmiHeader.biWidth = offscreen_size.cx;
+		bmi.bmiHeader.biHeight = offscreen_size.cy;
+		bmi.bmiHeader.biPlanes = 1;
+		bmi.bmiHeader.biBitCount = 32;
+		bmi.bmiHeader.biCompression = BI_RGB;
+		bmi.bmiHeader.biSizeImage = offscreen_size.cx * offscreen_size.cy * 4;
+		offscreen_bmp = CreateDIBSection( offscreen_dc, &bmi, DIB_RGB_COLORS, (void**)&offscreen_buf, NULL, 0 );
+		SelectObject(offscreen_dc, offscreen_bmp);
+
+		offscreen_rebuilt = true;
+	}
+
+	int text_width = width / font->char_width;
+	int text_height = height / font->char_height;
+
+    wchar_t * work_text = new wchar_t[ text_width ];
+    int * work_width = new int [ text_width ];
+    unsigned int work_len;
+	bool work_dirty;
+
+	SelectObject(offscreen_dc, font->handle);
+
+    for( int y=0 ; y<(int)char_buffer.size() && y<text_height ; ++y )
+    {
+        Line & line = *(char_buffer[y]);
+
+        for( int x=0 ; x<(int)line.size() && x<text_width ; ++x )
+        {
+            Char & chr = line[x];
+
+            work_len = 0;
+			work_dirty = false;
+
+            int x2;
+            for( x2=x ; x2<(int)line.size() && x2<text_width ; ++x2 )
+            {
+                Char & chr2 = line[x2];
+
+                if( chr2.c==0 )
+                {
+                    continue;
+                }
+
+				if( chr2.c!=' ' )
+				{
+					if( ! chr.attr.Equal(chr2.attr) )
+					{
+						break;
+					}
+				}
+				else
+				{
+					if( ! chr.attr.EqualWithoutFgColor(chr2.attr) )
+					{
+						break;
+					}
+				}
+
+                work_text[work_len] = chr2.c;
+                work_width[work_len] = (!font->zenkaku_table[chr2.c]) ? font->char_width : font->char_width*2;
+                work_len ++;
+
+				if(chr2.dirty)
+				{
+					work_dirty = true;
+					chr2.dirty = false;
+				}
+            }
+
+			if(work_dirty || offscreen_rebuilt)
+			{
+				if( chr.attr.bg & Attribute::BG_Flat )
+				{
+					HBRUSH hBrush = CreateSolidBrush( chr.attr.bg_color[0] );
+					HPEN hPen = CreatePen( PS_SOLID, 0, chr.attr.bg_color[0] );
+
+            		SelectObject( offscreen_dc, hBrush );
+            		SelectObject( offscreen_dc, hPen );
+
+					Rectangle(
+						offscreen_dc,
+						x * font->char_width,
+						y * font->char_height,
+						x2 * font->char_width,
+                		(y+1) * font->char_height
+						);
+
+					DeleteObject(hBrush);
+					DeleteObject(hPen);
+					
+					window->perf_fillrect_count ++;
+				}
+				else if( chr.attr.bg & Attribute::BG_Gradation )
+				{
+					TRIVERTEX v[4];
+
+					v[0].x = x * font->char_width;
+					v[0].y = y * font->char_height;
+					v[0].Red = GetRValue(chr.attr.bg_color[0])<<8;
+					v[0].Green = GetGValue(chr.attr.bg_color[0])<<8;
+					v[0].Blue = GetBValue(chr.attr.bg_color[0])<<8;
+					v[0].Alpha = 255<<8;
+
+					v[1].x = x2 * font->char_width;
+					v[1].y = y * font->char_height;
+					v[1].Red = GetRValue(chr.attr.bg_color[1])<<8;
+					v[1].Green = GetGValue(chr.attr.bg_color[1])<<8;
+					v[1].Blue = GetBValue(chr.attr.bg_color[1])<<8;
+					v[1].Alpha = 255<<8;
+
+					v[2].x = x * font->char_width;
+					v[2].y = (y+1) * font->char_height;
+					v[2].Red = GetRValue(chr.attr.bg_color[2])<<8;
+					v[2].Green = GetGValue(chr.attr.bg_color[2])<<8;
+					v[2].Blue = GetBValue(chr.attr.bg_color[2])<<8;
+					v[2].Alpha = 255<<8;
+
+					v[3].x = x2 * font->char_width;
+					v[3].y = (y+1) * font->char_height;
+					v[3].Red = GetRValue(chr.attr.bg_color[3])<<8;
+					v[3].Green = GetGValue(chr.attr.bg_color[3])<<8;
+					v[3].Blue = GetBValue(chr.attr.bg_color[3])<<8;
+					v[3].Alpha = 255<<8;
+
+					GRADIENT_TRIANGLE triangle[2];
+					triangle[0].Vertex1 = 0;
+					triangle[0].Vertex2 = 1;
+					triangle[0].Vertex3 = 2;
+					triangle[1].Vertex1 = 1;
+					triangle[1].Vertex2 = 2;
+					triangle[1].Vertex3 = 3;
+
+					GradientFill(
+						offscreen_dc,
+						v,
+						4,
+						triangle,
+						2,
+						GRADIENT_FILL_TRIANGLE
+					);
+
+					window->perf_fillrect_count ++;
+				}
+				else
+				{
+					HBRUSH brush = (HBRUSH)GetStockObject( BLACK_BRUSH );
+
+					RECT rect = {
+						x * font->char_width,
+						y * font->char_height,
+						x2 * font->char_width,
+                		(y+1) * font->char_height
+					};
+
+					FillRect( offscreen_dc, &rect, brush );
+
+					window->perf_fillrect_count ++;
+				}
+
+				if(chr.attr.bg)
+				{
+					SetTextColor( offscreen_dc, chr.attr.fg_color );
+				}
+				else
+				{
+					SetTextColor( offscreen_dc, RGB(0xff, 0xff, 0xff) );
+				}
+
+	            SetBkMode( offscreen_dc, TRANSPARENT );
+
+	            ExtTextOut(
+	                offscreen_dc,
+	                x * font->char_width,
+	                y * font->char_height,
+	                0, NULL,
+	                (LPCWSTR)work_text,
+	                (UINT)(work_len),
+	                work_width );
+
+				window->perf_drawtext_count ++;
+
+				if(chr.attr.bg)
+				{
+					RECT rect = {
+						x * font->char_width,
+						y * font->char_height,
+						x2 * font->char_width,
+                		(y+1) * font->char_height
+					};
+
+					// Alphaを 255 で埋める
+					for( int py=rect.top ; py<rect.bottom ; ++py )
+					{
+						for( int px=rect.left ; px<rect.right ; ++px )
+						{
+							offscreen_buf[ (offscreen_size.cy-py-1) * offscreen_size.cx * 4 + px * 4 + 3 ] = 0xff;
+						}
+					}
+				}
+				else
+				{
+					RECT rect = {
+						x * font->char_width,
+						y * font->char_height,
+						x2 * font->char_width,
+                		(y+1) * font->char_height
+					};
+
+					// Premultiplied Alpha 処理
+					for( int py=rect.top ; py<rect.bottom ; ++py )
+					{
+						for( int px=rect.left ; px<rect.right ; ++px )
+						{
+							int alpha = offscreen_buf[ (offscreen_size.cy-py-1) * offscreen_size.cx * 4 + px * 4 + 1 ];
+							offscreen_buf[ (offscreen_size.cy-py-1) * offscreen_size.cx * 4 + px * 4 + 0 ] = GetBValue(chr.attr.fg_color) * alpha / 255;
+							offscreen_buf[ (offscreen_size.cy-py-1) * offscreen_size.cx * 4 + px * 4 + 1 ] = GetGValue(chr.attr.fg_color) * alpha / 255;
+							offscreen_buf[ (offscreen_size.cy-py-1) * offscreen_size.cx * 4 + px * 4 + 2 ] = GetRValue(chr.attr.fg_color) * alpha / 255;
+							offscreen_buf[ (offscreen_size.cy-py-1) * offscreen_size.cx * 4 + px * 4 + 3 ] = alpha;
+						}
+					}
+				}
+
+				for( int line=0 ; line<2 ; ++line )
+				{
+		            if( chr.attr.line[line] & (Attribute::Line_Left|Attribute::Line_Right|Attribute::Line_Top|Attribute::Line_Bottom) )
+		            {
+		            	HPEN hPen;
+		            	if(chr.attr.line[line] & Attribute::Line_Dot)
+		            	{
+							LOGBRUSH log_brush;
+							log_brush.lbColor = chr.attr.line_color[line];
+							log_brush.lbHatch = 0;
+							log_brush.lbStyle = BS_SOLID;
+							DWORD pattern[] = { 1, 1 };
+					    
+						    hPen = ExtCreatePen( PS_GEOMETRIC | PS_ENDCAP_FLAT | PS_USERSTYLE, 1, &log_brush, 2, pattern );
+		            	}
+		            	else
+		            	{
+						    hPen = CreatePen( PS_SOLID, 1, chr.attr.line_color[line] );
+		            	}
+
+		            	SelectObject( offscreen_dc, hPen );
+
+						if(chr.attr.line[line] & Attribute::Line_Left)
+						{
+							DrawVerticalLine( 
+								x * font->char_width, 
+								y * font->char_height, 
+								(y+1) * font->char_height, 
+								chr.attr.line_color[line], 
+								(chr.attr.line[line] & Attribute::Line_Dot)!=0 );
+						}
+
+						if(chr.attr.line[line] & Attribute::Line_Bottom)
+						{
+							DrawHorizontalLine( 
+								x * font->char_width, 
+								(y+1) * font->char_height - 1, 
+								x2 * font->char_width, 
+								chr.attr.line_color[line], 
+								(chr.attr.line[line] & Attribute::Line_Dot)!=0 );
+						}
+
+						if(chr.attr.line[line] & Attribute::Line_Right)
+						{
+							DrawVerticalLine( 
+								x2 * font->char_width - 1, 
+			                	y * font->char_height,
+								(y+1) * font->char_height, 
+								chr.attr.line_color[line], 
+								(chr.attr.line[line] & Attribute::Line_Dot)!=0 );
+						}
+
+						if(chr.attr.line[line] & Attribute::Line_Top)
+						{
+							DrawHorizontalLine( 
+								x * font->char_width, 
+			                	y * font->char_height,
+				            	x2 * font->char_width,
+								chr.attr.line_color[line], 
+								(chr.attr.line[line] & Attribute::Line_Dot)!=0 );
+						}
+
+			            DeleteObject(hPen);
+		            }
+				}
+			}
+			
+            x = x2 - 1;
+        }
+    }
+
+    delete [] work_width;
+    delete [] work_text;
+
+	dirty = false;
+}
+
+void TextPlane::DrawHorizontalLine( int x1, int y1, int x2, COLORREF color, bool dotted )
+{
+	color = (0xff << 24) | (GetRValue(color) << 16) | (GetGValue(color) << 8) | GetBValue(color);
+	int step;
+	if(dotted) { step=2; } else { step=1; }
+
+	for( int x=x1 ; x<x2 ; x+=step )
+	{
+		*(int*)(&offscreen_buf[ (offscreen_size.cy-y1-1) * offscreen_size.cx * 4 + x * 4 + 0 ]) = color;
+	}
+}
+
+void TextPlane::DrawVerticalLine( int x1, int y1, int y2, COLORREF color, bool dotted )
+{
+	color = (0xff << 24) | (GetRValue(color) << 16) | (GetGValue(color) << 8) | GetBValue(color);
+	int step;
+	if(dotted) { step=2; } else { step=1; }
+
+	for( int y=y1 ; y<y2 ; y+=step )
+	{
+		*(int*)(&offscreen_buf[ (offscreen_size.cy-y-1) * offscreen_size.cx * 4 + x1 * 4 + 0 ]) = color;
+	}
+}
+
+void TextPlane::Draw( const RECT & paint_rect )
+{
+	FUNC_TRACE;
+
+	if( !show )
+	{
+		return;
+	}
+
+    RECT plane_rect = { x, y, x+width, y+height };
+   	if( plane_rect.left>=paint_rect.right || plane_rect.right<=paint_rect.left
+   		|| plane_rect.top>=paint_rect.bottom || plane_rect.bottom<=paint_rect.top )
+	{
+		return;
+	}
+
+	// テキスト用オフスクリーンバッファの描画
+	DrawOffscreen();
+
+	// テキスト用オフスクリーンバッファからの AlphaBlend
+	{
+		RECT _paint_rect = paint_rect;
+		if( _paint_rect.left < plane_rect.left ){ _paint_rect.left = plane_rect.left; }
+		if( _paint_rect.right > plane_rect.right ){ _paint_rect.right = plane_rect.right; }
+		if( _paint_rect.top < plane_rect.top ){ _paint_rect.top = plane_rect.top; }
+		if( _paint_rect.bottom > plane_rect.bottom ){ _paint_rect.bottom = plane_rect.bottom; }
+
+		int paint_width = _paint_rect.right - _paint_rect.left;
+		int paint_height = _paint_rect.bottom - _paint_rect.top;
+
+		BLENDFUNCTION bf;
+		bf.BlendOp = AC_SRC_OVER;
+		bf.BlendFlags = 0;
+		bf.AlphaFormat = AC_SRC_ALPHA;
+		bf.SourceConstantAlpha = 255;
+	
+		AlphaBlend(
+			window->offscreen_dc, _paint_rect.left, _paint_rect.top, paint_width, paint_height,
+			offscreen_dc, _paint_rect.left-x, _paint_rect.top-y, paint_width, paint_height,
+			bf
+			);
+	}
+}
+
+void TextPlane::SetCaretPosition( int caret_x, int caret_y )
+{
+	RECT caret_rect = { 
+		caret_x * font->char_width + x, 
+		caret_y * font->char_height + y,
+		caret_x * font->char_width + x + 2,
+		(caret_y+1) * font->char_height + y
+	};
+
+	window->setCaretRect(caret_rect);
+	window->setImeFont( font->logfont );
 }
 
 //-----------------------------------------------------------------------------
@@ -325,24 +1188,22 @@ Window::Param::Param()
     is_winpos_given = false;
     winpos_x = 0;
     winpos_y = 0;
-    winsize_char_w = 80;
-    winsize_char_h = 24;
+    winsize_w = 100;
+    winsize_h = 100;
     origin = 0;
     parent_window = NULL;
     parent_window_hwnd = NULL;
-    font_size = 12;
     bg_color = RGB(0x01, 0x01, 0x01);
     frame_color = RGB(0xff, 0xff, 0xff);
-    cursor0_color = RGB(0xff, 0xff, 0xff);
-    cursor1_color = RGB(0xff, 0x00, 0x00);
+    caret0_color = RGB(0xff, 0xff, 0xff);
+    caret1_color = RGB(0xff, 0x00, 0x00);
     title_bar = true;
     show = true;
     resizable = true;
     noframe = false;
     minimizebox = true;
     maximizebox = true;
-    cursor = false;
-    border_size = 1;
+    caret = false;
     is_transparency_given = false;
     transparency = 255;
     is_transparent_color_given = false;
@@ -356,6 +1217,7 @@ Window::Param::Param()
     close_handler = NULL;
     endsession_handler = NULL;
     move_handler = NULL;
+    sizing_handler = NULL;
     size_handler = NULL;
     dropfiles_handler = NULL;
     ipc_handler = NULL;
@@ -384,44 +1246,27 @@ Window::Window( Param & param )
     pyobj = NULL;
     quit_requested = false;
     active = false;
-    memset( &logfont, 0, sizeof(logfont) );
-    font_handle = NULL;
-    font_handle_created = false;
-    font_w = 0;
-    font_h = 0;
-    window_column = 0;
-    window_row = 0;
-    memset( &window_frame_rect, 0, sizeof(window_frame_rect) );
+    memset( &window_frame_size, 0, sizeof(window_frame_size) );
     memset( &last_valid_window_rect, 0, sizeof(last_valid_window_rect) );
 	offscreen_dc = NULL;
 	offscreen_bmp = NULL;
-	text_offscreen_dc = NULL;
-	text_offscreen_bmp = NULL;
-    text_offscreen_buf = NULL;
 	offscreen_size.cx = 0;
 	offscreen_size.cy = 0;
 	bg_brush = NULL;
     frame_pen = NULL;
-    cursor0_brush = NULL;
-    cursor1_brush = NULL;
-    border_size = param.border_size;
-    border_left = border_size;
-    border_top = border_size;
-    cursor = param.cursor;
-    cursor_blink = 1;
+    caret0_brush = NULL;
+    caret1_brush = NULL;
+    caret = param.caret;
+    caret_blink = 1;
     ime_on = false;
     ime_context = (HIMC)NULL;
+    memset( &ime_logfont, 0, sizeof(ime_logfont) );
     menu = NULL;
 	perf_fillrect_count = 0;
 	perf_drawtext_count = 0;
 	perf_drawplane_count = 0;
 
-    visible_rect.left = 0;
-    visible_rect.right = param.winsize_char_w;
-    visible_rect.top = 0;
-    visible_rect.bottom = param.winsize_char_h;
-
-    memset( &cursor_position, 0, sizeof(cursor_position) );
+    memset( &caret_rect, 0, sizeof(caret_rect) );
     memset( &ime_rect, 0, sizeof(ime_rect) );
     
     ncpaint = param.ncpaint;
@@ -430,6 +1275,7 @@ Window::Window( Param & param )
     close_handler = param.close_handler; Py_XINCREF(close_handler);
     endsession_handler = param.endsession_handler; Py_XINCREF(endsession_handler);
     move_handler = param.move_handler; Py_XINCREF(move_handler);
+    sizing_handler = param.sizing_handler; Py_XINCREF(sizing_handler);
     size_handler = param.size_handler; Py_XINCREF(size_handler);
     dropfiles_handler = param.dropfiles_handler; Py_XINCREF(dropfiles_handler);
     ipc_handler = param.ipc_handler; Py_XINCREF(ipc_handler);
@@ -455,22 +1301,8 @@ Window::Window( Param & param )
 
     if(!bg_brush) bg_brush = CreateSolidBrush(param.bg_color);
     if(!frame_pen) frame_pen = CreatePen( PS_SOLID, 0, param.frame_color );
-    if(!cursor0_brush) cursor0_brush = CreateSolidBrush(param.cursor0_color);
-    if(!cursor1_brush) cursor1_brush = CreateSolidBrush(param.cursor1_color);
-
-	if( param.parent_window && param.font_name.empty() )
-	{
-		if(!setFont(param.parent_window))
-		{
-	        printf("_createFont failed\n");
-	        return;
-		}
-	}
-    else if(!setFont(param.font_name.c_str(), param.font_size))
-    {
-        printf("_createFont failed\n");
-        return;
-    }
+    if(!caret0_brush) caret0_brush = CreateSolidBrush(param.caret0_color);
+    if(!caret1_brush) caret1_brush = CreateSolidBrush(param.caret1_color);
 
     if(! _createWindow(param))
     {
@@ -478,7 +1310,7 @@ Window::Window( Param & param )
         return;
     }
 
-    _dirty = false;
+    dirty = false;
 }
 
 Window::~Window()
@@ -493,6 +1325,7 @@ Window::~Window()
     Py_XDECREF(close_handler); close_handler=NULL;
     Py_XDECREF(endsession_handler); endsession_handler=NULL;
     Py_XDECREF(move_handler); move_handler=NULL;
+    Py_XDECREF(sizing_handler); sizing_handler=NULL;
     Py_XDECREF(size_handler); size_handler=NULL;
     Py_XDECREF(dropfiles_handler); dropfiles_handler=NULL;
     Py_XDECREF(ipc_handler); ipc_handler=NULL;
@@ -529,15 +1362,12 @@ Window::~Window()
 	}
 	hotkey_list.clear();
 
-    if(font_handle && font_handle_created) { DeleteObject(font_handle); font_handle=NULL; font_handle_created=false; }
     if(bg_brush) { DeleteObject(bg_brush); bg_brush = NULL; }
     if(frame_pen) { DeleteObject(frame_pen); frame_pen = NULL; }
-    if(cursor0_brush) { DeleteObject(cursor0_brush); cursor0_brush = NULL; }
-    if(cursor1_brush) { DeleteObject(cursor1_brush); cursor1_brush = NULL; }
+    if(caret0_brush) { DeleteObject(caret0_brush); caret0_brush = NULL; }
+    if(caret1_brush) { DeleteObject(caret1_brush); caret1_brush = NULL; }
 	if(offscreen_bmp) { DeleteObject(offscreen_bmp); offscreen_bmp = NULL; };
 	if(offscreen_dc) { DeleteObject(offscreen_dc); offscreen_dc = NULL; };
-	if(text_offscreen_bmp) { DeleteObject(text_offscreen_bmp); text_offscreen_bmp = NULL; };
-	if(text_offscreen_dc) { DeleteObject(text_offscreen_dc); text_offscreen_dc = NULL; };
 }
 
 void Window::SetPyObject( PyObject * _pyobj )
@@ -552,17 +1382,11 @@ void Window::SetPyObject( PyObject * _pyobj )
 	}
 }
 
-void Window::appendDirtyRect( const RECT & rect, bool dirty_text )
+void Window::appendDirtyRect( const RECT & rect )
 {
 	FUNC_TRACE;
 
-	// テキストレイヤの再描画マーク
-	if(dirty_text)
-	{
-		setDirtyTextLayerRect(rect);
-	}
-
-	if(_dirty)
+	if(dirty)
 	{
 		if( dirty_rect.left > rect.left ) dirty_rect.left = rect.left;
 		if( dirty_rect.top > rect.top ) dirty_rect.top = rect.top;
@@ -572,13 +1396,13 @@ void Window::appendDirtyRect( const RECT & rect, bool dirty_text )
 	else
 	{
 		dirty_rect = rect;
-		_dirty = true;
+		dirty = true;
 	}
 }
 
 void Window::clearDirtyRect()
 {
-	if(_dirty)
+	if(dirty)
 	{
 		if(0)
 		{
@@ -593,498 +1417,16 @@ void Window::clearDirtyRect()
 		perf_drawtext_count = 0;
 		perf_drawplane_count = 0;
 
-		_dirty = false;
+		dirty = false;
 	}
 }
 
-void Window::setDirtyTextLayerRect( const RECT & rect )
+void Window::_drawBackground( const RECT & paint_rect )
 {
-	RECT text_rect = {
-		(rect.left-border_left) / font_w,
-		(rect.top-border_top) / font_h,
-		(rect.right-border_left) / font_w + 1,
-		(rect.bottom-border_top) / font_h + 1,
-	};
-	
-	if(text_rect.left<0){ text_rect.left=0; }
-	if(text_rect.top<0){ text_rect.top=0; }
-
-	for( int i=text_rect.top ; i<(int)char_buffer.size() && i<text_rect.bottom ; ++i )
-	{
-		for( int j=text_rect.left ; j<(int)(*char_buffer[i]).size() && j<text_rect.right ; ++j )
-		{
-			(*char_buffer[i])[j].dirty = true;
-		}
-	}
+	FillRect( offscreen_dc, &paint_rect, bg_brush );
 }
 
-void Window::scroll( int x, int y, int width, int height, int delta_x, int delta_y )
-{
-	FUNC_TRACE;
-
-	BOOL ret;
-
-	// まだ描いてないものがあれば描く
-    flushPaint( NULL, false );
-
-	// 埋まっていなかったら空文字で進める
-	while( (int)char_buffer.size() <= y+height+delta_y )
-	{
-        Line * line = new Line();
-        char_buffer.push_back(line);
-	}
-
-	// キャラクタバッファをコピー
-	if(delta_y<0)
-	{
-		for( int i=0 ; i<height ; ++i )
-		{
-			*char_buffer[y+i+delta_y] = *char_buffer[y+i];
-		}
-	}
-	else if(delta_y>0)
-	{
-		for( int i=height-1 ; i>=0 ; --i )
-		{
-			*char_buffer[y+i+delta_y] = *char_buffer[y+i];
-		}
-	}
-	else
-	{
-		// 埋まっていなかったら空文字で進める
-		for( int i=0 ; i<height ; ++i )
-		{
-		    Line * line = char_buffer[y+i];
-			while( (int)line->size() < x+width+delta_x )
-			{
-		        line->push_back( Char( L' ' ) );
-			}
-		}
-
-		if(delta_x<0)
-		{
-			for( int i=0 ; i<height ; ++i )
-			{
-				for( int j=0 ; j<width ; ++j )
-				{
-					(*char_buffer[y+i+delta_y])[x+j+delta_x] = (*char_buffer[y+i])[x+j];
-				}
-			}
-		}
-		else
-		{
-			for( int i=0 ; i<height ; ++i )
-			{
-				for( int j=width-1 ; j>=0 ; --j )
-				{
-					(*char_buffer[y+i+delta_y])[x+j+delta_x] = (*char_buffer[y+i])[x+j];
-				}
-			}
-		}
-	}
-
-	RECT src_rect = { 
-		x * font_w + border_left, 
-		y * font_h + border_top, 
-		(x+width) * font_w + border_left, 
-		(y+height) * font_h + border_top };
-
-	RECT dst_rect = { 
-		(x+delta_x) * font_w + border_left, 
-		(y+delta_y) * font_h + border_top, 
-		(x+width+delta_x) * font_w + border_left, 
-		(y+height+delta_y) * font_h + border_top };
-	
-	ret = ScrollDC( 
-		offscreen_dc, 
-		delta_x * font_w,
-		delta_y * font_h,
-		&src_rect,
-		NULL, NULL, NULL );
-	assert(ret);
-
-	ret = ScrollDC( 
-		text_offscreen_dc, 
-		delta_x * font_w,
-		delta_y * font_h,
-		&src_rect,
-		NULL, NULL, NULL );
-	assert(ret);
-
-	appendDirtyRect( dst_rect, false );
-}
-
-void Window::_drawBackground( HDC hDC, const RECT & paint_rect )
-{
-	FillRect( hDC, &paint_rect, bg_brush );
-}
-
-void Window::_drawText( HDC hDC )
-{
-	FUNC_TRACE;
-
-    wchar_t * work_text = new wchar_t[ width() ];
-    int * work_width = new int [ width() ];
-    unsigned int work_len;
-	bool work_dirty;
-
-	SelectObject(hDC, font_handle);
-
-    for( int y=visible_rect.top ; y<(int)char_buffer.size() && y<visible_rect.bottom ; ++y )
-    {
-        Line & line = *(char_buffer[y]);
-
-        for( int x=visible_rect.left ; x<(int)line.size() && x<visible_rect.right ; ++x )
-        {
-            Char & chr = line[x];
-
-            work_len = 0;
-			work_dirty = false;
-
-            int x2;
-            for( x2=x ; x2<(int)line.size() && x2<visible_rect.right ; ++x2 )
-            {
-                Char & chr2 = line[x2];
-
-                if( chr2.c==0 )
-                {
-                    continue;
-                }
-
-				if( chr2.c!=' ' )
-				{
-					if( ! chr.attr.Equal(chr2.attr) )
-					{
-						break;
-					}
-				}
-				else
-				{
-					if( ! chr.attr.EqualWithoutFgColor(chr2.attr) )
-					{
-						break;
-					}
-				}
-
-                work_text[work_len] = chr2.c;
-                work_width[work_len] = (!zenkaku_table[chr2.c]) ? font_w : font_w*2;
-                work_len ++;
-
-				if(chr2.dirty)
-				{
-					work_dirty = true;
-					chr2.dirty = false;
-				}
-            }
-
-			if(work_dirty)
-			{
-				if( chr.attr.bg & Attribute::BG_Flat )
-				{
-					HBRUSH hBrush = CreateSolidBrush( chr.attr.bg_color[0] );
-					HPEN hPen = CreatePen( PS_SOLID, 0, chr.attr.bg_color[0] );
-
-            		SelectObject( hDC, hBrush );
-            		SelectObject( hDC, hPen );
-
-					Rectangle(
-						hDC,
-						(x-visible_rect.left) * font_w + border_left,
-						(y-visible_rect.top) * font_h + border_top,
-						(x2-visible_rect.left) * font_w + border_left,
-                		(y-visible_rect.top) * font_h + font_h + border_top
-						);
-
-					DeleteObject(hBrush);
-					DeleteObject(hPen);
-
-					perf_fillrect_count ++;
-				}
-				else if( chr.attr.bg & Attribute::BG_Gradation )
-				{
-					TRIVERTEX v[4];
-
-					v[0].x = (x-visible_rect.left) * font_w + border_left;
-					v[0].y = (y-visible_rect.top) * font_h + border_top;
-					v[0].Red = GetRValue(chr.attr.bg_color[0])<<8;
-					v[0].Green = GetGValue(chr.attr.bg_color[0])<<8;
-					v[0].Blue = GetBValue(chr.attr.bg_color[0])<<8;
-					v[0].Alpha = 255<<8;
-
-					v[1].x = (x2-visible_rect.left) * font_w + border_left;
-					v[1].y = (y-visible_rect.top) * font_h + border_top;
-					v[1].Red = GetRValue(chr.attr.bg_color[1])<<8;
-					v[1].Green = GetGValue(chr.attr.bg_color[1])<<8;
-					v[1].Blue = GetBValue(chr.attr.bg_color[1])<<8;
-					v[1].Alpha = 255<<8;
-
-					v[2].x = (x-visible_rect.left) * font_w + border_left;
-					v[2].y = (y-visible_rect.top) * font_h + font_h + border_top;
-					v[2].Red = GetRValue(chr.attr.bg_color[2])<<8;
-					v[2].Green = GetGValue(chr.attr.bg_color[2])<<8;
-					v[2].Blue = GetBValue(chr.attr.bg_color[2])<<8;
-					v[2].Alpha = 255<<8;
-
-					v[3].x = (x2-visible_rect.left) * font_w + border_left;
-					v[3].y = (y-visible_rect.top) * font_h + font_h + border_top;
-					v[3].Red = GetRValue(chr.attr.bg_color[3])<<8;
-					v[3].Green = GetGValue(chr.attr.bg_color[3])<<8;
-					v[3].Blue = GetBValue(chr.attr.bg_color[3])<<8;
-					v[3].Alpha = 255<<8;
-
-					GRADIENT_TRIANGLE triangle[2];
-					triangle[0].Vertex1 = 0;
-					triangle[0].Vertex2 = 1;
-					triangle[0].Vertex3 = 2;
-					triangle[1].Vertex1 = 1;
-					triangle[1].Vertex2 = 2;
-					triangle[1].Vertex3 = 3;
-
-					GradientFill(
-						hDC,
-						v,
-						4,
-						triangle,
-						2,
-						GRADIENT_FILL_TRIANGLE
-					);
-
-					perf_fillrect_count ++;
-				}
-				else
-				{
-					HBRUSH brush = (HBRUSH)GetStockObject( BLACK_BRUSH );
-
-					RECT rect = {
-						(x-visible_rect.left) * font_w + border_left,
-						(y-visible_rect.top) * font_h + border_top,
-						(x2-visible_rect.left) * font_w + border_left,
-                		(y-visible_rect.top) * font_h + font_h + border_top
-					};
-
-					FillRect( hDC, &rect, brush );
-
-					perf_fillrect_count ++;
-				}
-
-				if(chr.attr.bg)
-				{
-					SetTextColor( hDC, chr.attr.fg_color );
-				}
-				else
-				{
-					SetTextColor( hDC, RGB(0xff, 0xff, 0xff) );
-				}
-
-	            SetBkMode( hDC, TRANSPARENT );
-
-	            ExtTextOut(
-	                hDC,
-	                (x-visible_rect.left) * font_w + border_left,
-	                (y-visible_rect.top) * font_h + border_top,
-	                0, NULL,
-	                (LPCWSTR)work_text,
-	                (UINT)(work_len),
-	                work_width );
-
-				perf_drawtext_count ++;
-
-				if(chr.attr.bg)
-				{
-					RECT rect = {
-						(x-visible_rect.left) * font_w + border_left,
-						(y-visible_rect.top) * font_h + border_top,
-						(x2-visible_rect.left) * font_w + border_left,
-                		(y-visible_rect.top) * font_h + font_h + border_top
-					};
-
-					// Alphaを 255 で埋める
-					for( int py=rect.top ; py<rect.bottom ; ++py )
-					{
-						for( int px=rect.left ; px<rect.right ; ++px )
-						{
-							text_offscreen_buf[ (offscreen_size.cy-py-1) * offscreen_size.cx * 4 + px * 4 + 3 ] = 0xff;
-						}
-					}
-				}
-				else
-				{
-					RECT rect = {
-						(x-visible_rect.left) * font_w + border_left,
-						(y-visible_rect.top) * font_h + border_top,
-						(x2-visible_rect.left) * font_w + border_left,
-                		(y-visible_rect.top) * font_h + font_h + border_top
-					};
-
-					// Premultiplied Alpha 処理
-					for( int py=rect.top ; py<rect.bottom ; ++py )
-					{
-						for( int px=rect.left ; px<rect.right ; ++px )
-						{
-							int alpha = text_offscreen_buf[ (offscreen_size.cy-py-1) * offscreen_size.cx * 4 + px * 4 + 1 ];
-							text_offscreen_buf[ (offscreen_size.cy-py-1) * offscreen_size.cx * 4 + px * 4 + 0 ] = GetBValue(chr.attr.fg_color) * alpha / 255;
-							text_offscreen_buf[ (offscreen_size.cy-py-1) * offscreen_size.cx * 4 + px * 4 + 1 ] = GetGValue(chr.attr.fg_color) * alpha / 255;
-							text_offscreen_buf[ (offscreen_size.cy-py-1) * offscreen_size.cx * 4 + px * 4 + 2 ] = GetRValue(chr.attr.fg_color) * alpha / 255;
-							text_offscreen_buf[ (offscreen_size.cy-py-1) * offscreen_size.cx * 4 + px * 4 + 3 ] = alpha;
-						}
-					}
-				}
-
-				for( int line=0 ; line<2 ; ++line )
-				{
-					// FIXME : Line に Alpha値 を書く
-					// もしかしたら、バッファを直接操作するべきかも
-
-		            if( chr.attr.line[line] & (Attribute::Line_Left|Attribute::Line_Right|Attribute::Line_Top|Attribute::Line_Bottom) )
-		            {
-		            	HPEN hPen;
-		            	if(chr.attr.line[line] & Attribute::Line_Dot)
-		            	{
-							LOGBRUSH log_brush;
-							log_brush.lbColor = chr.attr.line_color[line];
-							log_brush.lbHatch = 0;
-							log_brush.lbStyle = BS_SOLID;
-							DWORD pattern[] = { 1, 1 };
-					    
-						    hPen = ExtCreatePen( PS_GEOMETRIC | PS_ENDCAP_FLAT | PS_USERSTYLE, 1, &log_brush, 2, pattern );
-		            	}
-		            	else
-		            	{
-						    hPen = CreatePen( PS_SOLID, 1, chr.attr.line_color[line] );
-		            	}
-
-		            	SelectObject( hDC, hPen );
-
-						if(chr.attr.line[line] & Attribute::Line_Left)
-						{
-							_drawVerticalLine( 
-								(x-visible_rect.left) * font_w + border_left, 
-								(y-visible_rect.top) * font_h + border_top, 
-								(y-visible_rect.top) * font_h + font_h + border_top, 
-								chr.attr.line_color[line], 
-								(chr.attr.line[line] & Attribute::Line_Dot)!=0 );
-						}
-
-						if(chr.attr.line[line] & Attribute::Line_Bottom)
-						{
-							_drawHorizontalLine( 
-								(x-visible_rect.left) * font_w + border_left, 
-								(y-visible_rect.top) * font_h + font_h-1 + border_top, 
-								(x2-visible_rect.left) * font_w + border_left, 
-								chr.attr.line_color[line], 
-								(chr.attr.line[line] & Attribute::Line_Dot)!=0 );
-						}
-
-						if(chr.attr.line[line] & Attribute::Line_Right)
-						{
-							_drawVerticalLine( 
-								(x2-visible_rect.left) * font_w-1 + border_left, 
-			                	(y-visible_rect.top) * font_h + border_top,
-								(y-visible_rect.top) * font_h + font_h + border_top, 
-								chr.attr.line_color[line], 
-								(chr.attr.line[line] & Attribute::Line_Dot)!=0 );
-						}
-
-						if(chr.attr.line[line] & Attribute::Line_Top)
-						{
-							_drawHorizontalLine( 
-								(x-visible_rect.left) * font_w + border_left, 
-			                	(y-visible_rect.top) * font_h + border_top,
-				            	(x2-visible_rect.left) * font_w + border_left,
-								chr.attr.line_color[line], 
-								(chr.attr.line[line] & Attribute::Line_Dot)!=0 );
-						}
-
-			            DeleteObject(hPen);
-		            }
-				}
-			}
-			
-            x = x2 - 1;
-        }
-    }
-
-    delete [] work_width;
-    delete [] work_text;
-}
-
-// テキスト用オフスクリーンバッファに水平ラインを描画する
-void Window::_drawHorizontalLine( int x1, int y1, int x2, COLORREF color, bool dotted )
-{
-	color = (0xff << 24) | (GetRValue(color) << 16) | (GetGValue(color) << 8) | GetBValue(color);
-	int step;
-	if(dotted) { step=2; } else { step=1; }
-
-	for( int x=x1 ; x<x2 ; x+=step )
-	{
-		*(int*)(&text_offscreen_buf[ (offscreen_size.cy-y1-1) * offscreen_size.cx * 4 + x * 4 + 0 ]) = color;
-	}
-}
-
-// テキスト用オフスクリーンバッファに垂直ラインを描画する
-void Window::_drawVerticalLine( int x1, int y1, int y2, COLORREF color, bool dotted )
-{
-	color = (0xff << 24) | (GetRValue(color) << 16) | (GetGValue(color) << 8) | GetBValue(color);
-	int step;
-	if(dotted) { step=2; } else { step=1; }
-
-	for( int y=y1 ; y<y2 ; y+=step )
-	{
-		*(int*)(&text_offscreen_buf[ (offscreen_size.cy-y-1) * offscreen_size.cx * 4 + x1 * 4 + 0 ]) = color;
-	}
-}
-
-// テキストレイヤーの描画
-void Window::_drawTextLayer( HDC hDC, const RECT & paint_rect )
-{
-	FUNC_TRACE;
-
-	// テキスト用オフスクリーンバッファからの AlphaBlend
-	{
-		int width = paint_rect.right - paint_rect.left;
-		int height = paint_rect.bottom - paint_rect.top;
-
-		BLENDFUNCTION bf;
-		bf.BlendOp = AC_SRC_OVER;
-		bf.BlendFlags = 0;
-		bf.AlphaFormat = AC_SRC_ALPHA;
-		//bf.AlphaFormat = 0;
-		bf.SourceConstantAlpha = 255;
-	
-		AlphaBlend(
-			hDC, paint_rect.left, paint_rect.top, width, height,
-			text_offscreen_dc, paint_rect.left, paint_rect.top, width, height,
-			bf
-			);
-	}
-
-    // カーソルの描画
-    if( cursor && cursor_blink )
-    {
-	    if(visible_rect.top      <= cursor_position.Y &&
-	       visible_rect.bottom-1 >= cursor_position.Y &&
-	       visible_rect.left     <= cursor_position.X &&
-	       visible_rect.right-1  >= cursor_position.X)
-	    {
-            int pntX = (cursor_position.X - visible_rect.left) * font_w + border_left;
-            int pntY = (cursor_position.Y - visible_rect.top) * font_h + border_top;
-			
-			if(ime_on)
-			{
-	            SelectObject( hDC, cursor1_brush ) ;
-			}
-			else
-			{
-	            SelectObject( hDC, cursor0_brush ) ;
-			}
-
-            PatBlt( hDC, pntX, pntY, 2, font_h, PATINVERT );
-	    }
-    }
-}
-
-// ビットマップレイヤーの描画
-void Window::_drawBitmapLayer( HDC hDC, const RECT & paint_rect, bool draw_low_priority, bool draw_high_priority )
+void Window::_drawPlanes( const RECT & paint_rect )
 {
 	FUNC_TRACE;
 
@@ -1092,82 +1434,36 @@ void Window::_drawBitmapLayer( HDC hDC, const RECT & paint_rect, bool draw_low_p
     for( i=plane_list.begin() ; i!=plane_list.end() ; i++ )
     {
     	Plane * plane = *i;
+		plane->Draw( paint_rect );
+    }
+}
 
-    	if( draw_high_priority && plane->priority>=0 ) continue;
-    	if( draw_low_priority && plane->priority<0 ) break;
-    	if( !plane->show ) continue;
+void Window::_drawCaret( const RECT & paint_rect )
+{
+    if( caret && caret_blink )
+    {
+		RECT rect;
+		IntersectRect( &rect, &paint_rect, &caret_rect );
 
-    	RECT plane_rect = { plane->x, plane->y, plane->x+plane->width, plane->y+plane->height };
-   		if( plane_rect.left>=paint_rect.right || plane_rect.right<=paint_rect.left
-   		 || plane_rect.top>=paint_rect.bottom || plane_rect.bottom<=paint_rect.top )
-   		{
-   			continue;
-   		}
-
-   		if( plane->image )
-   		{
-			HDC compatibleDC = CreateCompatibleDC(hDC);
-
-		    SelectObject( compatibleDC, plane->image->handle );
-
-			/*
-			printf( "StretchBlt : %d %d %d %d  %d %d %d %d\n",
-				plane->x, plane->y, plane->width, plane->height,
-				0, 0, plane->image->width, plane->image->height );
-			*/
-
-			if( plane->image->halftone )	
+		if(rect.right>0 || rect.bottom>0)
+		{
+			if(ime_on)
 			{
-				SetStretchBltMode( hDC, STRETCH_HALFTONE );
+				SelectObject( offscreen_dc, caret1_brush ) ;
 			}
 			else
 			{
-				SetStretchBltMode( hDC, STRETCH_DELETESCANS );
+	            SelectObject( offscreen_dc, caret0_brush ) ;
 			}
 
-			if( plane->image->transparent )
-			{
-				/*
-				BLENDFUNCTION bf;
-				bf.BlendOp = AC_SRC_OVER;
-				bf.BlendFlags = 0;
-				bf.AlphaFormat = AC_SRC_ALPHA;
-				bf.SourceConstantAlpha = 255;
-				
-				AlphaBlend(
-					hDC, plane->x, plane->y, plane->width, plane->height,
-					compatibleDC, 0, 0, plane->image->width, plane->image->height,
-					bf
-					);
-				*/
-
-				TransparentBlt(
-					hDC, plane->x, plane->y, plane->width, plane->height,
-					compatibleDC, 0, 0, plane->image->width, plane->image->height,
-					plane->image->transparent_color
-					);
-				
-				perf_drawplane_count ++;
-			}
-			else
-			{
-				StretchBlt(
-					hDC, plane->x, plane->y, plane->width, plane->height,
-					compatibleDC, 0, 0, plane->image->width, plane->image->height,
-					SRCCOPY
-					);
-
-				perf_drawplane_count ++;
-			}
-
-	    	DeleteDC(compatibleDC);
-   		}
+			PatBlt( offscreen_dc, rect.left, rect.top, rect.right-rect.left, rect.bottom-rect.top, PATINVERT );
+		}
     }
 }
 
 void Window::flushPaint( HDC hDC, bool bitblt )
 {
-    if(!_dirty){ return; }
+    if(!dirty){ return; }
 
 	FUNC_TRACE;
 
@@ -1187,12 +1483,10 @@ void Window::flushPaint( HDC hDC, bool bitblt )
 	if( dirty_rect.bottom > client_rect.bottom ) dirty_rect.bottom = client_rect.bottom;
 
 	// オフスクリーンバッファ生成
-	if( offscreen_dc==NULL || offscreen_bmp==NULL || text_offscreen_dc==NULL || text_offscreen_bmp==NULL || offscreen_size.cx!=client_rect.right-client_rect.left || offscreen_size.cy!=client_rect.bottom-client_rect.top )
+	if( offscreen_dc==NULL || offscreen_bmp==NULL || offscreen_size.cx!=client_rect.right-client_rect.left || offscreen_size.cy!=client_rect.bottom-client_rect.top )
 	{
 		if(offscreen_dc){ DeleteObject(offscreen_dc); }
 		if(offscreen_bmp){ DeleteObject(offscreen_bmp); }
-		if(text_offscreen_dc){ DeleteObject(text_offscreen_dc); }
-		if(text_offscreen_bmp){ DeleteObject(text_offscreen_bmp); }
 		
 		int width = client_rect.right-client_rect.left;
 		int height = client_rect.bottom-client_rect.top;
@@ -1204,26 +1498,11 @@ void Window::flushPaint( HDC hDC, bool bitblt )
 		offscreen_bmp = CreateCompatibleBitmap(hDC, width, height);
 		SelectObject(offscreen_dc, offscreen_bmp);
 
-		// テキスト用オフスクリーン
-		text_offscreen_dc = CreateCompatibleDC(hDC);
-		BITMAPINFO bmi;
-		ZeroMemory(&bmi, sizeof(BITMAPINFO));
-		bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-		bmi.bmiHeader.biWidth = width;
-		bmi.bmiHeader.biHeight = height;
-		bmi.bmiHeader.biPlanes = 1;
-		bmi.bmiHeader.biBitCount = 32;
-		bmi.bmiHeader.biCompression = BI_RGB;
-		bmi.bmiHeader.biSizeImage = width * height * 4;
-		text_offscreen_bmp = CreateDIBSection( text_offscreen_dc, &bmi, DIB_RGB_COLORS, (void**)&text_offscreen_buf, NULL, 0 );
-		SelectObject(text_offscreen_dc, text_offscreen_bmp);
-
 		offscreen_size.cx = client_rect.right-client_rect.left;
 		offscreen_size.cy = client_rect.bottom-client_rect.top;
 		
 		// オフスクリーンを作った直後は全て描く
 		dirty_rect = client_rect;
-		setDirtyTextLayerRect(dirty_rect);
 		FillRect( offscreen_dc, &dirty_rect, bg_brush );
 	}
 
@@ -1231,11 +1510,9 @@ void Window::flushPaint( HDC hDC, bool bitblt )
 	{
 	    IntersectClipRect( offscreen_dc, dirty_rect.left, dirty_rect.top, dirty_rect.right, dirty_rect.bottom );
 
-		_drawBackground( offscreen_dc, dirty_rect );
-		_drawBitmapLayer( offscreen_dc, dirty_rect, true, false );
-		_drawText( text_offscreen_dc );
-		_drawTextLayer( offscreen_dc, dirty_rect );
-		_drawBitmapLayer( offscreen_dc, dirty_rect, false, true );
+		_drawBackground( dirty_rect );
+		_drawPlanes( dirty_rect );
+		_drawCaret( dirty_rect );
 
 		SelectClipRgn( offscreen_dc, NULL );
 	}
@@ -1257,16 +1534,6 @@ void Window::flushPaint( HDC hDC, bool bitblt )
 	if(ime_on)
     {
         _setImePosition();
-    }
-
-	int w = width();
-    int h = height();
-
-    if(window_column != w || window_row != h)
-    {
-        w = (w * font_w) + (border_size * 2) + (window_frame_rect.right - window_frame_rect.left);
-        h = (h * font_h) + (border_size * 2) + (window_frame_rect.bottom - window_frame_rect.top);
-        SetWindowPos( hwnd, NULL, 0,0,w,h, SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE );
     }
 }
 
@@ -1332,58 +1599,57 @@ void Window::_onNcPaint( HDC hDC )
 	LineTo( hDC, 0, 0 );
 }
 
-void Window::_setConsoleWindowSize( LONG cols, LONG rows )
+void Window::_onSizing( DWORD edge, LPRECT rect )
 {
 	FUNC_TRACE;
 
-    window_column = cols;
-    window_row = rows;
+	int width = (rect->right - rect->left) - window_frame_size.cx;
+    int height = (rect->bottom - rect->top) - window_frame_size.cy;
 
-    if( cols==width()
-     && rows==height() )
-        return;
+	if(sizing_handler)
+	{
+		PyObject * pysize = Py_BuildValue("[ii]", width, height );
 
-    visible_rect.right = cols;
-    visible_rect.bottom += ( rows - height() );
+		PyObject * pyarglist = Py_BuildValue("(O)", pysize );
+		PyObject * pyresult = PyEval_CallObject( sizing_handler, pyarglist );
+		Py_DECREF(pyarglist);
+		if(pyresult)
+		{
+			Py_DECREF(pyresult);
+
+			PyArg_Parse( pysize, "(ii)", &width, &height );
+		}
+		else
+		{
+			PyErr_Print();
+		}
+
+		Py_DECREF(pysize);
+	}
+
+    width += window_frame_size.cx;
+    height += window_frame_size.cy;
+
+	if(edge==WMSZ_LEFT || edge==WMSZ_TOPLEFT || edge==WMSZ_BOTTOMLEFT)
+    {
+        rect->left = rect->right - width;
+    }
+    else if(edge==WMSZ_RIGHT || edge==WMSZ_TOPRIGHT || edge==WMSZ_BOTTOMRIGHT)
+    {
+        rect->right = rect->left + width;
+    }
+
+    if(edge==WMSZ_TOP || edge==WMSZ_TOPLEFT || edge==WMSZ_TOPRIGHT)
+    {
+        rect->top = rect->bottom - height;
+    }
+    else if(edge==WMSZ_BOTTOM || edge==WMSZ_BOTTOMLEFT || edge==WMSZ_BOTTOMRIGHT)
+    {
+        rect->bottom = rect->top + height;
+    }
 }
 
-void Window::_onSizing( DWORD side, LPRECT rc)
-{
-	FUNC_TRACE;
-	
-    LONG fw = (window_frame_rect.right - window_frame_rect.left) + (border_size * 2);
-    LONG fh = (window_frame_rect.bottom - window_frame_rect.top) + (border_size * 2);
-    LONG width  = rc->right - rc->left;
-    LONG height = rc->bottom - rc->top;
-
-    width  -= fw;
-    width  -= width % font_w;
-    width  += fw;
-
-    height -= fh;
-    height -= height % font_h;
-    height += fh;
-
-    if(side==WMSZ_LEFT || side==WMSZ_TOPLEFT || side==WMSZ_BOTTOMLEFT)
-    {
-        rc->left = rc->right - width;
-    }
-    else if(side==WMSZ_RIGHT || side==WMSZ_TOPRIGHT || side==WMSZ_BOTTOMRIGHT)
-    {
-        rc->right = rc->left + width;
-    }
-
-    if(side==WMSZ_TOP || side==WMSZ_TOPLEFT || side==WMSZ_TOPRIGHT)
-    {
-        rc->top = rc->bottom - height;
-    }
-    else if(side==WMSZ_BOTTOM || side==WMSZ_BOTTOMLEFT || side==WMSZ_BOTTOMRIGHT)
-    {
-        rc->bottom = rc->top + height;
-    }
-}
-
-void Window::_onWindowPosChange( WINDOWPOS * wndpos, bool send_event )
+void Window::_onWindowPositionChange( WINDOWPOS * wndpos, bool send_event )
 {
 	FUNC_TRACE;
 	
@@ -1413,31 +1679,12 @@ void Window::_onWindowPosChange( WINDOWPOS * wndpos, bool send_event )
 	    {
 	    	_updateWindowFrameRect();
 
-	        LONG fw = (window_frame_rect.right - window_frame_rect.left) + (border_size * 2);
-	        LONG fh = (window_frame_rect.bottom - window_frame_rect.top) + (border_size * 2);
-	        LONG width  = wndpos->cx;
-	        LONG height = wndpos->cy;
-
-	        width  = width - fw;
-	        height = height - fh;
-
-	        if(width<0) width=0;
-	        if(height<0) height=0;
-
-	        width  = width / font_w;
-	        height = height / font_h;
-
-	        _setConsoleWindowSize(width, height);
-
-	    	// ウインドウを最大化したときのボーダーを上下と左右で均等に調整
-		    RECT client_rect;
-		    GetClientRect( hwnd, &client_rect );
-		    border_left = ( ( client_rect.right  - client_rect.left - border_size * 2 ) % font_w + border_size * 2 ) / 2;
-		    border_top =  ( ( client_rect.bottom - client_rect.top  - border_size * 2 ) % font_h + border_size * 2 ) / 2;
-		    
 	        if( send_event && size_handler )
 			{
-				PyObject * pyarglist = Py_BuildValue("(ii)", window_column, window_row );
+				RECT client_rect;
+				GetClientRect( hwnd, &client_rect );
+
+				PyObject * pyarglist = Py_BuildValue("(ii)", client_rect.right  - client_rect.left, client_rect.bottom - client_rect.top );
 				PyObject * pyresult = PyEval_CallObject( size_handler, pyarglist );
 				Py_DECREF(pyarglist);
 				if(pyresult)
@@ -1475,9 +1722,8 @@ void Window::_updateWindowFrameRect()
 		return;
 	}
 
-	memset( &window_frame_rect, 0, sizeof(window_frame_rect) );
-	window_frame_rect.right = (window_rect.right-window_rect.left) - (client_rect.right-client_rect.left);
-	window_frame_rect.bottom = (window_rect.bottom-window_rect.top) - (client_rect.bottom-client_rect.top);
+	window_frame_size.cx = (window_rect.right-window_rect.left) - (client_rect.right-client_rect.left);
+	window_frame_size.cy = (window_rect.bottom-window_rect.top) - (client_rect.bottom-client_rect.top);
 }
 
 void Window::_setImePosition()
@@ -1486,22 +1732,19 @@ void Window::_setImePosition()
 
     HIMC imc = ImmGetContext(hwnd);
 
-    LONG px = cursor_position.X - visible_rect.left;
-    LONG py = cursor_position.Y - visible_rect.top;
-
     COMPOSITIONFORM cf;
     
     if( ime_rect.left==0 && ime_rect.right==0 )
     {
     	cf.dwStyle = CFS_POINT;
-	    cf.ptCurrentPos.x = px * font_w + border_left;
-	    cf.ptCurrentPos.y = py * font_h + border_top;
+	    cf.ptCurrentPos.x = caret_rect.left;
+	    cf.ptCurrentPos.y = caret_rect.top;
     }
     else
     {
 	    cf.dwStyle = CFS_RECT;
-	    cf.ptCurrentPos.x = px * font_w + border_left;
-	    cf.ptCurrentPos.y = py * font_h + border_top;
+	    cf.ptCurrentPos.x = caret_rect.left;
+	    cf.ptCurrentPos.y = caret_rect.top;
 	    cf.rcArea = ime_rect;
     }
     
@@ -1510,23 +1753,22 @@ void Window::_setImePosition()
     ImmReleaseContext(hwnd, imc);
 }
 
-void Window::_onTimerCursorBlink()
+void Window::_onTimerCaretBlink()
 {
 	FUNC_TRACE;
 
-	if(cursor_blink>0)
+	if(caret_blink>0)
 	{
-		--cursor_blink;
+		--caret_blink;
 	}
 	else
 	{
-		cursor_blink = 1;
+		caret_blink = 1;
 	}
 
-	if( cursor_position.X>=0 && cursor_position.Y>=0 )
+	if( caret_rect.right>0 && caret_rect.bottom>0 )
 	{
-		RECT dirty_rect = { (cursor_position.X-1)*font_w+border_left, cursor_position.Y*font_h+border_top, (cursor_position.X+1)*font_w+border_left, (cursor_position.Y+1)*font_h+border_top };
-		appendDirtyRect( dirty_rect, false );
+		appendDirtyRect( caret_rect );
 	}
 }
 
@@ -1579,14 +1821,14 @@ LRESULT CALLBACK Window::_wndProc( HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 	        window->enableIme(false);
 
             SetTimer(hwnd, TIMER_PAINT, TIMER_PAINT_INTERVAL, NULL);
-            SetTimer(hwnd, TIMER_CURSOR_BLINK, GetCaretBlinkTime(), NULL);
+            SetTimer(hwnd, TIMER_CARET_BLINK, GetCaretBlinkTime(), NULL);
         }
         break;
 
     case WM_DESTROY:
         {
             KillTimer( hwnd, TIMER_PAINT );
-            KillTimer( hwnd, TIMER_CURSOR_BLINK );
+            KillTimer( hwnd, TIMER_CARET_BLINK );
 
             RemoveProp( hwnd, L"ckit_userdata" );
 
@@ -1795,9 +2037,9 @@ LRESULT CALLBACK Window::_wndProc( HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 		    		}
 				}
 	    	}
-	    	else if(wp==TIMER_CURSOR_BLINK)
+	    	else if(wp==TIMER_CARET_BLINK)
 			{
-		        window->_onTimerCursorBlink();
+		        window->_onTimerCaretBlink();
 		        window->flushPaint();
 			}
 	    	else
@@ -1935,15 +2177,15 @@ LRESULT CALLBACK Window::_wndProc( HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
         break;
 
     case WM_SIZING:
-        window->_onSizing((DWORD)wp, (LPRECT)lp);
+		window->_onSizing((DWORD)wp, (LPRECT)lp);
         break;
 
     case WM_WINDOWPOSCHANGING:
-        window->_onWindowPosChange( (WINDOWPOS*)lp, false );
+        window->_onWindowPositionChange( (WINDOWPOS*)lp, false );
         break;
 
     case WM_WINDOWPOSCHANGED:
-        window->_onWindowPosChange( (WINDOWPOS*)lp, true );
+        window->_onWindowPositionChange( (WINDOWPOS*)lp, true );
         break;
 
     case WM_LBUTTONDOWN:
@@ -2220,11 +2462,14 @@ LRESULT CALLBACK Window::_wndProc( HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
         return( DefWindowProc( hwnd, msg, wp, lp) );
 
     case WM_IME_NOTIFY:
-        if(wp == IMN_SETOPENSTATUS) {
+        if(wp == IMN_SETOPENSTATUS)
+		{
             HIMC imc = ImmGetContext(hwnd);
-            window->ime_on = ImmGetOpenStatus(imc)!=FALSE;
+            window->ime_on = ImmGetOpenStatus(imc) != FALSE;
             ImmReleaseContext(hwnd, imc);
-            InvalidateRect( hwnd, NULL, TRUE);
+            
+			// FIXME : 再描画の位置をCaretの位置だけにしたい
+			InvalidateRect( hwnd, NULL, TRUE);
         }
         return( DefWindowProc(hwnd, msg, wp, lp) );
 
@@ -2438,16 +2683,15 @@ bool Window::_createWindow( Param & param )
         exstyle |= WS_EX_TOOLWINDOW;
     }
 	
+	// FIXME : _updateWindowFrameRect を使うべき？
+	RECT window_frame_rect;
+	memset( &window_frame_rect, 0, sizeof(window_frame_rect) );
     AdjustWindowRectEx( &window_frame_rect, style, (menu!=NULL), exstyle );
+	window_frame_size.cx = window_frame_rect.right - window_frame_rect.left;
+	window_frame_size.cy = window_frame_rect.bottom - window_frame_rect.top;
 
-    window_column = w = width();
-    window_row = h = height();
-    w *= font_w;
-    h *= font_h;
-    w += border_size * 2;
-    h += border_size * 2;
-    w += window_frame_rect.right  - window_frame_rect.left;
-    h += window_frame_rect.bottom - window_frame_rect.top;
+	w = param.winsize_w + window_frame_size.cx;
+    h = param.winsize_h + window_frame_size.cy;
 
     if(param.is_winpos_given)
     {
@@ -2505,89 +2749,6 @@ bool Window::_createWindow( Param & param )
     return(TRUE);
 }
 
-bool Window::setFont( Window * src )
-{
-	FUNC_TRACE;
-	
-	logfont = src->logfont;
-
-    if(font_handle && font_handle_created) { DeleteObject(font_handle); font_handle=NULL; font_handle_created=false; }
-    font_handle = src->font_handle;
-
-    font_w = src->font_w;
-    font_h = src->font_h;
-	zenkaku_table = src->zenkaku_table;
-	
-	updateImeFont();
-
-    return(TRUE);
-}
-
-bool Window::setFont( const wchar_t * name, int height )
-{
-	FUNC_TRACE;
-	
-    memset(&logfont, 0, sizeof(logfont));
-    logfont.lfHeight = -height;
-    logfont.lfWidth = 0;
-    logfont.lfEscapement = 0;
-    logfont.lfOrientation = 0;
-    logfont.lfWeight = FW_NORMAL;
-    logfont.lfItalic = 0;
-    logfont.lfUnderline = 0;
-    logfont.lfStrikeOut = 0;
-    logfont.lfCharSet = DEFAULT_CHARSET;
-    logfont.lfOutPrecision = OUT_DEFAULT_PRECIS;
-    logfont.lfClipPrecision = CLIP_DEFAULT_PRECIS;
-
-    logfont.lfQuality = DEFAULT_QUALITY; // OS の設定によっては CLEARTYPE_QUALITY と同じ動きになる
-	//logfont.lfQuality = CLEARTYPE_QUALITY; // ANTIALIASED_QUALITYよりなぜか速い
-	//logfont.lfQuality = ANTIALIASED_QUALITY; // なぜか ClearType 有効時に低速になってしまう
-
-    logfont.lfPitchAndFamily = FIXED_PITCH | FF_DONTCARE;
-    lstrcpy( logfont.lfFaceName, name );
-
-    if(font_handle && font_handle_created) { DeleteObject(font_handle); font_handle=NULL; font_handle_created=false; }
-    font_handle = CreateFontIndirect(&logfont);
-    font_handle_created = true;
-
-    HDC	hDC = GetDC(NULL);
-    HGDIOBJ	oldfont = SelectObject(hDC, font_handle);
-
-	{
-	    TEXTMETRIC met;
-	    GetTextMetrics(hDC, &met);
-
-		int * char_width_table = (int*)malloc(0x10000*sizeof(int));
-	    GetCharWidth32( hDC, 0, 0xffff, char_width_table );
-
-	    INT	width = 0;
-	    for(int i=0 ; i<26 ; i++)
-	    {
-	        width += char_width_table['A'+i];
-	        width += char_width_table['a'+i];
-	    }
-	    width /= 26 * 2;
-	    font_w = width;
-	    font_h = met.tmHeight;
-
-		zenkaku_table.clear();
-	    for( int i=0 ; i<=0xffff ; i++ )
-	    {
-		    zenkaku_table.push_back( char_width_table[i] > font_w );
-	    }
-
-	    free(char_width_table);
-	}
-
-    SelectObject(hDC, oldfont);
-    ReleaseDC(NULL, hDC);
-
-	updateImeFont();
-
-    return(TRUE);
-}
-
 static int CALLBACK cbEnumFont(
   ENUMLOGFONTEX *lpelfe,    // 論理的なフォントデータ
   NEWTEXTMETRICEX *lpntme,  // 物理的なフォントデータ
@@ -2632,7 +2793,7 @@ void Window::setBGColor( COLORREF color )
 
 	RECT dirty_rect;
     GetClientRect( hwnd, &dirty_rect );
-	appendDirtyRect( dirty_rect, false );
+	appendDirtyRect( dirty_rect );
 
 	RedrawWindow( hwnd, NULL, NULL, RDW_FRAME | RDW_INVALIDATE );
 }
@@ -2645,18 +2806,17 @@ void Window::setFrameColor( COLORREF color )
 	RedrawWindow( hwnd, NULL, NULL, RDW_FRAME | RDW_INVALIDATE );
 }
 
-void Window::setCursorColor( COLORREF color0, COLORREF color1 )
+void Window::setCaretColor( COLORREF color0, COLORREF color1 )
 {
 	FUNC_TRACE;
 
-    if(cursor0_brush){ DeleteObject(cursor0_brush); }
-    if(cursor1_brush){ DeleteObject(cursor1_brush); }
+    if(caret0_brush){ DeleteObject(caret0_brush); }
+    if(caret1_brush){ DeleteObject(caret1_brush); }
 
-    cursor0_brush = CreateSolidBrush(color0);
-    cursor1_brush = CreateSolidBrush(color1);
+    caret0_brush = CreateSolidBrush(color0);
+    caret1_brush = CreateSolidBrush(color1);
 
-	RECT dirty_rect = { (cursor_position.X-1)*font_w+border_left, cursor_position.Y*font_h+border_top, (cursor_position.X+1)*font_w+border_left, (cursor_position.Y+1)*font_h+border_top };
-	appendDirtyRect( dirty_rect, false );
+	appendDirtyRect( caret_rect );
 }
 
 void Window::_buildMenu( HMENU menu_handle, PyObject * pysequence, int depth, bool parent_enabled )
@@ -2898,14 +3058,14 @@ void Window::_refreshMenu()
 	}
 }
 
-void Window::setPosSize( int x, int y, int width, int height, int origin )
+void Window::setPositionAndSize( int x, int y, int width, int height, int origin )
 {
 	FUNC_TRACE;
 	
-    int client_w = width * font_w + border_size * 2;
-    int client_h = height * font_h + border_size * 2;
-    int window_w = client_w + (window_frame_rect.right  - window_frame_rect.left);
-    int window_h = client_h + (window_frame_rect.bottom - window_frame_rect.top);
+    int client_w = width;
+    int client_h = height;
+    int window_w = client_w + window_frame_size.cx;
+    int window_h = client_h + window_frame_size.cy;
 
     if( origin & ORIGIN_X_CENTER )
     {
@@ -3005,34 +3165,6 @@ void Window::setMouseCursor( int id )
 void Window::drag( int x, int y )
 {
 	PostMessage( hwnd, WM_NCLBUTTONDOWN, (WPARAM)HTCAPTION, ((y<<16)|x) );
-}
-
-void Window::getNormalSize( int * _width, int * _height ) const
-{
-	FUNC_TRACE;
-
-	WINDOWPLACEMENT window_place;
-	memset( &window_place, 0, sizeof(window_place) );
-	window_place.length = sizeof(window_place);
-	::GetWindowPlacement( hwnd, &window_place );
-
-    int fw = (window_frame_rect.right - window_frame_rect.left) + (border_size * 2);
-    int fh = (window_frame_rect.bottom - window_frame_rect.top) + (border_size * 2);
-
-	int width = window_place.rcNormalPosition.right - window_place.rcNormalPosition.left;
-	int height = window_place.rcNormalPosition.bottom - window_place.rcNormalPosition.top;
-
-    width = width - fw;
-    height = height - fh;
-
-    if(width<0) width=0;
-    if(height<0) height=0;
-
-    width = width / font_w;
-    height = height / font_h;
-
-	*_width = width;
-	*_height = height;
 }
 
 void Window::show( bool show, bool activate )
@@ -3208,18 +3340,22 @@ void Window::getNormalWindowRect( RECT * rect )
 	*rect = window_place.rcNormalPosition;
 }
 
-void Window::clear()
+void Window::getNormalClientSize( SIZE * size )
 {
 	FUNC_TRACE;
 
-	{
-		std::vector<Line*>::iterator i;
-		for( i=char_buffer.begin() ; i!=char_buffer.end() ; i++ )
-		{
-			delete (*i);
-		}
-		char_buffer.clear();
-	}
+	WINDOWPLACEMENT window_place;
+	memset( &window_place, 0, sizeof(window_place) );
+	window_place.length = sizeof(window_place);
+	::GetWindowPlacement( hwnd, &window_place );
+
+	size->cx = window_place.rcNormalPosition.right - window_place.rcNormalPosition.left - window_frame_size.cx;
+	size->cy = window_place.rcNormalPosition.bottom - window_place.rcNormalPosition.top - window_frame_size.cy;
+}
+
+void Window::clear()
+{
+	FUNC_TRACE;
 
 	{
 		std::list<Plane*>::iterator i;
@@ -3230,140 +3366,24 @@ void Window::clear()
 		plane_list.clear();
 	}
 
-    visible_rect.left = 0;
-    visible_rect.right = width();
-    visible_rect.top = 0;
-    visible_rect.bottom = height();
-
-    cursor_position.X = 0;
-    cursor_position.Y = 0;
+    memset( &caret_rect, 0, sizeof(caret_rect) );
 
 	RECT dirty_rect;
     GetClientRect( hwnd, &dirty_rect );
 	appendDirtyRect( dirty_rect );
 }
 
-static inline void _putChar( Line * line, int pos, const Char & chr, bool * dirty )
-{
-	if( (int)line->size() <= pos )
-	{
-        line->push_back(chr);
-        *dirty = true;
-	}
-	else
-	{
-		if( (*line)[pos] != chr )
-		{
-			(*line)[pos] = chr;
-	        *dirty = true;
-		}
-	}
-}
-
-void Window::putString( int x, int y, int width, int height, const Attribute & attr, const wchar_t * str, int offset )
+void Window::setCaretRect( const RECT & rect )
 {
 	FUNC_TRACE;
+
+	caret_blink = 2;
+
+	appendDirtyRect( caret_rect );
+
+	caret_rect = rect;
 	
-	if( x<0 || y<0 )
-	{
-		return;
-	}
-
-	bool dirty = false;
-
-	while( (int)char_buffer.size() <= y )
-	{
-        Line * line = new Line();
-        char_buffer.push_back(line);
-
-        dirty = true;
-	}
-
-    Line * line = char_buffer[y];
-
-	// 埋まっていなかったら空文字で進める
-	while( (int)line->size() < x )
-	{
-        line->push_back( Char( L' ' ) );
-
-        dirty = true;
-	}
-
-	int pos = x + offset;
-
-    for( int i=0 ; str[i] ; i++ )
-    {
-		// いっぱいまで文字が埋まったら抜ける
-    	if( pos + 1 > x + width )
-    	{
-    		break;
-    	}
-
-		// 全角文字を入れる隙間がなかったら、スペースを埋めて抜ける
-    	if( zenkaku_table[str[i]] && pos + 2 > x + width )
-    	{
-	        _putChar( line, pos, Char( L' ', attr ), &dirty );
-    		break;
-    	}
-
-		if( pos>=x )
-		{
-	        _putChar( line, pos, Char( str[i], attr ), &dirty );
-			pos++;
-
-	        // 全角文字は、幅を合わせるために、後ろに無駄な文字を入れる
-	        if(zenkaku_table[str[i]])
-	        {
-		        _putChar( line, pos, Char(0), &dirty );
-				pos++;
-	        }
-		}
-		else
-		{
-			pos++;
-	        if(zenkaku_table[str[i]])
-	        {
-	        	// 左端で全角文字の半分の位置から描画範囲に入る場合はスペースで埋める
-	        	if( pos>=x )
-	        	{
-			        _putChar( line, pos, Char( L' ', attr ), &dirty );
-	        	}
-				pos++;
-	        }
-		}
-    }
-
-    if( dirty )
-    {
-    	//printf( "putString : dirty : %d, %d\n", x, y );
-
-		RECT dirty_rect = { x*font_w+border_left, y*font_h+border_top, pos*font_w+border_left, (y+height)*font_h+border_top };
-		appendDirtyRect( dirty_rect, false );
-    }
-}
-
-void Window::setCursorPos( int x, int y )
-{
-	FUNC_TRACE;
-
-	cursor_blink = 2;
-
-	RECT dirty_rect = { (cursor_position.X-1)*font_w+border_left, cursor_position.Y*font_h+border_top, (cursor_position.X+1)*font_w+border_left, (cursor_position.Y+1)*font_h+border_top };
-	appendDirtyRect( dirty_rect, false );
-
-	cursor_position.X = x;
-	cursor_position.Y = y;
-	
-	RECT dirty_rect2 = { (cursor_position.X-1)*font_w+border_left, cursor_position.Y*font_h+border_top, (cursor_position.X+1)*font_w+border_left, (cursor_position.Y+1)*font_h+border_top };
-	appendDirtyRect( dirty_rect2, false );
-}
-
-void Window::getCursorPos( int * x, int * y )
-{
-	FUNC_TRACE;
-
-	*x = cursor_position.X;
-	*y = cursor_position.Y;
+	appendDirtyRect( caret_rect );
 }
 
 void Window::setImeRect( const RECT & rect )
@@ -3382,71 +3402,25 @@ void Window::enableIme( bool enable )
 		if(ime_context)
 		{
 			ImmSetOpenStatus( ime_context, FALSE );
-            ImmSetCompositionFontW( ime_context, &logfont );
+            ImmSetCompositionFontW( ime_context, &ime_logfont );
 			ImmAssociateContext( hwnd, ime_context );
-			ime_context = (HIMC)NULL;
+			ime_context = NULL;
 		}
 	}
 	else
 	{
 		if(!ime_context)
 		{
-			ime_context = ImmAssociateContext( hwnd, (HIMC)NULL );
+			ime_context = ImmAssociateContext( hwnd, NULL );
 		}
 	}
 }
 
-void Window::updateImeFont()
+void Window::setImeFont( const LOGFONT & logfont )
 {
 	FUNC_TRACE;
 
-	if(ime_context)
-	{
-        ImmSetCompositionFontW( ime_context, &logfont );
-	}
-	else
-	{
-		ime_context = ImmAssociateContext( hwnd, (HIMC)NULL );
-        ImmSetCompositionFontW( ime_context, &logfont );
-		ImmAssociateContext( hwnd, ime_context );
-		ime_context = (HIMC)NULL;
-	}
-}
-
-int Window::getStringWidth( const wchar_t * str, int tab_width, int offset, int columns[] )
-{
-	FUNC_TRACE;
-
-	int width = 0;
-
-	int i;
-    for( i=0 ; str[i] ; i++ )
-    {
-    	if(columns)
-    	{
-    		columns[i] = width;
-    	}
-
-		if(str[i]=='\t')
-		{
-			width = width + (tab_width - width % tab_width);
-			continue;
-		}
-    
-		width++;
-
-        if(zenkaku_table[str[i]])
-        {
-			width++;
-        }
-    }
-
-	if(columns)
-	{
-		columns[i] = width;
-	}
-
-	return width;
+	ime_logfont = logfont;
 }
 
 // ----------------------------------------------------------------------------
@@ -4087,14 +4061,122 @@ PyTypeObject Image_Type = {
 //
 // ----------------------------------------------------------------------------
 
-static int Plane_instance_count = 0;
-
-static int Plane_init( PyObject * self, PyObject * args, PyObject * kwds)
+static int Font_init( PyObject * self, PyObject * args, PyObject * kwds)
 {
 	FUNC_TRACE;
 
-	Plane_instance_count ++;
-	PRINTF("Plane_instance_count=%d\n", Plane_instance_count);
+    PyObject * pystr_name;
+	int size;
+
+    if(!PyArg_ParseTuple( args, "Oi", &pystr_name, &size ))
+    {
+        return -1;
+    }
+
+    std::wstring str_name;
+    if(pystr_name)
+    {
+        if( !PythonUtil::PyStringToWideString( pystr_name, &str_name ) )
+        {
+            return -1;
+        }
+    }
+
+	Font * font = new Font( str_name.c_str(), size );
+
+	((Font_Object*)self)->p = font;
+	font->AddRef();
+
+    return 0;
+}
+
+static void Font_dealloc(PyObject* self)
+{
+	FUNC_TRACE;
+
+    Font * font = ((Font_Object*)self)->p;
+    font->Release();
+	self->ob_type->tp_free(self);
+}
+
+static PyObject * Font_getCharSize(PyObject* self, PyObject* args)
+{
+	//FUNC_TRACE;
+
+	if( ! PyArg_ParseTuple(args, "" ) )
+        return NULL;
+
+	if( ! ((TextPlane_Object*)self)->p )
+	{
+		PyErr_SetString( PyExc_ValueError, "already destroyed." );
+		return NULL;
+	}
+
+	Font * font = ((Font_Object*)self)->p;
+
+	PyObject * pyret = Py_BuildValue( "(ii)", font->char_width, font->char_height );
+	return pyret;
+}
+
+static PyMethodDef Font_methods[] = {
+    { "getCharSize", Font_getCharSize, METH_VARARGS, "" },
+    {NULL,NULL}
+};
+
+PyTypeObject Font_Type = {
+    PyVarObject_HEAD_INIT(NULL,0)
+    "Font",				/* tp_name */
+    sizeof(Font_Object), /* tp_basicsize */
+    0,					/* tp_itemsize */
+    (destructor)Font_dealloc,/* tp_dealloc */
+    0,					/* tp_print */
+    0,					/* tp_getattr */
+    0,					/* tp_setattr */
+    0,					/* tp_reserved */
+    0, 					/* tp_repr */
+    0,					/* tp_as_number */
+    0,					/* tp_as_sequence */
+    0,					/* tp_as_mapping */
+    0,					/* tp_hash */
+    0,					/* tp_call */
+    0,					/* tp_str */
+    PyObject_GenericGetAttr,/* tp_getattro */
+    PyObject_GenericSetAttr,/* tp_setattro */
+    0,					/* tp_as_buffer */
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,/* tp_flags */
+    "",					/* tp_doc */
+    0,					/* tp_traverse */
+    0,					/* tp_clear */
+    0,					/* tp_richcompare */
+    0,					/* tp_weaklistoffset */
+    0,					/* tp_iter */
+    0,					/* tp_iternext */
+    Font_methods,		/* tp_methods */
+    0,					/* tp_members */
+    0,					/* tp_getset */
+    0, 					/* tp_base */
+    0,					/* tp_dict */
+    0,					/* tp_descr_get */
+    0,					/* tp_descr_set */
+    0,					/* tp_dictoffset */
+    Font_init,			/* tp_init */
+    0,					/* tp_alloc */
+    PyType_GenericNew,	/* tp_new */
+    0,					/* tp_free */
+};
+
+// ----------------------------------------------------------------------------
+//
+// ----------------------------------------------------------------------------
+
+static int ImagePlane_instance_count = 0;
+
+static int ImagePlane_init( PyObject * self, PyObject * args, PyObject * kwds)
+{
+	FUNC_TRACE;
+
+	ImagePlane_instance_count ++;
+	PRINTF("ImagePlane_instance_count=%d\n", ImagePlane_instance_count);
 
     PyObject * window;
     int x, y, width, height;
@@ -4112,11 +4194,11 @@ static int Plane_init( PyObject * self, PyObject * args, PyObject * kwds)
         return -1;
     }
 
-    Plane * plane = new Plane( ((Window_Object*)window)->p, x, y, width, height, priority );
+    ImagePlane * plane = new ImagePlane( ((Window_Object*)window)->p, x, y, width, height, priority );
 
     plane->SetPyObject(self);
 
-    ((Plane_Object*)self)->p = plane;
+    ((ImagePlane_Object*)self)->p = plane;
 
 	std::list<Plane*>::iterator i;
 	std::list<Plane*> & plane_list = ((Window_Object*)window)->p->plane_list;
@@ -4132,40 +4214,40 @@ static int Plane_init( PyObject * self, PyObject * args, PyObject * kwds)
     return 0;
 }
 
-static void Plane_dealloc(PyObject* self)
+static void ImagePlane_dealloc(PyObject* self)
 {
 	FUNC_TRACE;
 
-	Plane_instance_count --;
-	PRINTF("Plane_instance_count=%d\n", Plane_instance_count);
+	ImagePlane_instance_count --;
+	PRINTF("ImagePlane_instance_count=%d\n", ImagePlane_instance_count);
 
-    Plane * plane = ((Plane_Object*)self)->p;
+    ImagePlane * plane = ((ImagePlane_Object*)self)->p;
 	if(plane){ plane->SetPyObject(NULL); }
 	self->ob_type->tp_free(self);
 }
 
-static PyObject * Plane_destroy(PyObject* self, PyObject* args)
+static PyObject * ImagePlane_destroy(PyObject* self, PyObject* args)
 {
 	FUNC_TRACE;
 
 	if( ! PyArg_ParseTuple(args, "" ) )
         return NULL;
 
-	if( ! ((Plane_Object*)self)->p )
+	if( ! ((ImagePlane_Object*)self)->p )
 	{
 		PyErr_SetString( PyExc_ValueError, "already destroyed." );
 		return NULL;
 	}
 
-	((Plane_Object*)self)->p->window->plane_list.remove( ((Plane_Object*)self)->p );
+	((ImagePlane_Object*)self)->p->window->plane_list.remove( ((ImagePlane_Object*)self)->p );
 
-	delete ((Plane_Object*)self)->p;
+	delete ((ImagePlane_Object*)self)->p;
 
     Py_INCREF(Py_None);
     return Py_None;
 }
 
-static PyObject * Plane_show(PyObject* self, PyObject* args)
+static PyObject * ImagePlane_show(PyObject* self, PyObject* args)
 {
 	FUNC_TRACE;
 
@@ -4173,35 +4255,35 @@ static PyObject * Plane_show(PyObject* self, PyObject* args)
 	if( ! PyArg_ParseTuple(args, "i", &show ) )
         return NULL;
 
-	if( ! ((Plane_Object*)self)->p )
+	if( ! ((ImagePlane_Object*)self)->p )
 	{
 		PyErr_SetString( PyExc_ValueError, "already destroyed." );
 		return NULL;
 	}
 
-    ((Plane_Object*)self)->p->Show( show!=0 );
+    ((ImagePlane_Object*)self)->p->Show( show!=0 );
 
     Py_INCREF(Py_None);
     return Py_None;
 }
 
-static PyObject * Plane_getPos(PyObject* self, PyObject* args)
+static PyObject * ImagePlane_getPosition(PyObject* self, PyObject* args)
 {
 	FUNC_TRACE;
 
 	if( ! PyArg_ParseTuple(args, "" ) )
         return NULL;
 
-	if( ! ((Plane_Object*)self)->p )
+	if( ! ((ImagePlane_Object*)self)->p )
 	{
 		PyErr_SetString( PyExc_ValueError, "already destroyed." );
 		return NULL;
 	}
 
-	return Py_BuildValue( "(ii)", ((Plane_Object*)self)->p->x, ((Plane_Object*)self)->p->y );
+	return Py_BuildValue( "(ii)", ((ImagePlane_Object*)self)->p->x, ((ImagePlane_Object*)self)->p->y );
 }
 
-static PyObject * Plane_setPos(PyObject* self, PyObject* args)
+static PyObject * ImagePlane_setPosition(PyObject* self, PyObject* args)
 {
 	FUNC_TRACE;
 
@@ -4209,35 +4291,35 @@ static PyObject * Plane_setPos(PyObject* self, PyObject* args)
 	if( ! PyArg_ParseTuple(args, "(ii)", &x, &y ) )
         return NULL;
 
-	if( ! ((Plane_Object*)self)->p )
+	if( ! ((ImagePlane_Object*)self)->p )
 	{
 		PyErr_SetString( PyExc_ValueError, "already destroyed." );
 		return NULL;
 	}
 
-    ((Plane_Object*)self)->p->SetPos( x, y );
+    ((ImagePlane_Object*)self)->p->SetPosition( x, y );
 
     Py_INCREF(Py_None);
     return Py_None;
 }
 
-static PyObject * Plane_getSize(PyObject* self, PyObject* args)
+static PyObject * ImagePlane_getSize(PyObject* self, PyObject* args)
 {
 	FUNC_TRACE;
 
 	if( ! PyArg_ParseTuple(args, "" ) )
         return NULL;
 
-	if( ! ((Plane_Object*)self)->p )
+	if( ! ((ImagePlane_Object*)self)->p )
 	{
 		PyErr_SetString( PyExc_ValueError, "already destroyed." );
 		return NULL;
 	}
 
-	return Py_BuildValue( "(ii)", ((Plane_Object*)self)->p->width, ((Plane_Object*)self)->p->height );
+	return Py_BuildValue( "(ii)", ((ImagePlane_Object*)self)->p->width, ((ImagePlane_Object*)self)->p->height );
 }
 
-static PyObject * Plane_setSize(PyObject* self, PyObject* args)
+static PyObject * ImagePlane_setSize(PyObject* self, PyObject* args)
 {
 	FUNC_TRACE;
 
@@ -4245,35 +4327,35 @@ static PyObject * Plane_setSize(PyObject* self, PyObject* args)
 	if( ! PyArg_ParseTuple(args, "(ii)", &width, &height ) )
         return NULL;
 
-	if( ! ((Plane_Object*)self)->p )
+	if( ! ((ImagePlane_Object*)self)->p )
 	{
 		PyErr_SetString( PyExc_ValueError, "already destroyed." );
 		return NULL;
 	}
 
-    ((Plane_Object*)self)->p->SetSize( width, height );
+    ((ImagePlane_Object*)self)->p->SetSize( width, height );
 
     Py_INCREF(Py_None);
     return Py_None;
 }
 
-static PyObject * Plane_getPriority(PyObject* self, PyObject* args)
+static PyObject * ImagePlane_getPriority(PyObject* self, PyObject* args)
 {
 	FUNC_TRACE;
 
 	if( ! PyArg_ParseTuple(args, "" ) )
         return NULL;
 
-	if( ! ((Plane_Object*)self)->p )
+	if( ! ((ImagePlane_Object*)self)->p )
 	{
 		PyErr_SetString( PyExc_ValueError, "already destroyed." );
 		return NULL;
 	}
 
-	return Py_BuildValue( "f", ((Plane_Object*)self)->p->priority );
+	return Py_BuildValue( "f", ((ImagePlane_Object*)self)->p->priority );
 }
 
-static PyObject * Plane_setPriority(PyObject* self, PyObject* args)
+static PyObject * ImagePlane_setPriority(PyObject* self, PyObject* args)
 {
 	FUNC_TRACE;
 
@@ -4281,32 +4363,32 @@ static PyObject * Plane_setPriority(PyObject* self, PyObject* args)
 	if( ! PyArg_ParseTuple(args, "f", &priority ) )
         return NULL;
 
-	if( ! ((Plane_Object*)self)->p )
+	if( ! ((ImagePlane_Object*)self)->p )
 	{
 		PyErr_SetString( PyExc_ValueError, "already destroyed." );
 		return NULL;
 	}
 
-    ((Plane_Object*)self)->p->SetPriority( priority );
+    ((ImagePlane_Object*)self)->p->SetPriority( priority );
 
     Py_INCREF(Py_None);
     return Py_None;
 }
 
-static PyObject * Plane_getImage(PyObject* self, PyObject* args)
+static PyObject * ImagePlane_getImage(PyObject* self, PyObject* args)
 {
 	FUNC_TRACE;
 
 	if( ! PyArg_ParseTuple(args, "" ) )
         return NULL;
 
-	if( ! ((Plane_Object*)self)->p )
+	if( ! ((ImagePlane_Object*)self)->p )
 	{
 		PyErr_SetString( PyExc_ValueError, "already destroyed." );
 		return NULL;
 	}
 
-    Image * image = ((Plane_Object*)self)->p->image;
+    Image * image = ((ImagePlane_Object*)self)->p->image;
     if(image)
     {
 		Image_Object * pyimg;
@@ -4322,7 +4404,7 @@ static PyObject * Plane_getImage(PyObject* self, PyObject* args)
     }
 }
 
-static PyObject * Plane_setImage(PyObject* self, PyObject* args)
+static PyObject * ImagePlane_setImage(PyObject* self, PyObject* args)
 {
 	FUNC_TRACE;
 
@@ -4330,43 +4412,43 @@ static PyObject * Plane_setImage(PyObject* self, PyObject* args)
 	if( ! PyArg_ParseTuple(args, "O", &image ) )
         return NULL;
 
-	if( ! ((Plane_Object*)self)->p )
+	if( ! ((ImagePlane_Object*)self)->p )
 	{
 		PyErr_SetString( PyExc_ValueError, "already destroyed." );
 		return NULL;
 	}
 
-    ((Plane_Object*)self)->p->SetImage( ((Image_Object*)image)->p );
+    ((ImagePlane_Object*)self)->p->SetImage( ((Image_Object*)image)->p );
 
     Py_INCREF(Py_None);
     return Py_None;
 }
 
-static PyMethodDef Plane_methods[] = {
+static PyMethodDef ImagePlane_methods[] = {
 
-	{ "destroy", Plane_destroy, METH_VARARGS, "" },
+	{ "destroy", ImagePlane_destroy, METH_VARARGS, "" },
 
-	{ "show", Plane_show, METH_VARARGS, "" },
+	{ "show", ImagePlane_show, METH_VARARGS, "" },
 
-	{ "getPos", Plane_getPos, METH_VARARGS, "" },
-	{ "getSize", Plane_getSize, METH_VARARGS, "" },
-	{ "getPriority", Plane_getPriority, METH_VARARGS, "" },
-	{ "getImage", Plane_getImage, METH_VARARGS, "" },
+	{ "getPosition", ImagePlane_getPosition, METH_VARARGS, "" },
+	{ "getSize", ImagePlane_getSize, METH_VARARGS, "" },
+	{ "getPriority", ImagePlane_getPriority, METH_VARARGS, "" },
+	{ "getImage", ImagePlane_getImage, METH_VARARGS, "" },
 
-	{ "setPos", Plane_setPos, METH_VARARGS, "" },
-	{ "setSize", Plane_setSize, METH_VARARGS, "" },
-	{ "setPriority", Plane_setPriority, METH_VARARGS, "" },
-	{ "setImage", Plane_setImage, METH_VARARGS, "" },
+	{ "setPosition", ImagePlane_setPosition, METH_VARARGS, "" },
+	{ "setSize", ImagePlane_setSize, METH_VARARGS, "" },
+	{ "setPriority", ImagePlane_setPriority, METH_VARARGS, "" },
+	{ "setImage", ImagePlane_setImage, METH_VARARGS, "" },
 
 	{NULL,NULL}
 };
 
-PyTypeObject Plane_Type = {
+PyTypeObject ImagePlane_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
-	"Plane",			/* tp_name */
-	sizeof(Plane_Object), /* tp_basicsize */
+	"ImagePlane",		/* tp_name */
+	sizeof(ImagePlane_Object), /* tp_basicsize */
 	0,					/* tp_itemsize */
-	Plane_dealloc,		/* tp_dealloc */
+	ImagePlane_dealloc,		/* tp_dealloc */
 	0,					/* tp_print */
 	0,					/* tp_getattr */
 	0,					/* tp_setattr */
@@ -4389,7 +4471,7 @@ PyTypeObject Plane_Type = {
 	0,					/* tp_weaklistoffset */
 	0,					/* tp_iter */
 	0,					/* tp_iternext */
-	Plane_methods,		/* tp_methods */
+	ImagePlane_methods,		/* tp_methods */
 	0,					/* tp_members */
 	0,					/* tp_getset */
 	0,					/* tp_base */
@@ -4397,7 +4479,586 @@ PyTypeObject Plane_Type = {
 	0,					/* tp_descr_get */
 	0,					/* tp_descr_set */
 	0,					/* tp_dictoffset */
-	Plane_init,			/* tp_init */
+	ImagePlane_init,			/* tp_init */
+	0,					/* tp_alloc */
+	PyType_GenericNew,	/* tp_new */
+	0,					/* tp_free */
+};
+
+// ----------------------------------------------------------------------------
+//
+// ----------------------------------------------------------------------------
+
+static int TextPlane_instance_count = 0;
+
+static int TextPlane_init( PyObject * self, PyObject * args, PyObject * kwds)
+{
+	FUNC_TRACE;
+
+	TextPlane_instance_count ++;
+	PRINTF("TextPlane_instance_count=%d\n", TextPlane_instance_count);
+
+    PyObject * window;
+    int x, y, width, height;
+    float priority;
+
+    if(!PyArg_ParseTuple( args, "O(ii)(ii)f",
+    	&window,
+        &x,
+        &y,
+        &width,
+        &height,
+        &priority
+    ))
+    {
+        return -1;
+    }
+
+    TextPlane * plane = new TextPlane( ((Window_Object*)window)->p, x, y, width, height, priority );
+
+    plane->SetPyObject(self);
+
+    ((TextPlane_Object*)self)->p = plane;
+
+	std::list<Plane*>::iterator i;
+	std::list<Plane*> & plane_list = ((Window_Object*)window)->p->plane_list;
+	for( i=plane_list.begin() ; i!=plane_list.end() ; i++ )
+	{
+		if( (*i)->priority <= priority )
+		{
+			break;
+		}
+	}
+    plane_list.insert( i, plane );
+
+    return 0;
+}
+
+static void TextPlane_dealloc(PyObject* self)
+{
+	FUNC_TRACE;
+
+	TextPlane_instance_count --;
+	PRINTF("TextPlane_instance_count=%d\n", TextPlane_instance_count);
+
+    TextPlane * plane = ((TextPlane_Object*)self)->p;
+	if(plane){ plane->SetPyObject(NULL); }
+	self->ob_type->tp_free(self);
+}
+
+static PyObject * TextPlane_destroy(PyObject* self, PyObject* args)
+{
+	FUNC_TRACE;
+
+	if( ! PyArg_ParseTuple(args, "" ) )
+        return NULL;
+
+	if( ! ((TextPlane_Object*)self)->p )
+	{
+		PyErr_SetString( PyExc_ValueError, "already destroyed." );
+		return NULL;
+	}
+
+	((TextPlane_Object*)self)->p->window->plane_list.remove( ((TextPlane_Object*)self)->p );
+
+	delete ((TextPlane_Object*)self)->p;
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject * TextPlane_show(PyObject* self, PyObject* args)
+{
+	FUNC_TRACE;
+
+	int show;
+	if( ! PyArg_ParseTuple(args, "i", &show ) )
+        return NULL;
+
+	if( ! ((TextPlane_Object*)self)->p )
+	{
+		PyErr_SetString( PyExc_ValueError, "already destroyed." );
+		return NULL;
+	}
+
+    ((TextPlane_Object*)self)->p->Show( show!=0 );
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject * TextPlane_getPosition(PyObject* self, PyObject* args)
+{
+	FUNC_TRACE;
+
+	if( ! PyArg_ParseTuple(args, "" ) )
+        return NULL;
+
+	if( ! ((TextPlane_Object*)self)->p )
+	{
+		PyErr_SetString( PyExc_ValueError, "already destroyed." );
+		return NULL;
+	}
+
+	return Py_BuildValue( "(ii)", ((TextPlane_Object*)self)->p->x, ((TextPlane_Object*)self)->p->y );
+}
+
+static PyObject * TextPlane_setPosition(PyObject* self, PyObject* args)
+{
+	FUNC_TRACE;
+
+	int x, y;
+	if( ! PyArg_ParseTuple(args, "(ii)", &x, &y ) )
+        return NULL;
+
+	if( ! ((TextPlane_Object*)self)->p )
+	{
+		PyErr_SetString( PyExc_ValueError, "already destroyed." );
+		return NULL;
+	}
+
+    ((TextPlane_Object*)self)->p->SetPosition( x, y );
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject * TextPlane_getSize(PyObject* self, PyObject* args)
+{
+	FUNC_TRACE;
+
+	if( ! PyArg_ParseTuple(args, "" ) )
+        return NULL;
+
+	if( ! ((TextPlane_Object*)self)->p )
+	{
+		PyErr_SetString( PyExc_ValueError, "already destroyed." );
+		return NULL;
+	}
+
+	return Py_BuildValue( "(ii)", ((TextPlane_Object*)self)->p->width, ((TextPlane_Object*)self)->p->height );
+}
+
+static PyObject * TextPlane_setSize(PyObject* self, PyObject* args)
+{
+	FUNC_TRACE;
+
+	int width, height;
+	if( ! PyArg_ParseTuple(args, "(ii)", &width, &height ) )
+        return NULL;
+
+	if( ! ((TextPlane_Object*)self)->p )
+	{
+		PyErr_SetString( PyExc_ValueError, "already destroyed." );
+		return NULL;
+	}
+
+    ((TextPlane_Object*)self)->p->SetSize( width, height );
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject * TextPlane_getPriority(PyObject* self, PyObject* args)
+{
+	FUNC_TRACE;
+
+	if( ! PyArg_ParseTuple(args, "" ) )
+        return NULL;
+
+	if( ! ((TextPlane_Object*)self)->p )
+	{
+		PyErr_SetString( PyExc_ValueError, "already destroyed." );
+		return NULL;
+	}
+
+	return Py_BuildValue( "f", ((TextPlane_Object*)self)->p->priority );
+}
+
+static PyObject * TextPlane_setPriority(PyObject* self, PyObject* args)
+{
+	FUNC_TRACE;
+
+	float priority;
+	if( ! PyArg_ParseTuple(args, "f", &priority ) )
+        return NULL;
+
+	if( ! ((TextPlane_Object*)self)->p )
+	{
+		PyErr_SetString( PyExc_ValueError, "already destroyed." );
+		return NULL;
+	}
+
+    ((TextPlane_Object*)self)->p->SetPriority( priority );
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject * TextPlane_getFont(PyObject* self, PyObject* args)
+{
+	FUNC_TRACE;
+
+	if( ! PyArg_ParseTuple(args, "" ) )
+        return NULL;
+
+	if( ! ((TextPlane_Object*)self)->p )
+	{
+		PyErr_SetString( PyExc_ValueError, "already destroyed." );
+		return NULL;
+	}
+
+    Font * font = ((TextPlane_Object*)self)->p->font;
+    if(font)
+    {
+		Font_Object * pyfont;
+		pyfont = PyObject_New( Font_Object, &Font_Type );
+		pyfont->p = font;
+		font->AddRef();
+		return (PyObject*)pyfont;
+    }
+    else
+    {
+	    Py_INCREF(Py_None);
+	    return Py_None;
+    }
+}
+
+static PyObject * TextPlane_setFont(PyObject* self, PyObject* args)
+{
+	FUNC_TRACE;
+
+    PyObject * font;
+	if( ! PyArg_ParseTuple(args, "O", &font ) )
+        return NULL;
+
+	if( ! ((TextPlane_Object*)self)->p )
+	{
+		PyErr_SetString( PyExc_ValueError, "already destroyed." );
+		return NULL;
+	}
+
+    ((TextPlane_Object*)self)->p->SetFont( ((Font_Object*)font)->p );
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject * TextPlane_putString(PyObject* self, PyObject* args, PyObject * kwds)
+{
+	FUNC_TRACE;
+
+	int x;
+	int y;
+	int width;
+	int height;
+	PyObject * pyattr;
+	PyObject * pystr;
+	int offset=0;
+
+    static char * kwlist[] = {
+        "x",
+        "y",
+        "width",
+        "height",
+        "attr",
+        "str",
+        "offset",
+        NULL
+    };
+
+    if( ! PyArg_ParseTupleAndKeywords( args, kwds, "iiiiOO|i", kwlist, 
+    	&x, &y, &width, &height, &pyattr, &pystr,
+    	&offset
+	))
+	{
+        return NULL;
+	}
+
+    if( !Attribute_Check(pyattr) )
+    {
+        PyErr_SetString( PyExc_TypeError, "arg 4 must be a Attribute object.");
+    	return NULL;
+    }
+
+    std::wstring str;
+    if( !PythonUtil::PyStringToWideString( pystr, &str ) )
+    {
+    	return NULL;
+    }
+
+	if( ! ((TextPlane_Object*)self)->p )
+	{
+		PyErr_SetString( PyExc_ValueError, "already destroyed." );
+		return NULL;
+	}
+
+    TextPlane * textPlane = ((TextPlane_Object*)self)->p;
+
+    textPlane->PutString( x, y, width, height, ((Attribute_Object*)pyattr)->attr, str.c_str(), offset );
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject * TextPlane_scroll(PyObject* self, PyObject* args)
+{
+	FUNC_TRACE;
+
+	int x, y, width, height, delta_x, delta_y;
+
+    if( ! PyArg_ParseTuple(args, "iiiiii", &x, &y, &width, &height, &delta_x, &delta_y ) )
+        return NULL;
+
+	if( ! ((TextPlane_Object*)self)->p )
+	{
+		PyErr_SetString( PyExc_ValueError, "already destroyed." );
+		return NULL;
+	}
+
+    TextPlane * textPlane = ((TextPlane_Object*)self)->p;
+
+	textPlane->Scroll( x, y, width, height, delta_x, delta_y );
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject * TextPlane_getCharSize(PyObject* self, PyObject* args)
+{
+	//FUNC_TRACE;
+
+	if( ! PyArg_ParseTuple(args, "" ) )
+        return NULL;
+
+	if( ! ((TextPlane_Object*)self)->p )
+	{
+		PyErr_SetString( PyExc_ValueError, "already destroyed." );
+		return NULL;
+	}
+
+	TextPlane * textPlane = ((TextPlane_Object*)self)->p;
+
+	PyObject * pyret = Py_BuildValue( "(ii)", textPlane->font->char_width, textPlane->font->char_height );
+	return pyret;
+}
+
+static PyObject * TextPlane_charToScreen(PyObject* self, PyObject* args)
+{
+	//FUNC_TRACE;
+
+	int x;
+	int y;
+
+	if( ! PyArg_ParseTuple(args, "ii", &x, &y ) )
+        return NULL;
+
+	if( ! ((TextPlane_Object*)self)->p )
+	{
+		PyErr_SetString( PyExc_ValueError, "already destroyed." );
+		return NULL;
+	}
+
+	TextPlane * textPlane = ((TextPlane_Object*)self)->p;
+
+	POINT point;
+	point.x = x * textPlane->font->char_width + textPlane->x;
+	point.y = y * textPlane->font->char_height + textPlane->y;
+
+	ClientToScreen( textPlane->window->hwnd, &point );
+
+	PyObject * pyret = Py_BuildValue( "(ii)", point.x, point.y );
+	return pyret;
+}
+
+static PyObject * TextPlane_charToClient(PyObject* self, PyObject* args)
+{
+	//FUNC_TRACE;
+
+	int x;
+	int y;
+
+	if( ! PyArg_ParseTuple(args, "ii", &x, &y ) )
+        return NULL;
+
+	if( ! ((TextPlane_Object*)self)->p )
+	{
+		PyErr_SetString( PyExc_ValueError, "already destroyed." );
+		return NULL;
+	}
+
+	TextPlane * textPlane = ((TextPlane_Object*)self)->p;
+
+	POINT point;
+	point.x = x * textPlane->font->char_width + textPlane->x;
+	point.y = y * textPlane->font->char_height + textPlane->y;
+
+	PyObject * pyret = Py_BuildValue( "(ii)", point.x, point.y );
+	return pyret;
+}
+
+static PyObject * TextPlane_getStringWidth(PyObject* self, PyObject* args)
+{
+	//FUNC_TRACE;
+
+	PyObject * pystr;
+	int tab_width = 4;
+	int offset = 0;
+
+    if( ! PyArg_ParseTuple(args, "O|ii", &pystr, &tab_width, &offset ) )
+        return NULL;
+
+    std::wstring str;
+    if( !PythonUtil::PyStringToWideString( pystr, &str ) )
+    {
+    	return NULL;
+    }
+
+	if( ! ((TextPlane_Object*)self)->p )
+	{
+		PyErr_SetString( PyExc_ValueError, "already destroyed." );
+		return NULL;
+	}
+
+    TextPlane * textPlane = ((TextPlane_Object*)self)->p;
+
+    int width = textPlane->GetStringWidth( str.c_str(), tab_width, offset );
+
+    PyObject * pyret = Py_BuildValue("i",width);
+    return pyret;
+}
+
+static PyObject * TextPlane_getStringColumns(PyObject* self, PyObject* args)
+{
+	//FUNC_TRACE;
+
+	PyObject * pystr;
+	int tab_width = 4;
+	int offset = 0;
+
+    if( ! PyArg_ParseTuple(args, "O|ii", &pystr, &tab_width, &offset ) )
+        return NULL;
+
+    std::wstring str;
+    if( !PythonUtil::PyStringToWideString( pystr, &str ) )
+    {
+    	return NULL;
+    }
+
+	if( ! ((TextPlane_Object*)self)->p )
+	{
+		PyErr_SetString( PyExc_ValueError, "already destroyed." );
+		return NULL;
+	}
+
+    TextPlane * textPlane = ((TextPlane_Object*)self)->p;
+
+	int num = str.length()+1;
+	int * columns = new int[num];
+
+    textPlane->GetStringWidth( str.c_str(), tab_width, offset, columns );
+
+	PyObject * pyret = PyTuple_New(num);
+	for(int i=0 ; i<num ; ++i )
+	{
+		PyTuple_SET_ITEM( pyret, i, PyLong_FromLong(columns[i]) );
+	}
+	delete [] columns;
+	
+	return pyret;
+}
+
+static PyObject * TextPlane_setCaretPosition(PyObject* self, PyObject* args)
+{
+	//FUNC_TRACE;
+
+	int x;
+	int y;
+
+    if( ! PyArg_ParseTuple(args, "ii", &x, &y ) )
+        return NULL;
+
+	if( ! ((TextPlane_Object*)self)->p )
+	{
+		PyErr_SetString( PyExc_ValueError, "already destroyed." );
+		return NULL;
+	}
+
+    TextPlane * textPlane = ((TextPlane_Object*)self)->p;
+
+    textPlane->SetCaretPosition( x, y );
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyMethodDef TextPlane_methods[] = {
+
+	{ "destroy", TextPlane_destroy, METH_VARARGS, "" },
+
+	{ "show", TextPlane_show, METH_VARARGS, "" },
+
+	{ "getPosition", TextPlane_getPosition, METH_VARARGS, "" },
+	{ "getSize", TextPlane_getSize, METH_VARARGS, "" },
+	{ "getPriority", TextPlane_getPriority, METH_VARARGS, "" },
+	{ "getFont", TextPlane_getFont, METH_VARARGS, "" },
+
+	{ "setPosition", TextPlane_setPosition, METH_VARARGS, "" },
+	{ "setSize", TextPlane_setSize, METH_VARARGS, "" },
+	{ "setPriority", TextPlane_setPriority, METH_VARARGS, "" },
+	{ "setFont", TextPlane_setFont, METH_VARARGS, "" },
+
+    { "putString", (PyCFunction)TextPlane_putString, METH_VARARGS|METH_KEYWORDS, "" },
+	{ "scroll", TextPlane_scroll, METH_VARARGS, "" },
+
+    { "getCharSize", TextPlane_getCharSize, METH_VARARGS, "" },
+    { "charToScreen", TextPlane_charToScreen, METH_VARARGS, "" },
+    { "charToClient", TextPlane_charToClient, METH_VARARGS, "" },
+    { "getStringWidth", TextPlane_getStringWidth, METH_VARARGS, "" },
+    { "getStringColumns", TextPlane_getStringColumns, METH_VARARGS, "" },
+
+	{ "setCaretPosition", TextPlane_setCaretPosition, METH_VARARGS, "" },
+
+	{NULL,NULL}
+};
+
+PyTypeObject TextPlane_Type = {
+	PyVarObject_HEAD_INIT(NULL, 0)
+	"TextPlane",		/* tp_name */
+	sizeof(TextPlane_Object), /* tp_basicsize */
+	0,					/* tp_itemsize */
+	TextPlane_dealloc,		/* tp_dealloc */
+	0,					/* tp_print */
+	0,					/* tp_getattr */
+	0,					/* tp_setattr */
+	0,					/* tp_reserved */
+	0, 					/* tp_repr */
+	0,					/* tp_as_number */
+	0,					/* tp_as_sequence */
+	0,					/* tp_as_mapping */
+	0,					/* tp_hash */
+	0,					/* tp_call */
+	0,					/* tp_str */
+	PyObject_GenericGetAttr,/* tp_getattro */
+	PyObject_GenericSetAttr,/* tp_setattro */
+	0,					/* tp_as_buffer */
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,/* tp_flags */
+	"",					/* tp_doc */
+	0,					/* tp_traverse */
+	0,					/* tp_clear */
+	0,					/* tp_richcompare */
+	0,					/* tp_weaklistoffset */
+	0,					/* tp_iter */
+	0,					/* tp_iternext */
+	TextPlane_methods,		/* tp_methods */
+	0,					/* tp_members */
+	0,					/* tp_getset */
+	0,					/* tp_base */
+	0,					/* tp_dict */
+	0,					/* tp_descr_get */
+	0,					/* tp_descr_set */
+	0,					/* tp_dictoffset */
+	TextPlane_init,			/* tp_init */
 	0,					/* tp_alloc */
 	PyType_GenericNew,	/* tp_new */
 	0,					/* tp_free */
@@ -4621,16 +5282,14 @@ static int Window_init( PyObject * self, PyObject * args, PyObject * kwds)
 
     int x = CW_USEDEFAULT;
     int y = CW_USEDEFAULT;
-    int width = 80;
-    int height = 24;
+    int width = 100;
+    int height = 100;
     int origin = 0;
     PyObject * parent_window = NULL;
-    PyObject * pystr_font_name = NULL;
-    int font_size = 12;
     PyObject * pybg_color = NULL;
     PyObject * pyframe_color = NULL;
-    PyObject * pycursor0_color = NULL;
-    PyObject * pycursor1_color = NULL;
+    PyObject * pycaret0_color = NULL;
+    PyObject * pycaret1_color = NULL;
     int border_size = 1;
     PyObject * pytransparency = NULL;
     PyObject * pytransparent_color = NULL;
@@ -4641,7 +5300,7 @@ static int Window_init( PyObject * self, PyObject * args, PyObject * kwds)
     int noframe = 0;
     int minimizebox = 1;
     int maximizebox = 1;
-    int cursor = 0;
+    int caret = 0;
     int sysmenu = 0;
     int tool = 0;
     int ncpaint = 0;
@@ -4649,6 +5308,7 @@ static int Window_init( PyObject * self, PyObject * args, PyObject * kwds)
     PyObject * close_handler = NULL;
     PyObject * endsession_handler = NULL;
     PyObject * move_handler = NULL;
+    PyObject * sizing_handler = NULL;
     PyObject * size_handler = NULL;
     PyObject * dropfiles_handler = NULL;
     PyObject * ipc_handler = NULL;
@@ -4677,12 +5337,10 @@ static int Window_init( PyObject * self, PyObject * args, PyObject * kwds)
         "origin",
 
         "parent_window",
-        "font_name",
-        "font_size",
         "bg_color",
         "frame_color",
-        "cursor0_color",
-        "cursor1_color",
+        "caret0_color",
+        "caret1_color",
 
         "border_size",
         "transparency",
@@ -4695,7 +5353,7 @@ static int Window_init( PyObject * self, PyObject * args, PyObject * kwds)
         "noframe",
         "minimizebox",
         "maximizebox",
-        "cursor",
+        "caret",
         "sysmenu",
         "tool",
         "ncpaint",
@@ -4704,6 +5362,7 @@ static int Window_init( PyObject * self, PyObject * args, PyObject * kwds)
         "close_handler",
         "endsession_handler",
         "move_handler",
+        "sizing_handler",
         "size_handler",
         "dropfiles_handler",
         "ipc_handler",
@@ -4727,10 +5386,10 @@ static int Window_init( PyObject * self, PyObject * args, PyObject * kwds)
 
     if(!PyArg_ParseTupleAndKeywords( args, kwds, 
     	"|iiiii"
-    	"OOiOOOO"
+    	"OOOOO"
     	"iOOiO"
     	"iiiiiiiii"
-    	"OOOOOOOOOOOOOOOOOOOOOO", kwlist,
+    	"OOOOOOOOOOOOOOOOOOOOOOO", kwlist,
 
         &x,
         &y,
@@ -4739,12 +5398,10 @@ static int Window_init( PyObject * self, PyObject * args, PyObject * kwds)
         &origin,
 
         &parent_window,
-        &pystr_font_name,
-        &font_size,
         &pybg_color,
         &pyframe_color,
-        &pycursor0_color,
-        &pycursor1_color,
+        &pycaret0_color,
+        &pycaret1_color,
 
         &border_size,
         &pytransparency,
@@ -4757,7 +5414,7 @@ static int Window_init( PyObject * self, PyObject * args, PyObject * kwds)
         &noframe,
         &minimizebox,
         &maximizebox,
-        &cursor,
+        &caret,
         &sysmenu,
         &tool,
         &ncpaint,
@@ -4766,6 +5423,7 @@ static int Window_init( PyObject * self, PyObject * args, PyObject * kwds)
 	    &close_handler,
 	    &endsession_handler,
 	    &move_handler,
+	    &sizing_handler,
 	    &size_handler,
 	    &dropfiles_handler,
 	    &ipc_handler,
@@ -4795,15 +5453,6 @@ static int Window_init( PyObject * self, PyObject * args, PyObject * kwds)
         return -1;
 	}
 
-    std::wstring str_font_name;
-    if(pystr_font_name)
-    {
-        if( !PythonUtil::PyStringToWideString( pystr_font_name, &str_font_name ) )
-        {
-            return -1;
-        }
-    }
-
     std::wstring str_title;
     if(pystr_title)
     {
@@ -4817,8 +5466,8 @@ static int Window_init( PyObject * self, PyObject * args, PyObject * kwds)
     param.is_winpos_given = true;
     param.winpos_x = x;
     param.winpos_y = y;
-    param.winsize_char_w = width;
-    param.winsize_char_h = height;
+    param.winsize_w = width;
+    param.winsize_h = height;
     param.origin = origin;
     if(!parent_window)
     {
@@ -4835,8 +5484,6 @@ static int Window_init( PyObject * self, PyObject * args, PyObject * kwds)
     	param.parent_window = ((Window_Object*)parent_window)->p;
     	param.parent_window_hwnd = param.parent_window->hwnd;
     }
-    if(pystr_font_name) param.font_name = str_font_name;
-    param.font_size = font_size;
 	if(pybg_color)
 	{
 		int r, g, b;
@@ -4851,19 +5498,19 @@ static int Window_init( PyObject * self, PyObject * args, PyObject * kwds)
 	        return -1;
 	    param.frame_color = RGB(r,g,b);
 	}
-	if(pycursor0_color)
+	if(pycaret0_color)
 	{
 		int r, g, b;
-	    if( ! PyArg_ParseTuple( pycursor0_color, "iii", &r, &g, &b ) )
+	    if( ! PyArg_ParseTuple( pycaret0_color, "iii", &r, &g, &b ) )
 	        return -1;
-	    param.cursor0_color = RGB(r,g,b);
+	    param.caret0_color = RGB(r,g,b);
 	}
-	if(pycursor1_color)
+	if(pycaret1_color)
 	{
 		int r, g, b;
-	    if( ! PyArg_ParseTuple( pycursor1_color, "iii", &r, &g, &b ) )
+	    if( ! PyArg_ParseTuple( pycaret1_color, "iii", &r, &g, &b ) )
 	        return -1;
-	    param.cursor1_color = RGB(r,g,b);
+	    param.caret1_color = RGB(r,g,b);
 	}
     param.border_size = border_size;
 
@@ -4888,7 +5535,7 @@ static int Window_init( PyObject * self, PyObject * args, PyObject * kwds)
     param.noframe = noframe!=0;
     param.minimizebox = minimizebox!=0;
     param.minimizebox = minimizebox!=0;
-    param.cursor = cursor!=0;
+    param.caret = caret!=0;
     param.sysmenu = sysmenu!=0;
     param.tool = tool!=0;
     param.ncpaint = ncpaint!=0;
@@ -4896,6 +5543,7 @@ static int Window_init( PyObject * self, PyObject * args, PyObject * kwds)
     param.close_handler = close_handler;
     param.endsession_handler = endsession_handler;
     param.move_handler = move_handler;
+    param.sizing_handler = sizing_handler;
     param.size_handler = size_handler;
     param.dropfiles_handler = dropfiles_handler;
     param.ipc_handler = ipc_handler;
@@ -4976,86 +5624,6 @@ static PyObject * Window_getHINSTANCE(PyObject* self, PyObject* args)
     HINSTANCE hinstance = GetModuleHandle(NULL);
 
     PyObject * pyret = Py_BuildValue("i",hinstance);
-    return pyret;
-}
-
-static PyObject * Window_width(PyObject* self, PyObject* args)
-{
-	//FUNC_TRACE;
-
-    if( ! PyArg_ParseTuple(args, "" ) )
-        return NULL;
-
-	if( ! ((Window_Object*)self)->p )
-	{
-		PyErr_SetString( PyExc_ValueError, "already destroyed." );
-		return NULL;
-	}
-
-    Window * window = ((Window_Object*)self)->p;
-
-    PyObject * pyret = Py_BuildValue("i",window->width());
-    return pyret;
-}
-
-static PyObject * Window_height(PyObject* self, PyObject* args)
-{
-	//FUNC_TRACE;
-
-    if( ! PyArg_ParseTuple(args, "" ) )
-        return NULL;
-
-	if( ! ((Window_Object*)self)->p )
-	{
-		PyErr_SetString( PyExc_ValueError, "already destroyed." );
-		return NULL;
-	}
-
-    Window * window = ((Window_Object*)self)->p;
-
-    PyObject * pyret = Py_BuildValue("i",window->height());
-    return pyret;
-}
-
-static PyObject * Window_getSize(PyObject* self, PyObject* args)
-{
-	//FUNC_TRACE;
-
-    if( ! PyArg_ParseTuple(args, "" ) )
-        return NULL;
-
-	if( ! ((Window_Object*)self)->p )
-	{
-		PyErr_SetString( PyExc_ValueError, "already destroyed." );
-		return NULL;
-	}
-
-    Window * window = ((Window_Object*)self)->p;
-
-	int w, h;
-	window->getSize( &w, &h );
-	PyObject * pyret = Py_BuildValue( "(ii)", w, h );
-    return pyret;
-}
-
-static PyObject * Window_getNormalSize(PyObject* self, PyObject* args)
-{
-	//FUNC_TRACE;
-
-    if( ! PyArg_ParseTuple(args, "" ) )
-        return NULL;
-
-	if( ! ((Window_Object*)self)->p )
-	{
-		PyErr_SetString( PyExc_ValueError, "already destroyed." );
-		return NULL;
-	}
-
-    Window * window = ((Window_Object*)self)->p;
-
-	int w, h;
-	window->getNormalSize( &w, &h );
-	PyObject * pyret = Py_BuildValue( "(ii)", w, h );
     return pyret;
 }
 
@@ -5459,63 +6027,6 @@ static PyObject * Window_clear(PyObject* self, PyObject* args)
     return Py_None;
 }
 
-static PyObject * Window_putString(PyObject* self, PyObject* args, PyObject * kwds)
-{
-	FUNC_TRACE;
-
-	int x;
-	int y;
-	int width;
-	int height;
-	PyObject * pyattr;
-	PyObject * pystr;
-	int offset=0;
-
-    static char * kwlist[] = {
-        "x",
-        "y",
-        "width",
-        "height",
-        "attr",
-        "str",
-        "offset",
-        NULL
-    };
-
-    if( ! PyArg_ParseTupleAndKeywords( args, kwds, "iiiiOO|i", kwlist, 
-    	&x, &y, &width, &height, &pyattr, &pystr,
-    	&offset
-	))
-	{
-        return NULL;
-	}
-
-    if( !Attribute_Check(pyattr) )
-    {
-        PyErr_SetString( PyExc_TypeError, "arg 4 must be a Attribute object.");
-    	return NULL;
-    }
-
-    std::wstring str;
-    if( !PythonUtil::PyStringToWideString( pystr, &str ) )
-    {
-    	return NULL;
-    }
-
-	if( ! ((Window_Object*)self)->p )
-	{
-		PyErr_SetString( PyExc_ValueError, "already destroyed." );
-		return NULL;
-	}
-
-    Window * window = ((Window_Object*)self)->p;
-
-    window->putString( x, y, width, height, ((Attribute_Object*)pyattr)->attr, str.c_str(), offset );
-
-    Py_INCREF(Py_None);
-    return Py_None;
-}
-
 static PyObject * Window_flushPaint(PyObject* self, PyObject* args)
 {
 	FUNC_TRACE;
@@ -5573,75 +6084,6 @@ static PyObject * Window_bitBlt(PyObject* self, PyObject* args)
 
     Py_INCREF(Py_None);
     return Py_None;
-}
-
-static PyObject * Window_scroll(PyObject* self, PyObject* args)
-{
-	FUNC_TRACE;
-
-	int x, y, width, height, delta_x, delta_y;
-
-    if( ! PyArg_ParseTuple(args, "iiiiii", &x, &y, &width, &height, &delta_x, &delta_y ) )
-        return NULL;
-
-	if( ! ((Window_Object*)self)->p )
-	{
-		PyErr_SetString( PyExc_ValueError, "already destroyed." );
-		return NULL;
-	}
-
-    Window * window = ((Window_Object*)self)->p;
-
-	window->scroll( x, y, width, height, delta_x, delta_y );
-
-    Py_INCREF(Py_None);
-    return Py_None;
-}
-
-static PyObject * Window_setCursorPos(PyObject* self, PyObject* args)
-{
-	//FUNC_TRACE;
-
-	int x;
-	int y;
-
-    if( ! PyArg_ParseTuple(args, "ii", &x, &y ) )
-        return NULL;
-
-	if( ! ((Window_Object*)self)->p )
-	{
-		PyErr_SetString( PyExc_ValueError, "already destroyed." );
-		return NULL;
-	}
-
-    Window * window = ((Window_Object*)self)->p;
-
-    window->setCursorPos( x, y );
-
-    Py_INCREF(Py_None);
-    return Py_None;
-}
-
-static PyObject * Window_getCursorPos(PyObject* self, PyObject* args)
-{
-	//FUNC_TRACE;
-
-    if( ! PyArg_ParseTuple(args, "" ) )
-        return NULL;
-
-	if( ! ((Window_Object*)self)->p )
-	{
-		PyErr_SetString( PyExc_ValueError, "already destroyed." );
-		return NULL;
-	}
-
-    Window * window = ((Window_Object*)self)->p;
-
-	int x, y;
-    window->getCursorPos( &x, &y );
-
-	PyObject * pyret = Py_BuildValue( "(ii)", x, y );
-	return pyret;
 }
 
 static PyObject * Window_setImeRect(PyObject* self, PyObject* args)
@@ -5707,7 +6149,7 @@ static PyObject * Window_enableIme(PyObject* self, PyObject* args)
     return Py_None;
 }
 
-static PyObject * Window_setPosSize(PyObject* self, PyObject* args, PyObject * kwds)
+static PyObject * Window_setPositionAndSize(PyObject* self, PyObject* args, PyObject * kwds)
 {
 	//FUNC_TRACE;
 
@@ -5745,81 +6187,10 @@ static PyObject * Window_setPosSize(PyObject* self, PyObject* args, PyObject * k
 
     Window * window = ((Window_Object*)self)->p;
 
-    window->setPosSize( x, y, width, height, origin );
+    window->setPositionAndSize( x, y, width, height, origin );
 
     Py_INCREF(Py_None);
     return Py_None;
-}
-
-static PyObject * Window_getStringWidth(PyObject* self, PyObject* args)
-{
-	//FUNC_TRACE;
-
-	PyObject * pystr;
-	int tab_width = 4;
-	int offset = 0;
-
-    if( ! PyArg_ParseTuple(args, "O|ii", &pystr, &tab_width, &offset ) )
-        return NULL;
-
-    std::wstring str;
-    if( !PythonUtil::PyStringToWideString( pystr, &str ) )
-    {
-    	return NULL;
-    }
-
-	if( ! ((Window_Object*)self)->p )
-	{
-		PyErr_SetString( PyExc_ValueError, "already destroyed." );
-		return NULL;
-	}
-
-    Window * window = ((Window_Object*)self)->p;
-
-    int width = window->getStringWidth( str.c_str(), tab_width, offset );
-
-    PyObject * pyret = Py_BuildValue("i",width);
-    return pyret;
-}
-
-static PyObject * Window_getStringColumns(PyObject* self, PyObject* args)
-{
-	//FUNC_TRACE;
-
-	PyObject * pystr;
-	int tab_width = 4;
-	int offset = 0;
-
-    if( ! PyArg_ParseTuple(args, "O|ii", &pystr, &tab_width, &offset ) )
-        return NULL;
-
-    std::wstring str;
-    if( !PythonUtil::PyStringToWideString( pystr, &str ) )
-    {
-    	return NULL;
-    }
-
-	if( ! ((Window_Object*)self)->p )
-	{
-		PyErr_SetString( PyExc_ValueError, "already destroyed." );
-		return NULL;
-	}
-
-    Window * window = ((Window_Object*)self)->p;
-
-	int num = str.length()+1;
-	int * columns = new int[num];
-
-    window->getStringWidth( str.c_str(), tab_width, offset, columns );
-
-	PyObject * pyret = PyTuple_New(num);
-	for(int i=0 ; i<num ; ++i )
-	{
-		PyTuple_SET_ITEM( pyret, i, PyLong_FromLong(columns[i]) );
-	}
-	delete [] columns;
-	
-	return pyret;
 }
 
 static PyObject * Window_messageLoop(PyObject* self, PyObject* args, PyObject * kwds)
@@ -5972,6 +6343,28 @@ static PyObject * Window_getWindowRect(PyObject* self, PyObject* args)
 	return pyret;
 }
 
+static PyObject * Window_getClientSize(PyObject* self, PyObject* args)
+{
+	//FUNC_TRACE;
+
+	if( ! PyArg_ParseTuple(args, "" ) )
+        return NULL;
+
+	if( ! ((Window_Object*)self)->p )
+	{
+		PyErr_SetString( PyExc_ValueError, "already destroyed." );
+		return NULL;
+	}
+
+	Window * window = ((Window_Object*)self)->p;
+
+	RECT rect;
+	::GetClientRect(window->hwnd,&rect);
+
+	PyObject * pyret = Py_BuildValue( "(ii)", rect.right-rect.left, rect.bottom-rect.top );
+	return pyret;
+}
+
 static PyObject * Window_getNormalWindowRect(PyObject* self, PyObject* args)
 {
 	//FUNC_TRACE;
@@ -5994,7 +6387,7 @@ static PyObject * Window_getNormalWindowRect(PyObject* self, PyObject* args)
 	return pyret;
 }
 
-static PyObject * Window_getClientRect(PyObject* self, PyObject* args)
+static PyObject * Window_getNormalClientSize(PyObject* self, PyObject* args)
 {
 	//FUNC_TRACE;
 
@@ -6009,83 +6402,10 @@ static PyObject * Window_getClientRect(PyObject* self, PyObject* args)
 
 	Window * window = ((Window_Object*)self)->p;
 
-	RECT rect;
-	::GetClientRect(window->hwnd,&rect);
+	SIZE size;
+	window->getNormalClientSize(&size);
 
-	PyObject * pyret = Py_BuildValue( "(iiii)", rect.left, rect.top, rect.right, rect.bottom );
-	return pyret;
-}
-
-static PyObject * Window_getCharSize(PyObject* self, PyObject* args)
-{
-	//FUNC_TRACE;
-
-	if( ! PyArg_ParseTuple(args, "" ) )
-        return NULL;
-
-	if( ! ((Window_Object*)self)->p )
-	{
-		PyErr_SetString( PyExc_ValueError, "already destroyed." );
-		return NULL;
-	}
-
-	Window * window = ((Window_Object*)self)->p;
-
-	PyObject * pyret = Py_BuildValue( "(ii)", window->font_w, window->font_h );
-	return pyret;
-}
-
-static PyObject * Window_charToScreen(PyObject* self, PyObject* args)
-{
-	//FUNC_TRACE;
-
-	int x;
-	int y;
-
-	if( ! PyArg_ParseTuple(args, "ii", &x, &y ) )
-        return NULL;
-
-	if( ! ((Window_Object*)self)->p )
-	{
-		PyErr_SetString( PyExc_ValueError, "already destroyed." );
-		return NULL;
-	}
-
-	Window * window = ((Window_Object*)self)->p;
-
-	POINT point;
-	point.x = x * window->font_w + window->border_left;
-	point.y = y * window->font_h + window->border_top;
-
-	ClientToScreen( window->hwnd, &point );
-
-	PyObject * pyret = Py_BuildValue( "(ii)", point.x, point.y );
-	return pyret;
-}
-
-static PyObject * Window_charToClient(PyObject* self, PyObject* args)
-{
-	//FUNC_TRACE;
-
-	int x;
-	int y;
-
-	if( ! PyArg_ParseTuple(args, "ii", &x, &y ) )
-        return NULL;
-
-	if( ! ((Window_Object*)self)->p )
-	{
-		PyErr_SetString( PyExc_ValueError, "already destroyed." );
-		return NULL;
-	}
-
-	Window * window = ((Window_Object*)self)->p;
-
-	POINT point;
-	point.x = x * window->font_w + window->border_left;
-	point.y = y * window->font_h + window->border_top;
-
-	PyObject * pyret = Py_BuildValue( "(ii)", point.x, point.y );
+	PyObject * pyret = Py_BuildValue( "(ii)", size.cx, size.cy );
 	return pyret;
 }
 
@@ -6401,7 +6721,7 @@ static PyObject * Window_setFrameColor(PyObject* self, PyObject* args)
 	return Py_None;
 }
 
-static PyObject * Window_setCursorColor(PyObject* self, PyObject* args)
+static PyObject * Window_setCaretColor(PyObject* self, PyObject* args)
 {
 	//FUNC_TRACE;
 
@@ -6429,7 +6749,7 @@ static PyObject * Window_setCursorColor(PyObject* self, PyObject* args)
 	    if( ! PyArg_ParseTuple( pycolor1, "iii", &r1, &g1, &b1 ) )
 	        return NULL;
 
-		window->setCursorColor( RGB(r0,g0,b0), RGB(r1,g1,b1) );
+		window->setCaretColor( RGB(r0,g0,b0), RGB(r1,g1,b1) );
 	}
 
 	Py_INCREF(Py_None);
@@ -6591,36 +6911,6 @@ static PyObject * Window_enumFonts(PyObject* self, PyObject* args)
 	return pyret;
 }
 
-static PyObject * Window_setFont(PyObject* self, PyObject* args)
-{
-	//FUNC_TRACE;
-
-	PyObject * pyfontname;
-	int font_size;
-
-    if( ! PyArg_ParseTuple(args, "Oi", &pyfontname, &font_size ) )
-        return NULL;
-
-	if( ! ((Window_Object*)self)->p )
-	{
-		PyErr_SetString( PyExc_ValueError, "already destroyed." );
-		return NULL;
-	}
-
-    std::wstring fontname;
-    if( !PythonUtil::PyStringToWideString( pyfontname, &fontname ) )
-    {
-    	return NULL;
-    }
-
-	Window * window = ((Window_Object*)self)->p;
-
-    window->setFont( fontname.c_str(), font_size );
-
-	Py_INCREF(Py_None);
-	return Py_None;
-}
-
 static PyObject * Window_popupMenu(PyObject* self, PyObject* args, PyObject * kwds)
 {
 	//FUNC_TRACE;
@@ -6765,10 +7055,6 @@ static PyObject * Window_sendIpc(PyObject* self, PyObject* args)
 static PyMethodDef Window_methods[] = {
     { "getHWND", Window_getHWND, METH_VARARGS, "" },
     { "getHINSTANCE", Window_getHINSTANCE, METH_VARARGS, "" },
-    { "width", Window_width, METH_VARARGS, "" },
-    { "height", Window_height, METH_VARARGS, "" },
-    { "getSize", Window_getSize, METH_VARARGS, "" },
-    { "getNormalSize", Window_getNormalSize, METH_VARARGS, "" },
     { "show", Window_show, METH_VARARGS, "" },
     { "enable", Window_enable, METH_VARARGS, "" },
     { "destroy", Window_destroy, METH_VARARGS, "" },
@@ -6786,44 +7072,35 @@ static PyMethodDef Window_methods[] = {
     { "isActive", Window_isActive, METH_VARARGS, "" },
     { "isForeground", Window_isForeground, METH_VARARGS, "" },
     { "clear", Window_clear, METH_VARARGS, "" },
-    { "putString", (PyCFunction)Window_putString, METH_VARARGS|METH_KEYWORDS, "" },
     { "flushPaint", Window_flushPaint, METH_VARARGS, "" },
     { "bitBlt", Window_bitBlt, METH_VARARGS, "" },
     { "messageLoop", (PyCFunction)Window_messageLoop, METH_VARARGS|METH_KEYWORDS, "" },
     { "removeKeyMessage", Window_removeKeyMessage, METH_VARARGS, "" },
     { "quit", Window_quit, METH_VARARGS, "" },
     { "getWindowRect", Window_getWindowRect, METH_VARARGS, "" },
+    { "getClientSize", Window_getClientSize, METH_VARARGS, "" },
     { "getNormalWindowRect", Window_getNormalWindowRect, METH_VARARGS, "" },
-    { "getClientRect", Window_getClientRect, METH_VARARGS, "" },
-    { "getCharSize", Window_getCharSize, METH_VARARGS, "" },
-    { "charToScreen", Window_charToScreen, METH_VARARGS, "" },
-    { "charToClient", Window_charToClient, METH_VARARGS, "" },
+    { "getNormalClientSize", Window_getNormalClientSize, METH_VARARGS, "" },
     { "screenToClient", Window_screenToClient, METH_VARARGS, "" },
     { "clientToScreen", Window_clientToScreen, METH_VARARGS, "" },
-    { "getStringWidth", Window_getStringWidth, METH_VARARGS, "" },
-    { "getStringColumns", Window_getStringColumns, METH_VARARGS, "" },
     { "setTimer", Window_setTimer, METH_VARARGS, "" },
     { "killTimer", Window_killTimer, METH_VARARGS, "" },
     { "delayedCall", Window_delayedCall, METH_VARARGS, "" },
     { "setHotKey", Window_setHotKey, METH_VARARGS, "" },
     { "killHotKey", Window_killHotKey, METH_VARARGS, "" },
-	{ "scroll", Window_scroll, METH_VARARGS, "" },
-	{ "setCursorPos", Window_setCursorPos, METH_VARARGS, "" },
-    { "getCursorPos", Window_getCursorPos, METH_VARARGS, "" },
     { "setImeRect", Window_setImeRect, METH_VARARGS, "" },
     { "enableIme", Window_enableIme, METH_VARARGS, "" },
-    { "setPosSize", (PyCFunction)Window_setPosSize, METH_VARARGS|METH_KEYWORDS, "" },
+    { "setPositionAndSize", (PyCFunction)Window_setPositionAndSize, METH_VARARGS|METH_KEYWORDS, "" },
     { "setTitle", (PyCFunction)Window_setTitle, METH_VARARGS, "" },
     { "setBGColor", (PyCFunction)Window_setBGColor, METH_VARARGS, "" },
     { "setFrameColor", (PyCFunction)Window_setFrameColor, METH_VARARGS, "" },
-    { "setCursorColor", (PyCFunction)Window_setCursorColor, METH_VARARGS, "" },
+    { "setCaretColor", (PyCFunction)Window_setCaretColor, METH_VARARGS, "" },
     { "setMenu", (PyCFunction)Window_setMenu, METH_VARARGS, "" },
     { "setCapture", (PyCFunction)Window_setCapture, METH_VARARGS, "" },
     { "releaseCapture", (PyCFunction)Window_releaseCapture, METH_VARARGS, "" },
     { "setMouseCursor", (PyCFunction)Window_setMouseCursor, METH_VARARGS, "" },
     { "drag", (PyCFunction)Window_drag, METH_VARARGS, "" },
     { "enumFonts", (PyCFunction)Window_enumFonts, METH_VARARGS, "" },
-    { "setFont", (PyCFunction)Window_setFont, METH_VARARGS, "" },
     { "popupMenu", (PyCFunction)Window_popupMenu, METH_VARARGS|METH_KEYWORDS, "" },
     { "sendIpc", (PyCFunction)Window_sendIpc, METH_STATIC|METH_VARARGS, "" },
     {NULL,NULL}
@@ -7706,7 +7983,9 @@ extern "C" PyMODINIT_FUNC PyInit_ckitcore(void)
 
     if( PyType_Ready(&Attribute_Type)<0 ) return NULL;
     if( PyType_Ready(&Image_Type)<0 ) return NULL;
-    if( PyType_Ready(&Plane_Type)<0 ) return NULL;
+    if( PyType_Ready(&Font_Type)<0 ) return NULL;
+    if( PyType_Ready(&ImagePlane_Type)<0 ) return NULL;
+    if( PyType_Ready(&TextPlane_Type)<0 ) return NULL;
     if( PyType_Ready(&MenuNode_Type)<0 ) return NULL;
     if( PyType_Ready(&Window_Type)<0 ) return NULL;
     if( PyType_Ready(&TaskTrayIcon_Type)<0 ) return NULL;
@@ -7723,8 +8002,14 @@ extern "C" PyMODINIT_FUNC PyInit_ckitcore(void)
     Py_INCREF(&Image_Type);
     PyModule_AddObject( m, "Image", (PyObject*)&Image_Type );
 
-    Py_INCREF(&Plane_Type);
-    PyModule_AddObject( m, "Plane", (PyObject*)&Plane_Type );
+    Py_INCREF(&Font_Type);
+    PyModule_AddObject( m, "Font", (PyObject*)&Font_Type );
+
+    Py_INCREF(&ImagePlane_Type);
+    PyModule_AddObject( m, "ImagePlane", (PyObject*)&ImagePlane_Type );
+
+    Py_INCREF(&TextPlane_Type);
+    PyModule_AddObject( m, "TextPlane", (PyObject*)&TextPlane_Type );
 
     Py_INCREF(&MenuNode_Type);
     PyModule_AddObject( m, "MenuNode", (PyObject*)&MenuNode_Type );
