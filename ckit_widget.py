@@ -9,6 +9,7 @@ import pyauto
 
 from ckit.ckit_const import *
 
+from ckit import ckit_textwindow
 from ckit import ckit_theme
 from ckit import ckit_misc
 from ckit import ckitcore
@@ -139,7 +140,7 @@ class CheckBoxWidget(Widget):
         self.plane_size = self.window.getCharSize()
         self.plane_size = ( self.plane_size[0]*2-1, self.plane_size[1]-1 )
 
-        self.plane = ckitcore.Plane( self.window, (0,0), self.plane_size, 0 )
+        self.plane = ckitcore.ImagePlane( self.window, (0,0), self.plane_size, 0 )
         self.plane.setImage(self.img0)
 
         self.message = message
@@ -165,7 +166,7 @@ class CheckBoxWidget(Widget):
         pos1 = self.window.charToClient( self.x, self.y )
         pos2 = self.window.charToClient( self.x+2, self.y+1 )
 
-        self.plane.setPos( ( (pos1[0]+pos2[0]-self.plane_size[0])//2, (pos1[1]+pos2[1]-self.plane_size[1])//2 ) )
+        self.plane.setPosition( ( (pos1[0]+pos2[0]-self.plane_size[0])//2, (pos1[1]+pos2[1]-self.plane_size[1])//2 ) )
 
         if self.check:
             self.plane.setImage(self.img1)
@@ -265,9 +266,9 @@ class ColorWidget(Widget):
 
         self.frame_plane_size = self.window.getCharSize()
         self.frame_plane_size = ( self.frame_plane_size[0]*4-1, self.frame_plane_size[1]-1 )
-        self.frame_plane = ckitcore.Plane( self.window, (0,0), self.frame_plane_size, 1 )
+        self.frame_plane = ckitcore.ImagePlane( self.window, (0,0), self.frame_plane_size, 1 )
         self.color_plane_size = ( self.frame_plane_size[0]-2, self.frame_plane_size[1]-2 )
-        self.color_plane = ckitcore.Plane( self.window, (0,0), self.color_plane_size, 0 )
+        self.color_plane = ckitcore.ImagePlane( self.window, (0,0), self.color_plane_size, 0 )
 
         self.message = message
         self.color = color
@@ -289,11 +290,11 @@ class ColorWidget(Widget):
         pos1 = self.window.charToClient( self.x+0, self.y )
         pos2 = self.window.charToClient( self.x+4, self.y+1 )
 
-        self.frame_plane.setPos( ( (pos1[0]+pos2[0]-self.color_plane_size[0])//2, (pos1[1]+pos2[1]-self.color_plane_size[1])//2 ) )
+        self.frame_plane.setPosition( ( (pos1[0]+pos2[0]-self.color_plane_size[0])//2, (pos1[1]+pos2[1]-self.color_plane_size[1])//2 ) )
         bg_color = ckit_theme.getColor("bg")
         self.frame_plane.setImage( ckitcore.Image.fromString( (1,1), struct.pack( "BBBB", bg_color[0]^0xff, bg_color[1]^0xff, bg_color[2]^0xff, 0xff ) ) )
 
-        self.color_plane.setPos( ( (pos1[0]+pos2[0]-self.color_plane_size[0])//2+1, (pos1[1]+pos2[1]-self.color_plane_size[1])//2+1 ) )
+        self.color_plane.setPosition( ( (pos1[0]+pos2[0]-self.color_plane_size[0])//2+1, (pos1[1]+pos2[1]-self.color_plane_size[1])//2+1 ) )
         self.color_plane.setImage( ckitcore.Image.fromString( (1,1), struct.pack( "BBBB", self.color[0], self.color[1], self.color[2], 0xff ) ) )
 
         if self.enable_cursor:
@@ -1437,7 +1438,7 @@ class EditWidget(Widget):
     def isScrolled(self):
         return self.scroll_pos != -self.margin1
 
-class CandidateWindow( ckitcore.Window ):
+class CandidateWindow( ckit_textwindow.TextWindow ):
 
     def __init__( self, x, y, min_width, min_height, max_width, max_height, parent_window, keydown_hook=None, selchange_handler=None ):
         
@@ -1450,7 +1451,7 @@ class CandidateWindow( ckitcore.Window ):
             (bg[2] + fg[2])//2,
         )  
         
-        ckitcore.Window.__init__(
+        ckit_textwindow.TextWindow.__init__(
             self,
             x=x,
             y=y,
@@ -1459,8 +1460,8 @@ class CandidateWindow( ckitcore.Window ):
             origin= ORIGIN_X_LEFT | ORIGIN_Y_TOP,
             parent_window=parent_window,
             bg_color = ckit_theme.getColor("bg"),
-            cursor0_color = ckit_theme.getColor("cursor0"),
-            cursor1_color = ckit_theme.getColor("cursor1"),
+            caret0_color = ckit_theme.getColor("caret0"),
+            caret1_color = ckit_theme.getColor("caret1"),
             frame_color = frame_color,
             border_size = 0,
             transparency = 255, # チラつきを防ぐために WS_EX_LAYERED にする
@@ -1935,9 +1936,9 @@ class ProgressBarWidget(Widget):
         self.img0 = ckit_theme.createThemeImage('progress0.png')
         self.img1 = ckit_theme.createThemeImage('progress1.png')
 
-        self.frame_plane = ckitcore.Plane( self.window, (0,0), (0,0), 1 )
+        self.frame_plane = ckitcore.ImagePlane( self.window, (0,0), (0,0), 1 )
         self.frame_plane.setImage(self.img0)
-        self.bar_plane_list = [ ckitcore.Plane( self.window, (0,0), (0,0), 0 ) ]
+        self.bar_plane_list = [ ckitcore.ImagePlane( self.window, (0,0), (0,0), 0 ) ]
         self.bar_plane_list[0].setImage(self.img1)
         
         self.busy_mode = False
@@ -1967,20 +1968,20 @@ class ProgressBarWidget(Widget):
         pos2 = self.window.charToClient( self.x+self.width, self.y+self.height )
         margin_y = 2
 
-        self.frame_plane.setPos( ( pos1[0], pos1[1]+margin_y ) )
+        self.frame_plane.setPosition( ( pos1[0], pos1[1]+margin_y ) )
         self.frame_plane.setSize( ( pos2[0]-pos1[0], pos2[1]-pos1[1]-margin_y ) )
 
         if self.busy_mode:
-            self.bar_plane_list[0].setPos( ( pos1[0] + int((pos2[0]-pos1[0])*self.busy_anim_value[0]), pos1[1]+margin_y ) )
+            self.bar_plane_list[0].setPosition( ( pos1[0] + int((pos2[0]-pos1[0])*self.busy_anim_value[0]), pos1[1]+margin_y ) )
             self.bar_plane_list[0].setSize( ( int((pos2[0]-pos1[0])*(self.busy_anim_value[1]-self.busy_anim_value[0])), pos2[1]-pos1[1]-margin_y ) )
         elif isinstance(self.value,list):
             for i in range(len(self.value)):
                 offset_y = ( pos2[1]-pos1[1]-margin_y ) * i // len(self.value)
-                self.bar_plane_list[i].setPos( ( pos1[0], pos1[1]+margin_y+offset_y ) )
+                self.bar_plane_list[i].setPosition( ( pos1[0], pos1[1]+margin_y+offset_y ) )
                 self.bar_plane_list[i].setSize( ( int((pos2[0]-pos1[0])*self.value[i]), (pos2[1]-pos1[1]-margin_y)//len(self.value) ) )
                 
         else:
-            self.bar_plane_list[0].setPos( ( pos1[0], pos1[1]+margin_y ) )
+            self.bar_plane_list[0].setPosition( ( pos1[0], pos1[1]+margin_y ) )
             self.bar_plane_list[0].setSize( ( int((pos2[0]-pos1[0])*self.value), pos2[1]-pos1[1]-margin_y ) )
 
         attr = ckitcore.Attribute( fg=ckit_theme.getColor("fg"))
@@ -1998,7 +1999,7 @@ class ProgressBarWidget(Widget):
             self.bar_plane_list = []    
 
             for i in range(num):
-                bar_plane = ckitcore.Plane( self.window, (0,0), (0,0), 0 )
+                bar_plane = ckitcore.ImagePlane( self.window, (0,0), (0,0), 0 )
                 self.bar_plane_list.append(bar_plane)
                 bar_plane.setImage(self.img1)
 

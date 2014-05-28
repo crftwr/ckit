@@ -45,8 +45,8 @@ def setTheme( name, default_color ):
     if not ini.has_option("COLOR","bg") : ini.set( "COLOR", "bg", "(0,0,0)" )
     if not ini.has_option("COLOR","fg") : ini.set( "COLOR", "fg", "(255,255,255)" )
 
-    if not ini.has_option("COLOR","cursor0") : ini.set( "COLOR", "cursor0", "(255,255,255)" )
-    if not ini.has_option("COLOR","cursor1") : ini.set( "COLOR", "cursor1", "(255,0,0)" )
+    if not ini.has_option("COLOR","caret0") : ini.set( "COLOR", "caret0", "(255,255,255)" )
+    if not ini.has_option("COLOR","caret1") : ini.set( "COLOR", "caret1", "(255,0,0)" )
 
     if not ini.has_option("COLOR","bar_fg") : ini.set( "COLOR", "bar_fg", "(255,255,255)" )
     if not ini.has_option("COLOR","bar_error_fg") : ini.set( "COLOR", "bar_error_fg", "(255,130,130)" )
@@ -138,14 +138,14 @@ class ThemePlane:
 
     def __init__( self, main_window, imgfile, priority=2 ):
         img = createThemeImage(imgfile)
-        self.plane = ckitcore.Plane( main_window, (0,0), (1,1), priority )
+        self.plane = ckitcore.ImagePlane( main_window, (0,0), (1,1), priority )
         self.plane.setImage(img)
 
     def destroy(self):
         self.plane.destroy()
 
     def setPosSize( self, x, y, width, height ):
-        self.plane.setPos( (x,y) )
+        self.plane.setPosition( (x,y) )
         self.plane.setSize( (width,height) )
 
     def setPosSizeByChar( self, main_window, x, y, width, height ):
@@ -180,7 +180,7 @@ class ThemePlane3x3:
         self.plane = [ [None,None,None], [None,None,None], [None,None,None] ]
         for y in (0,1,2):
             for x in (0,1,2):
-                self.plane[y][x] = ckitcore.Plane( main_window, (0,0), (1,1), priority )
+                self.plane[y][x] = ckitcore.ImagePlane( main_window, (0,0), (1,1), priority )
                 self.plane[y][x].setImage(self.img[y][x])
 
     def destroy(self):
@@ -209,33 +209,33 @@ class ThemePlane3x3:
         plane_center_height = height-plane_frame_height*2
 
 
-        self.plane[0][0].setPos( (x,y) )
+        self.plane[0][0].setPosition( (x,y) )
         self.plane[0][0].setSize( (plane_frame_width,plane_frame_height) )
 
-        self.plane[0][1].setPos( (x+plane_frame_width,y) )
+        self.plane[0][1].setPosition( (x+plane_frame_width,y) )
         self.plane[0][1].setSize( (plane_center_width,plane_frame_height) )
 
-        self.plane[0][2].setPos( (x+plane_frame_width+plane_center_width,y) )
+        self.plane[0][2].setPosition( (x+plane_frame_width+plane_center_width,y) )
         self.plane[0][2].setSize( (plane_frame_width,plane_frame_height) )
 
 
-        self.plane[1][0].setPos( (x,y+plane_frame_height) )
+        self.plane[1][0].setPosition( (x,y+plane_frame_height) )
         self.plane[1][0].setSize( (plane_frame_width,plane_center_height) )
 
-        self.plane[1][1].setPos( (x+plane_frame_width,y+plane_frame_height) )
+        self.plane[1][1].setPosition( (x+plane_frame_width,y+plane_frame_height) )
         self.plane[1][1].setSize( (plane_center_width,plane_center_height) )
 
-        self.plane[1][2].setPos( (x+plane_frame_width+plane_center_width,y+plane_frame_height) )
+        self.plane[1][2].setPosition( (x+plane_frame_width+plane_center_width,y+plane_frame_height) )
         self.plane[1][2].setSize( (plane_frame_width,plane_center_height) )
 
 
-        self.plane[2][0].setPos( (x,y+plane_frame_height+plane_center_height) )
+        self.plane[2][0].setPosition( (x,y+plane_frame_height+plane_center_height) )
         self.plane[2][0].setSize( (plane_frame_width,plane_frame_height) )
 
-        self.plane[2][1].setPos( (x+plane_frame_width,y+plane_frame_height+plane_center_height) )
+        self.plane[2][1].setPosition( (x+plane_frame_width,y+plane_frame_height+plane_center_height) )
         self.plane[2][1].setSize( (plane_center_width,plane_frame_height) )
 
-        self.plane[2][2].setPos( (x+plane_frame_width+plane_center_width,y+plane_frame_height+plane_center_height) )
+        self.plane[2][2].setPosition( (x+plane_frame_width+plane_center_width,y+plane_frame_height+plane_center_height) )
         self.plane[2][2].setSize( (plane_frame_width,plane_frame_height) )
 
     def setPosSizeByChar( self, main_window, x, y, width, height ):
