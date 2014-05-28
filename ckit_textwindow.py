@@ -98,8 +98,13 @@ class TextWindow( ckitcore.Window ):
         size[1] = height
 
     def __onSize( self, width, height ):
+
         self.__adjustTextPlane()
+
         if self.__size_handler:
+            char_size = self.__text.getCharSize()
+            width = (width-self.__border_size*2) // char_size[0]
+            height = (height-self.__border_size*2) // char_size[1]
             self.__size_handler( width, height )
 
     def __adjustTextPlane(self):
