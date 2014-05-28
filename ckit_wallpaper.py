@@ -10,7 +10,6 @@ class Wallpaper:
     def __init__( self, window ):
         self.window = window
         self.plane = ckitcore.ImagePlane( window, (0,0), (1,1), 4 )
-        self.filename = ""
         self.pil_image = None
         self.crop_rect = (0,0,1,1)
 
@@ -19,9 +18,7 @@ class Wallpaper:
 
     def load( self, filename, strength ):
     
-        self.filename = filename
-
-        self.pil_image = Image.open(self.filename)
+        self.pil_image = Image.open(filename)
         self.pil_image = self.pil_image.convert( "RGBA" )
         
         bg = ckit_theme.getColor("bg")
@@ -29,38 +26,36 @@ class Wallpaper:
 
         self.pil_image = Image.blend( self.pil_image, bgcolor_pil_image, (100-strength)/100.0 )
 
-    def copy( self, other_window ):
+    def copy( self, src_window ):
     
-        self.filename = other_window.wallpaper.filename
-        
-        other_client_rect = other_window.getClientRect()
-        other_left, other_top = other_window.clientToScreen( other_client_rect[0], other_client_rect[1] )
-        other_right, other_bottom = other_window.clientToScreen( other_client_rect[2], other_client_rect[3] )
+        src_client_rect = src_window.getClientRect()
+        src_left, src_top = src_window.clientToScreen( src_client_rect[0], src_client_rect[1] )
+        src_right, src_bottom = src_window.clientToScreen( src_client_rect[2], src_client_rect[3] )
 
         client_rect = self.window.getClientRect()
         left, top = self.window.clientToScreen( client_rect[0], client_rect[1] )
         right, bottom = self.window.clientToScreen( client_rect[2], client_rect[3] )
         
         crop_ratio = [ 
-            float( left - other_left ) / ( other_right - other_left ),
-            float( top - other_top ) / ( other_bottom - other_top ),
-            float( right - other_left ) / ( other_right - other_left ),
-            float( bottom - other_top ) / ( other_bottom - other_top )
+            float( left - src_left ) / ( src_right - src_left ),
+            float( top - src_top ) / ( src_bottom - src_top ),
+            float( right - src_left ) / ( src_right - src_left ),
+            float( bottom - src_top ) / ( src_bottom - src_top )
         ]
         
         crop_rect = [
-            int( other_window.wallpaper.crop_rect[0] + (other_window.wallpaper.crop_rect[2]-other_window.wallpaper.crop_rect[0]) * crop_ratio[0] ),
-            int( other_window.wallpaper.crop_rect[1] + (other_window.wallpaper.crop_rect[3]-other_window.wallpaper.crop_rect[1]) * crop_ratio[1] ),
-            int( other_window.wallpaper.crop_rect[0] + (other_window.wallpaper.crop_rect[2]-other_window.wallpaper.crop_rect[0]) * crop_ratio[2] ),
-            int( other_window.wallpaper.crop_rect[1] + (other_window.wallpaper.crop_rect[3]-other_window.wallpaper.crop_rect[1]) * crop_ratio[3] )
+            int( src_window.wallpaper.crop_rect[0] + (src_window.wallpaper.crop_rect[2]-src_window.wallpaper.crop_rect[0]) * crop_ratio[0] ),
+            int( src_window.wallpaper.crop_rect[1] + (src_window.wallpaper.crop_rect[3]-src_window.wallpaper.crop_rect[1]) * crop_ratio[1] ),
+            int( src_window.wallpaper.crop_rect[0] + (src_window.wallpaper.crop_rect[2]-src_window.wallpaper.crop_rect[0]) * crop_ratio[2] ),
+            int( src_window.wallpaper.crop_rect[1] + (src_window.wallpaper.crop_rect[3]-src_window.wallpaper.crop_rect[1]) * crop_ratio[3] )
         ]
         
         crop_rect[0] = max( crop_rect[0], 0 )
         crop_rect[1] = max( crop_rect[1], 0 )
-        crop_rect[2] = min( crop_rect[2], other_window.wallpaper.pil_image.size[0] )
-        crop_rect[3] = min( crop_rect[3], other_window.wallpaper.pil_image.size[1] )
+        crop_rect[2] = min( crop_rect[2], src_window.wallpaper.pil_image.size[0] )
+        crop_rect[3] = min( crop_rect[3], src_window.wallpaper.pil_image.size[1] )
         
-        self.pil_image = other_window.wallpaper.pil_image.crop(crop_rect)
+        self.pil_image = src_window.wallpaper.pil_image.crop(crop_rect)
 
     def adjust(self):
 

@@ -10,9 +10,11 @@ ckit_resource.py
 ckit_stdlib.py
 ckit_subprocess.py
 ckit_textwidget.py
+ckit_textwindow.py
 ckit_theme.py
 ckit_threadutil.py
 ckit_userconfig.py
+ckit_wallpaper.py
 ckit_widget.py
 
 ckitcore/ckitcore.cpp
@@ -21,5 +23,3 @@ ckitcore/pythonutil.cpp
 ckitcore/pythonutil.h
 ckitcore/strutil.cpp
 ckitcore/strutil.h
-ckitcore/threadutil.cpp
-ckitcore/threadutil.h

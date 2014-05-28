@@ -2,6 +2,7 @@
 from ckit import ckit_textwindow
 from ckit import ckit_widget
 from ckit import ckit_theme
+from ckit import ckit_wallpaper
 from ckit.ckit_const import *
 
 #--------------------------------------------------------------------
@@ -12,6 +13,8 @@ class Dialog( ckit_textwindow.TextWindow ):
     RESULT_OK     = 1
 
     def __init__( self, parent_window, text, items ):
+
+        self.parent_window = parent_window
 
         parent_window_rect = parent_window.getWindowRect()
         window_x, window_y = (parent_window_rect[0] + parent_window_rect[2])//2, (parent_window_rect[1] + parent_window_rect[3])//2
@@ -66,6 +69,13 @@ class Dialog( ckit_textwindow.TextWindow ):
 
         self.result = Dialog.RESULT_CANCEL
 
+        try:
+            self.wallpaper = ckit_wallpaper.Wallpaper(self)
+            self.wallpaper.copy( self.parent_window )
+            self.wallpaper.adjust()
+        except:
+            self.wallpaper = None
+
         self.paint()
 
     def onClose(self):
@@ -95,6 +105,12 @@ class Dialog( ckit_textwindow.TextWindow ):
             height=self.window_height,
             origin= ORIGIN_X_LEFT | ORIGIN_Y_TOP
             )
+
+        try:
+            self.wallpaper.copy( self.parent_window )
+            self.wallpaper.adjust()
+        except:
+            self.wallpaper = None
 
     def onKeyDown( self, vk, mod ):
 
