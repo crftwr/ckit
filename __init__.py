@@ -12,6 +12,7 @@ from ckit.ckit_migemo import *
 from ckit.ckit_textwindow import *
 from ckit.ckit_widget import *
 from ckit.ckit_textwidget import *
+from ckit.ckit_wallpaper import *
 from ckit.ckit_dialog import *
 from ckit.ckit_key import *
 from ckit.ckit_command import *
