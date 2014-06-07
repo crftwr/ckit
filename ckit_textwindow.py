@@ -79,6 +79,10 @@ class TextWindow( ckitcore.Window ):
         
         self.__adjustTextPlane()
 
+    def destroy(self):
+        self.__text.destroy()
+        ckitcore.Window.destroy(self)
+
     def __onSizing( self, size ):
 
         char_size = self.__text.getCharSize()

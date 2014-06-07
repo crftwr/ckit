@@ -153,3 +153,5 @@ test1.messageLoop()
 
 print( "after messageLoop" )
 
+test1.destroy()
+

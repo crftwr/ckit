@@ -398,6 +398,7 @@ namespace ckit
         void drag( int x, int y );
         void _refreshMenu();
 		void _buildMenu( HMENU menu_handle, PyObject * pymenu_node, int depth, bool parent_enabled );
+	    void _clearCallables();
 	    void _clearMenuCommands();
 	    void _clearPopupMenuCommands();
 

@@ -1319,55 +1319,17 @@ Window::~Window()
 
 	clear();
 
-	((Window_Object*)pyobj)->p = NULL;
-    Py_XDECREF(pyobj); pyobj=NULL;
-    Py_XDECREF(activate_handler); activate_handler=NULL;
-    Py_XDECREF(close_handler); close_handler=NULL;
-    Py_XDECREF(endsession_handler); endsession_handler=NULL;
-    Py_XDECREF(move_handler); move_handler=NULL;
-    Py_XDECREF(sizing_handler); sizing_handler=NULL;
-    Py_XDECREF(size_handler); size_handler=NULL;
-    Py_XDECREF(dropfiles_handler); dropfiles_handler=NULL;
-    Py_XDECREF(ipc_handler); ipc_handler=NULL;
-    Py_XDECREF(keydown_handler); keydown_handler=NULL;
-    Py_XDECREF(keyup_handler); keyup_handler=NULL;
-    Py_XDECREF(char_handler); char_handler=NULL;
-    Py_XDECREF(lbuttondown_handler); lbuttondown_handler=NULL;
-    Py_XDECREF(lbuttonup_handler); lbuttonup_handler=NULL;
-    Py_XDECREF(mbuttondown_handler); mbuttondown_handler=NULL;
-    Py_XDECREF(mbuttonup_handler); mbuttonup_handler=NULL;
-    Py_XDECREF(rbuttondown_handler); rbuttondown_handler=NULL;
-    Py_XDECREF(rbuttonup_handler); rbuttonup_handler=NULL;
-    Py_XDECREF(lbuttondoubleclick_handler); lbuttondoubleclick_handler=NULL;
-    Py_XDECREF(mbuttondoubleclick_handler); mbuttondoubleclick_handler=NULL;
-    Py_XDECREF(rbuttondoubleclick_handler); rbuttondoubleclick_handler=NULL;
-    Py_XDECREF(mousemove_handler); mousemove_handler=NULL;
-    Py_XDECREF(mousewheel_handler); mousewheel_handler=NULL;
-
-	for( std::list<TimerInfo>::const_iterator i=timer_list.begin(); i!=timer_list.end() ; i++ )
-	{
-		Py_XDECREF( i->pyobj );
-	}
-	timer_list.clear();
-
-	for( std::list<DelayedCallInfo>::const_iterator i=delayed_call_list.begin(); i!=delayed_call_list.end() ; i++ )
-	{
-		Py_XDECREF( i->pyobj );
-	}
-	delayed_call_list.clear();
-
-	for( std::list<HotKeyInfo>::const_iterator i=hotkey_list.begin(); i!=hotkey_list.end() ; i++ )
-	{
-		Py_XDECREF( i->pyobj );
-	}
-	hotkey_list.clear();
-
+    _clearCallables();
+    
     if(bg_brush) { DeleteObject(bg_brush); bg_brush = NULL; }
     if(frame_pen) { DeleteObject(frame_pen); frame_pen = NULL; }
     if(caret0_brush) { DeleteObject(caret0_brush); caret0_brush = NULL; }
     if(caret1_brush) { DeleteObject(caret1_brush); caret1_brush = NULL; }
 	if(offscreen_bmp) { DeleteObject(offscreen_bmp); offscreen_bmp = NULL; };
 	if(offscreen_dc) { DeleteObject(offscreen_dc); offscreen_dc = NULL; };
+
+	((Window_Object*)pyobj)->p = NULL;
+    Py_XDECREF(pyobj); pyobj=NULL;
 }
 
 void Window::SetPyObject( PyObject * _pyobj )
@@ -1781,6 +1743,53 @@ int Window::_getModKey()
 	if(GetKeyState(VK_LWIN)&0xf0)       mod |= 8;
 	if(GetKeyState(VK_RWIN)&0xf0)       mod |= 8;
 	return mod;
+}
+
+void Window::_clearCallables()
+{
+    Py_XDECREF(activate_handler); activate_handler=NULL;
+    Py_XDECREF(close_handler); close_handler=NULL;
+    Py_XDECREF(endsession_handler); endsession_handler=NULL;
+    Py_XDECREF(move_handler); move_handler=NULL;
+    Py_XDECREF(sizing_handler); sizing_handler=NULL;
+    Py_XDECREF(size_handler); size_handler=NULL;
+    Py_XDECREF(dropfiles_handler); dropfiles_handler=NULL;
+    Py_XDECREF(ipc_handler); ipc_handler=NULL;
+    Py_XDECREF(keydown_handler); keydown_handler=NULL;
+    Py_XDECREF(keyup_handler); keyup_handler=NULL;
+    Py_XDECREF(char_handler); char_handler=NULL;
+    Py_XDECREF(lbuttondown_handler); lbuttondown_handler=NULL;
+    Py_XDECREF(lbuttonup_handler); lbuttonup_handler=NULL;
+    Py_XDECREF(mbuttondown_handler); mbuttondown_handler=NULL;
+    Py_XDECREF(mbuttonup_handler); mbuttonup_handler=NULL;
+    Py_XDECREF(rbuttondown_handler); rbuttondown_handler=NULL;
+    Py_XDECREF(rbuttonup_handler); rbuttonup_handler=NULL;
+    Py_XDECREF(lbuttondoubleclick_handler); lbuttondoubleclick_handler=NULL;
+    Py_XDECREF(mbuttondoubleclick_handler); mbuttondoubleclick_handler=NULL;
+    Py_XDECREF(rbuttondoubleclick_handler); rbuttondoubleclick_handler=NULL;
+    Py_XDECREF(mousemove_handler); mousemove_handler=NULL;
+    Py_XDECREF(mousewheel_handler); mousewheel_handler=NULL;
+
+	for( std::list<TimerInfo>::const_iterator i=timer_list.begin(); i!=timer_list.end() ; i++ )
+	{
+		Py_XDECREF( i->pyobj );
+	}
+	timer_list.clear();
+
+	for( std::list<DelayedCallInfo>::const_iterator i=delayed_call_list.begin(); i!=delayed_call_list.end() ; i++ )
+	{
+		Py_XDECREF( i->pyobj );
+	}
+	delayed_call_list.clear();
+
+	for( std::list<HotKeyInfo>::const_iterator i=hotkey_list.begin(); i!=hotkey_list.end() ; i++ )
+	{
+		Py_XDECREF( i->pyobj );
+	}
+	hotkey_list.clear();
+
+	_clearMenuCommands();
+	_clearPopupMenuCommands();
 }
 
 void Window::_clearMenuCommands()
@@ -3185,10 +3194,10 @@ void Window::destroy()
 {
 	FUNC_TRACE;
 
-	_clearMenuCommands();
-	_clearPopupMenuCommands();
+	// ウインドウ破棄中に activate_handler などを呼ばないように
+	_clearCallables();
 
-    DestroyWindow(hwnd);
+	DestroyWindow(hwnd);
 }
 
 void Window::activate()
