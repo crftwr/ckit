@@ -1,0 +1,11 @@
+*.pyc
+ckitcore/Debug/
+ckitcore/Release/
+ckitcore/ipch/
+ckitcore.exp
+ckitcore.lib
+ckitcore.pdb
+ckitcore/ckitcore.sdf
+ckitcore/ckitcore.suo
+ckitcore/ckitcore.vcxproj.user
+ckitcore.pyd
