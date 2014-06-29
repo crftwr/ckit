@@ -1,15 +1,20 @@
 #ifndef __CKITCORE_H__
 #define __CKITCORE_H__
 
-#include <windows.h>
 #include <wchar.h>
 #include <vector>
 #include <list>
 #include <string>
 
-#ifdef _MSC_VER
-#define strcasecmp _stricmp
+#if defined(_DEBUG)
+#undef _DEBUG
+#include "python.h"
+#define _DEBUG
+#else
+#include "python.h"
 #endif
+
+#include "basictypes.h"
 
 namespace ckit
 {
@@ -50,9 +55,9 @@ namespace ckit
 
 		unsigned char bg;
 		unsigned char line[2];
-        COLORREF fg_color;
-        COLORREF bg_color[4];
-        COLORREF line_color[2];
+        Color fg_color;
+        Color bg_color[4];
+        Color line_color[2];
 
 		// 全ての要素を比較
         bool Equal( const Attribute & rhs ) const
@@ -122,33 +127,30 @@ namespace ckit
     {
     };
 
-    struct Image
+    struct ImageBase
     {
-    	Image( int width, int height, const char * pixels, const COLORREF * transparent_color=0, bool halftone=false );
-    	~Image();
+    	ImageBase( int width, int height, const char * pixels, const Color * transparent_color=0, bool halftone=false );
+    	virtual ~ImageBase();
 
     	void AddRef() { ref_count++; /* printf("Image::AddRef : %d\n", ref_count ); */ }
     	void Release() { ref_count--; /* printf("Image::Release : %d\n", ref_count ); */ if(ref_count==0) delete this; }
 
-    	HBITMAP handle;
     	int width, height;
     	bool transparent;
     	bool halftone;
-    	COLORREF transparent_color;
+    	Color transparent_color;
 
 		int ref_count;
     };
 
-    struct Font
+    struct FontBase
     {
-    	Font( const wchar_t * name, int height );
-    	~Font();
+    	FontBase();
+    	virtual ~FontBase();
 
     	void AddRef() { ref_count++; /* printf("Font::AddRef : %d\n", ref_count ); */ }
     	void Release() { ref_count--; /* printf("Font::Release : %d\n", ref_count ); */ if(ref_count==0) delete this; }
 
-        LOGFONT logfont;
-        HFONT handle;
         int char_width;
         int char_height;
 	    std::vector<bool> zenkaku_table;
@@ -156,65 +158,58 @@ namespace ckit
     	int ref_count;
     };
 
-    struct Plane
+    struct PlaneBase
     {
-    	Plane( struct Window * window, int x, int y, int width, int height, float priority );
-    	virtual ~Plane();
+    	PlaneBase( struct WindowBase * window, int x, int y, int width, int height, float priority );
+    	virtual ~PlaneBase();
 
 		void Show( bool show );
     	void SetPosition( int x, int y );
     	void SetSize( int width, int height );
     	void SetPriority( float priority );
 
-		virtual void Draw( const RECT & paint_rect ) = 0;
+		virtual void Draw( const Rect & paint_rect ) = 0;
 
-		struct Window * window;
+		struct WindowBase * window;
 		bool show;
     	int x, y, width, height;
     	float priority;
     };
 
-    struct ImagePlane : public Plane
+    struct ImagePlaneBase : public PlaneBase
     {
-    	ImagePlane( struct Window * window, int x, int y, int width, int height, float priority );
-    	virtual ~ImagePlane();
+    	ImagePlaneBase( struct WindowBase * window, int x, int y, int width, int height, float priority );
+    	virtual ~ImagePlaneBase();
 
         void SetPyObject( PyObject * pyobj );
 
-    	void SetImage( Image * image );
-
-		virtual void Draw( const RECT & paint_rect );
+    	void SetImage( ImageBase * image );
 
 		PyObject * pyobj;
-    	Image * image;
+    	ImageBase * image;
     };
 
-    struct TextPlane : public Plane
+    struct TextPlaneBase : public PlaneBase
     {
-    	TextPlane( struct Window * window, int x, int y, int width, int height, float priority );
-    	virtual ~TextPlane();
+    	TextPlaneBase( struct WindowBase * window, int x, int y, int width, int height, float priority );
+    	virtual ~TextPlaneBase();
 
         void SetPyObject( PyObject * pyobj );
 
-    	void SetFont( Font * font );
+    	void SetFont( FontBase * font );
 
 		void PutString( int x, int y, int width, int height, const Attribute & attr, const wchar_t * str, int offset );
         int GetStringWidth( const wchar_t * str, int tab_width=4, int offset=0, int columns[]=NULL );
-		void Scroll( int x, int y, int width, int height, int delta_x, int delta_y );
-
-		void DrawOffscreen();
-		void DrawHorizontalLine( int x1, int y1, int x2, COLORREF color, bool dotted );
-		void DrawVerticalLine( int x1, int y1, int y2, COLORREF color, bool dotted );
-        virtual void Draw( const RECT & paint_rect );
+		
+		virtual void Scroll( int x, int y, int width, int height, int delta_x, int delta_y ) = 0;
+		virtual void DrawOffscreen() = 0;
+		virtual void DrawHorizontalLine( int x1, int y1, int x2, Color color, bool dotted ) = 0;
+		virtual void DrawVerticalLine( int x1, int y1, int y2, Color color, bool dotted ) = 0;
         void SetCaretPosition( int x, int y );
 
 		PyObject * pyobj;
-    	Font * font;
+    	FontBase * font;
         std::vector<Line*> char_buffer;
-		HDC	offscreen_dc;
-		HBITMAP	offscreen_bmp;
-		unsigned char * offscreen_buf;
-		SIZE offscreen_size;
         bool dirty;
 	};
 
@@ -261,7 +256,7 @@ namespace ckit
 	    };
 
     	MenuNode( Param & param );
-    	~MenuNode();
+    	virtual ~MenuNode();
 
     	void AddRef() { ref_count++; /* printf("MenuNode::AddRef : %d\n", ref_count ); */ }
     	void Release() { ref_count--; /* printf("MenuNode::Release : %d\n", ref_count ); */ if(ref_count==0) delete this; }
@@ -278,7 +273,7 @@ namespace ckit
         bool separator;
     };
 
-    struct Window
+    struct WindowBase
     {
 	    struct Param
 	    {
@@ -290,12 +285,12 @@ namespace ckit
 	        int winsize_w;
 	        int winsize_h;
 	        int origin;
-	        struct Window * parent_window;
-	        HWND parent_window_hwnd;
-	        COLORREF bg_color;
-	        COLORREF frame_color;
-	        COLORREF caret0_color;
-	        COLORREF caret1_color;
+	        struct WindowBase * parent_window;
+	        WindowHandle parent_window_hwnd;
+	        Color bg_color;
+	        Color frame_color;
+	        Color caret0_color;
+	        Color caret1_color;
 	        bool title_bar;
 	        std::wstring title;
 	        bool show;
@@ -308,7 +303,7 @@ namespace ckit
 	        bool is_transparency_given;
 	        int transparency;
 	        bool is_transparent_color_given;
-	        COLORREF transparent_color;
+	        Color transparent_color;
 	        bool is_top_most;
 	        bool sysmenu;
 	        bool tool;
@@ -339,96 +334,80 @@ namespace ckit
 		    PyObject * nchittest_handler;
 	    };
 
-        Window( Param & param );
-        ~Window();
+        WindowBase( Param & param );
+        virtual ~WindowBase();
 
         void SetPyObject( PyObject * pyobj );
 
-        HWND getHWND() const { return hwnd; }
-		void show( bool show, bool activate );
-        void enable( bool enable );
-        void destroy();
-        void activate();
-        void inactivate();
-        void foreground();
-        void restore();
-        void maximize();
-        void minimize();
-        void topmost( bool topmost );
-        bool isEnabled();
-        bool isVisible();
-        bool isMaximized();
-        bool isMinimized();
-        bool isActive();
-        bool isForeground();
-        void getWindowRect( RECT * rect );
-        void getNormalWindowRect( RECT * rect );
-        void getNormalClientSize( SIZE * size );
-        void clear();
-        void setCaretRect( const RECT & rect );
-        void setImeRect( const RECT & rect );
-        void enableIme( bool enable );
-		void setImeFont( const LOGFONT & logfont );
-        void setPositionAndSize( int x, int y, int width, int height, int origin );
-  		void appendDirtyRect( const RECT & rect );
+  		void appendDirtyRect( const Rect & rect );
 		void clearDirtyRect();
-  		void enumFonts( std::vector<std::wstring> * font_list );
-  		void setBGColor( COLORREF color );
-  		void setFrameColor( COLORREF color );
-  		void setCaretColor( COLORREF color0, COLORREF color1 );
-  		void setMenu( PyObject * menu );
 
-		void _drawBackground( const RECT & paint_rect );
-		void _drawPlanes( const RECT & paint_rect );
-		void _drawCaret( const RECT & paint_rect );
-        void _onNcPaint( HDC hDC );
-        void _onSizing(DWORD side, LPRECT rc);
-        void _onWindowPositionChange( WINDOWPOS * wndpos, bool send_event );
-        void _updateWindowFrameRect();
-        void _setImePosition();
-        void flushPaint( HDC hDC=0, bool bitblt=true );
-        void _onTimerCaretBlink();
-        static LRESULT CALLBACK _wndProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp);
-        static int _getModKey();
-	    static bool _registerWindowClass();
-        bool _createWindow( Param & param );
-        void setCapture();
-        void releaseCapture();
-		void setMouseCursor( int id );
-        void drag( int x, int y );
-        void _refreshMenu();
-		void _buildMenu( HMENU menu_handle, PyObject * pymenu_node, int depth, bool parent_enabled );
-	    void _clearCallables();
-	    void _clearMenuCommands();
-	    void _clearPopupMenuCommands();
+        virtual WindowHandle getHandle() const = 0;
+        virtual void flushPaint() = 0;
+  		virtual void enumFonts( std::vector<std::wstring> * font_list ) = 0;
+  		virtual void setBGColor( Color color ) = 0;
+  		virtual void setFrameColor( Color color ) = 0;
+  		virtual void setCaretColor( Color color0, Color color1 ) = 0;
+  		virtual void setMenu( PyObject * menu ) = 0;
+        virtual void setPositionAndSize( int x, int y, int width, int height, int origin ) = 0;
+        virtual void setCapture() = 0;
+        virtual void releaseCapture() = 0;
+		virtual void setMouseCursor( int id ) = 0;
+		virtual void drag( int x, int y ) = 0;
+		virtual void show( bool show, bool activate ) = 0;
+        virtual void enable( bool enable ) = 0;
+        virtual void activate() = 0;
+        virtual void inactivate() = 0;
+        virtual void foreground() = 0;
+        virtual void restore() = 0;
+        virtual void maximize() = 0;
+        virtual void minimize() = 0;
+        virtual void topmost( bool topmost ) = 0;
+        virtual bool isEnabled() = 0;
+        virtual bool isVisible() = 0;
+        virtual bool isMaximized() = 0;
+        virtual bool isMinimized() = 0;
+        virtual bool isActive() = 0;
+        virtual bool isForeground() = 0;
+        virtual void getWindowRect( Rect * rect ) = 0;
+        virtual void getClientSize( Size * rect ) = 0;
+        virtual void getNormalWindowRect( Rect * rect ) = 0;
+        virtual void getNormalClientSize( Size * size ) = 0;
+		virtual void clientToScreen(Point * point) = 0;
+		virtual void screenToClient(Point * point) = 0;
+		virtual void setTimer( PyObject * func, int interval ) = 0;
+		virtual void killTimer( PyObject * func ) = 0;
+		virtual void setHotKey( int vk, int mod, PyObject * func ) = 0;
+		virtual void killHotKey( PyObject * func ) = 0;
+		virtual void setText( const wchar_t * text ) = 0;
+		virtual bool popupMenu( int x, int y, PyObject * items ) = 0;
+		virtual void enableIme( bool enable ) = 0;
+		virtual void setImeFont( FontBase * font ) = 0;
 
-		HWND hwnd;
+        void clear();
+        void clearPlanes();
+
+		void setCaretRect( const Rect & rect );
+        void setImeRect( const Rect & rect );
+
+	    void clearCallables();
+	    void clearMenuCommands();
+	    void clearPopupMenuCommands();
+
+	public:
 		PyObject * pyobj;
 
 	    bool quit_requested;
 	    bool active;
 
-		HIMC ime_context;
-		LOGFONT ime_logfont;
-	    DWORD style;
-	    DWORD exstyle;
-        SIZE window_frame_size;
-        RECT last_valid_window_rect; // 最小化されていない状態のウインドウ矩形
-		HDC	offscreen_dc;
-		HBITMAP	offscreen_bmp;
-		SIZE offscreen_size;
-		HBRUSH bg_brush;
-        HPEN frame_pen;
-        HBRUSH caret0_brush;
-        HBRUSH caret1_brush;
         bool caret;
         int caret_blink;
         bool ime_on;
-        std::list<Plane*> plane_list;
-        RECT caret_rect;
-        RECT ime_rect;
+        std::list<PlaneBase*> plane_list;
+        Rect caret_rect;
+        Rect ime_rect;
         bool dirty;
-        RECT dirty_rect;
+        Rect dirty_rect;
 		int perf_fillrect_count;
 		int perf_drawtext_count;
 		int perf_drawplane_count;
@@ -487,7 +466,7 @@ namespace ckit
 	    };
 
         TaskTrayIcon( Param & param );
-        ~TaskTrayIcon();
+        virtual ~TaskTrayIcon();
 
         void SetPyObject( PyObject * pyobj );
         void destroy();
@@ -509,6 +488,14 @@ namespace ckit
 	    
 	    std::vector<PyObject*> popup_menu_commands;	// popupメニュー用のコマンド
 	};
+
+	struct Globals
+	{
+		PyObject * Error;
+		PyObject * command_info_constructor;
+	};
+
+	extern Globals g;
 };
 
 //-------------------------------------------------------------------
@@ -529,7 +516,7 @@ extern PyTypeObject Image_Type;
 struct Image_Object
 {
     PyObject_HEAD
-    ckit::Image * p;
+    ckit::ImageBase * p;
 };
 
 
@@ -539,7 +526,7 @@ extern PyTypeObject Font_Type;
 struct Font_Object
 {
     PyObject_HEAD
-    ckit::Font * p;
+    ckit::FontBase * p;
 };
 
 
@@ -549,7 +536,7 @@ extern PyTypeObject ImagePlane_Type;
 struct ImagePlane_Object
 {
     PyObject_HEAD
-    ckit::ImagePlane * p;
+    ckit::ImagePlaneBase * p;
 };
 
 
@@ -559,7 +546,7 @@ extern PyTypeObject TextPlane_Type;
 struct TextPlane_Object
 {
     PyObject_HEAD
-    ckit::TextPlane * p;
+    ckit::TextPlaneBase * p;
 };
 
 
@@ -579,7 +566,7 @@ extern PyTypeObject Window_Type;
 struct Window_Object
 {
     PyObject_HEAD
-    ckit::Window * p;
+    ckit::WindowBase * p;
 };
 
 

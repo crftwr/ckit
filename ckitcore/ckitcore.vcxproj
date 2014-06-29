@@ -101,13 +101,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ckitcore.cpp" />
+    <ClCompile Include="ckitcore_win.cpp" />
     <ClCompile Include="pythonutil.cpp" />
-    <ClCompile Include="strutil.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="basictypes.h" />
     <ClInclude Include="ckitcore.h" />
+    <ClInclude Include="ckitcore_win.h" />
     <ClInclude Include="pythonutil.h" />
-    <ClInclude Include="strutil.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

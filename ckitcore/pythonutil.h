@@ -13,7 +13,6 @@
 
 namespace PythonUtil
 {
-    bool PyStringToString( const PyObject * pystr, std::string * str );
 	bool PyStringToWideString( const PyObject * pystr, std::wstring * str );
 	
 	//#define GIL_Ensure_TRACE printf("%s(%d) : %s\n",__FILE__,__LINE__,__FUNCTION__)
