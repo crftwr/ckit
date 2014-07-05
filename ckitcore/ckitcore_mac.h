@@ -12,6 +12,7 @@
 #include <CoreText/CTFont.h>
 
 #include "ckitcore.h"
+#include "ckitcore_cocoa_export.h"
 
 namespace ckit
 {
@@ -58,6 +59,9 @@ namespace ckit
 
     struct WindowMac : public WindowBase
     {
+        static void initializeSystem( const wchar_t * prefix );
+        static void terminateSystem();
+        
         WindowMac( Param & param );
         virtual ~WindowMac();
 
@@ -102,12 +106,14 @@ namespace ckit
 		virtual bool popupMenu( int x, int y, PyObject * items );
         virtual void enableIme( bool enable );
 		virtual void setImeFont( FontBase * font );
+		virtual void messageLoop();
         
         CGContextRef getCGContext();
         void _drawBackground( const Rect & paint_rect );
         void _drawPlanes( const Rect & paint_rect );
         void _drawCaret( const Rect & paint_rect );
         
+        CocoaObject * handle;
         Size window_frame_size;
 
 	};

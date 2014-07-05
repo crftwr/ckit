@@ -3584,6 +3584,9 @@ static PyObject * Window_messageLoop(PyObject* self, PyObject* args, PyObject * 
 		return NULL;
 	}
 
+    WindowBase * window = ((Window_Object*)self)->p;
+
+    // FIXME : move to platform source
     #if defined(PLATFORM_WIN32)
     MSG msg;
     for(;;)
@@ -3639,6 +3642,8 @@ static PyObject * Window_messageLoop(PyObject* self, PyObject* args, PyObject * 
 
         Py_END_ALLOW_THREADS
     }
+    #elif defined(PLATFORM_MAC)
+    window->messageLoop();
     #endif //PLATFORM_WIN32
 
     end:
@@ -5087,6 +5092,7 @@ PyTypeObject Line_Type = {
 //
 // ----------------------------------------------------------------------------
 
+// FIXME : rename to initializeWindowSystem or something
 static PyObject * Module_registerWindowClass( PyObject * self, PyObject * args )
 {
 	FUNC_TRACE;
@@ -5107,6 +5113,8 @@ static PyObject * Module_registerWindowClass( PyObject * self, PyObject * args )
 
 #if defined(PLATFORM_WIN32)
     
+    // FIXME : prepare and use Window::initializeSystem instead.
+    
 	WINDOW_CLASS_NAME 			= prefix + L"WindowClass";
 	TASKTRAY_WINDOW_CLASS_NAME  = prefix + L"TaskTrayWindowClass";
 
@@ -5122,6 +5130,10 @@ static PyObject * Module_registerWindowClass( PyObject * self, PyObject * args )
         return NULL;
     }
 
+#elif defined(PLATFORM_MAC)
+    
+    Window::initializeSystem( prefix.c_str() );
+    
 #endif
 
     Py_INCREF(Py_None);

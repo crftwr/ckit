@@ -383,6 +383,7 @@ namespace ckit
 		virtual bool popupMenu( int x, int y, PyObject * items ) = 0;
 		virtual void enableIme( bool enable ) = 0;
 		virtual void setImeFont( FontBase * font ) = 0;
+		virtual void messageLoop() = 0;
 
         void clear();
         void clearPlanes();

@@ -4,6 +4,7 @@
 
 #include "pythonutil.h"
 #include "ckitcore_mac.h"
+#include "ckitcore_cocoa_export.h"
 
 using namespace ckit;
 
@@ -760,23 +761,31 @@ void TextPlaneMac::Draw( const Rect & paint_rect )
 
 //-----------------------------------------------------------------------------
 
+void WindowMac::initializeSystem( const wchar_t * prefix )
+{
+    ckit_Application_Create();
+}
+
+void WindowMac::terminateSystem()
+{
+}
+
 WindowMac::WindowMac( Param & param )
 	:
-	WindowBase(param)
+	WindowBase(param),
+    handle(0)
 {
 	FUNC_TRACE;
     
     // initialize graphics system
-    
     memset( &window_frame_size, 0, sizeof(window_frame_size) );
-
-    /*
-    if(! _createWindow(param))
+    
+    // create window
+    if( ckit_Window_Create(&handle)!=0 )
     {
-        printf("_createWindow failed\n");
+        printf("ckit_Window_Create failed\n");
         return;
     }
-    */
 }
 
 WindowMac::~WindowMac()
@@ -789,6 +798,11 @@ WindowMac::~WindowMac()
     // terminate graphics system
     
     // destroy window
+    if( ckit_Window_Destroy(handle)!=0 )
+    {
+        printf("ckit_Window_Destroy failed\n");
+        return;
+    }
 }
 
 WindowHandle WindowMac::getHandle() const
@@ -1639,5 +1653,10 @@ CGContextRef WindowMac::getCGContext()
 {
     // FIXME : implement
     return NULL;
+}
+
+void WindowMac::messageLoop()
+{
+    ckit_Window_MessageLoop(handle);
 }
 
