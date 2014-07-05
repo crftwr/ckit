@@ -14,3 +14,5 @@ ckitcore/mac/ckitcore.xcodeproj/project.xcworkspace/xcuserdata/craftware.xcuserd
 ckitcore/mac/ckitcore.xcodeproj/xcuserdata/craftware.xcuserdatad/xcschemes/ckitcore.xcscheme
 ckitcore/mac/ckitcore.xcodeproj/xcuserdata/craftware.xcuserdatad/xcschemes/xcschememanagement.plist
 ckitcore/mac/ckitcore/ckitcore-Prefix.pch
+ckitcore.so
+ckitcore/mac/ckitcore.xcodeproj/project.xcworkspace/xcshareddata/ckitcore.xccheckout
