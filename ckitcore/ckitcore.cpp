@@ -37,7 +37,8 @@ namespace ckit
 	Globals g;
 };
 
-const int WM_USER_NTFYICON  = WM_USER + 100;
+#if defined(PLATFORM_WIN32)
+const int WM_USER_NTFYICON  = WM_USER + 100; // FIXME : cant build on mac
 const int ID_MENUITEM       = 256;
 const int ID_MENUITEM_MAX   = 256+1024-1;
 const int ID_POPUP_MENUITEM       = ID_MENUITEM_MAX+1;
@@ -46,6 +47,7 @@ const int ID_POPUP_MENUITEM_MAX   = ID_POPUP_MENUITEM+1024;
 const int TIMER_PAINT		   			= 0x101;
 const int TIMER_PAINT_INTERVAL 			= 10;
 const int TIMER_CARET_BLINK   			= 0x102;
+#endif //PLATFORM_WIN32
 
 const int GLOBAL_OPTION_XXXX = 0x101;
 
@@ -104,7 +106,7 @@ ImageBase::ImageBase( int _width, int _height, const char * pixels, const Color 
 	height(_height),
 	transparent(_transparent_color!=0),
 	halftone(_halftone),
-	transparent_color( _transparent_color ? *_transparent_color : 0 ),
+    transparent_color( _transparent_color ? *_transparent_color : Color::Zero() ),
 	ref_count(0)
 {
 }
@@ -147,7 +149,7 @@ PlaneBase::~PlaneBase()
 {
 	FUNC_TRACE;
 
-	RECT dirty_rect = { x, y, x+width, y+height };
+	Rect dirty_rect = { x, y, x+width, y+height };
 	window->appendDirtyRect( dirty_rect );
 }
 
@@ -159,7 +161,7 @@ void PlaneBase::Show( bool _show )
 
 	show = _show;
 
-	RECT dirty_rect = { x, y, x+width, y+height };
+	Rect dirty_rect = { x, y, x+width, y+height };
 	window->appendDirtyRect( dirty_rect );
 }
 
@@ -169,13 +171,13 @@ void PlaneBase::SetPosition( int _x, int _y )
 
 	if( x==_x && y==_y ) return;
 
-	RECT dirty_rect = { x, y, x+width, y+height };
+	Rect dirty_rect = { x, y, x+width, y+height };
 	window->appendDirtyRect( dirty_rect );
 
 	x = _x;
 	y = _y;
 
-	RECT dirty_rect2 = { x, y, x+width, y+height };
+	Rect dirty_rect2 = { x, y, x+width, y+height };
 	window->appendDirtyRect( dirty_rect2 );
 }
 
@@ -185,13 +187,13 @@ void PlaneBase::SetSize( int _width, int _height )
 
 	if( width==_width && height==_height ) return;
 
-	RECT dirty_rect = { x, y, x+width, y+height };
+	Rect dirty_rect = { x, y, x+width, y+height };
 	window->appendDirtyRect( dirty_rect );
 
 	width = _width;
 	height = _height;
 
-	RECT dirty_rect2 = { x, y, x+width, y+height };
+	Rect dirty_rect2 = { x, y, x+width, y+height };
 	window->appendDirtyRect( dirty_rect2 );
 }
 
@@ -203,7 +205,7 @@ void PlaneBase::SetPriority( float _priority )
 
 	priority = _priority;
 
-	RECT dirty_rect = { x, y, x+width, y+height };
+	Rect dirty_rect = { x, y, x+width, y+height };
 	window->appendDirtyRect( dirty_rect );
 }
 
@@ -252,7 +254,7 @@ void ImagePlaneBase::SetImage( ImageBase * _image )
 
 	if(image) image->AddRef();
 
-	RECT dirty_rect = { x, y, x+width, y+height };
+	Rect dirty_rect = { x, y, x+width, y+height };
 	window->appendDirtyRect( dirty_rect );
 }
 
@@ -315,7 +317,7 @@ void TextPlaneBase::SetFont( FontBase * _font )
 	// FIXME : オフスクリーン全域の強制再描画
 	dirty = true;
 
-	RECT dirty_rect = { x, y, x+width, y+height };
+	Rect dirty_rect = { x, y, x+width, y+height };
 	window->appendDirtyRect( dirty_rect );
 }
 
@@ -414,7 +416,7 @@ void TextPlaneBase::PutString( int x, int y, int width, int height, const Attrib
 		dirty = true;
 
 		// FIXME : PutString全域ではなく、変更のあった最小限の領域を dirty_rect にしたい
-		RECT dirty_rect = { x * font->char_width + this->x, y * font->char_height + this->y, pos * font->char_width + this->x, (y+height) * font->char_height + this->y };
+		Rect dirty_rect = { x * font->char_width + this->x, y * font->char_height + this->y, pos * font->char_width + this->x, (y+height) * font->char_height + this->y };
 		window->appendDirtyRect( dirty_rect );
     }
 }
@@ -457,7 +459,7 @@ int TextPlaneBase::GetStringWidth( const wchar_t * str, int tab_width, int offse
 
 void TextPlaneBase::SetCaretPosition( int caret_x, int caret_y )
 {
-	RECT caret_rect = { 
+	Rect caret_rect = { 
 		caret_x * font->char_width + x, 
 		caret_y * font->char_height + y,
 		caret_x * font->char_width + x + 2,
@@ -535,10 +537,10 @@ WindowBase::Param::Param()
     origin = 0;
     parent_window = NULL;
     parent_window_hwnd = NULL;
-    bg_color = RGB(0x01, 0x01, 0x01);
-    frame_color = RGB(0xff, 0xff, 0xff);
-    caret0_color = RGB(0xff, 0xff, 0xff);
-    caret1_color = RGB(0xff, 0x00, 0x00);
+    bg_color = Color::FromRgb(0x01, 0x01, 0x01);
+    frame_color = Color::FromRgb(0xff, 0xff, 0xff);
+    caret0_color = Color::FromRgb(0xff, 0xff, 0xff);
+    caret1_color = Color::FromRgb(0xff, 0x00, 0x00);
     title_bar = true;
     show = true;
     resizable = true;
@@ -549,7 +551,7 @@ WindowBase::Param::Param()
     is_transparency_given = false;
     transparency = 255;
     is_transparent_color_given = false;
-    transparent_color = 0;
+    transparent_color = Color::Zero();
     is_top_most = false;
     sysmenu = false;
     tool = false;
@@ -655,7 +657,7 @@ void WindowBase::SetPyObject( PyObject * _pyobj )
 	}
 }
 
-void WindowBase::appendDirtyRect( const RECT & rect )
+void WindowBase::appendDirtyRect( const Rect & rect )
 {
 	FUNC_TRACE;
 
@@ -784,7 +786,7 @@ void WindowBase::clear()
 	appendDirtyRect( dirty_rect );
 }
 
-void WindowBase::setCaretRect( const RECT & rect )
+void WindowBase::setCaretRect( const Rect & rect )
 {
 	FUNC_TRACE;
 
@@ -797,7 +799,7 @@ void WindowBase::setCaretRect( const RECT & rect )
 	appendDirtyRect( caret_rect );
 }
 
-void WindowBase::setImeRect( const RECT & rect )
+void WindowBase::setImeRect( const Rect & rect )
 {
 	FUNC_TRACE;
 
@@ -807,6 +809,8 @@ void WindowBase::setImeRect( const RECT & rect )
 // ----------------------------------------------------------------------------
 //
 // ----------------------------------------------------------------------------
+
+#if defined(PLATFORM_WIN32)
 
 TaskTrayIcon::Param::Param()
 {
@@ -1150,6 +1154,8 @@ LRESULT CALLBACK TaskTrayIcon::_wndProc( HWND hwnd, UINT msg, WPARAM wp, LPARAM 
 	return 0;
 }
 
+#endif //PLATFORM_WIN32
+
 // ----------------------------------------------------------------------------
 //
 // ----------------------------------------------------------------------------
@@ -1164,7 +1170,7 @@ static int Attribute_init( PyObject * self, PyObject * args, PyObject * kwds)
 	PyObject * line0 = NULL;
 	PyObject * line1 = NULL;
 
-    static char * kwlist[] = {
+    static const char * kwlist[] = {
         "fg",
         "bg",
         "bg_gradation",
@@ -1173,7 +1179,7 @@ static int Attribute_init( PyObject * self, PyObject * args, PyObject * kwds)
         NULL
     };
 
-    if(!PyArg_ParseTupleAndKeywords( args, kwds, "|OOOOO", kwlist,
+    if(!PyArg_ParseTupleAndKeywords( args, kwds, "|OOOOO", (char**)kwlist,
         &fg,
         &bg,
         &bg_gradation,
@@ -1190,7 +1196,7 @@ static int Attribute_init( PyObject * self, PyObject * args, PyObject * kwds)
 	    if( ! PyArg_ParseTuple( fg, "iii", &r, &g, &b ) )
 	        return -1;
 
-	    ((Attribute_Object*)self)->attr.fg_color = RGB(r,g,b);
+	    ((Attribute_Object*)self)->attr.fg_color = Color::FromRgb(r,g,b);
 	}
 
 	if( bg_gradation && PySequence_Check(bg_gradation) )
@@ -1209,10 +1215,10 @@ static int Attribute_init( PyObject * self, PyObject * args, PyObject * kwds)
 	    }
 
 	    ((Attribute_Object*)self)->attr.bg = Attribute::BG_Gradation;
-	    ((Attribute_Object*)self)->attr.bg_color[0] = RGB(r[0],g[0],b[0]);
-	    ((Attribute_Object*)self)->attr.bg_color[1] = RGB(r[1],g[1],b[1]);
-	    ((Attribute_Object*)self)->attr.bg_color[2] = RGB(r[2],g[2],b[2]);
-	    ((Attribute_Object*)self)->attr.bg_color[3] = RGB(r[3],g[3],b[3]);
+	    ((Attribute_Object*)self)->attr.bg_color[0] = Color::FromRgb(r[0],g[0],b[0]);
+	    ((Attribute_Object*)self)->attr.bg_color[1] = Color::FromRgb(r[1],g[1],b[1]);
+	    ((Attribute_Object*)self)->attr.bg_color[2] = Color::FromRgb(r[2],g[2],b[2]);
+	    ((Attribute_Object*)self)->attr.bg_color[3] = Color::FromRgb(r[3],g[3],b[3]);
 	}
 	else if( bg && PySequence_Check(bg) )
 	{
@@ -1221,7 +1227,7 @@ static int Attribute_init( PyObject * self, PyObject * args, PyObject * kwds)
 	        return -1;
 
 	    ((Attribute_Object*)self)->attr.bg = Attribute::BG_Flat;
-	    ((Attribute_Object*)self)->attr.bg_color[0] = RGB(r,g,b);
+	    ((Attribute_Object*)self)->attr.bg_color[0] = Color::FromRgb(r,g,b);
 	}
 
 	if( line0 && PySequence_Check(line0) )
@@ -1232,7 +1238,7 @@ static int Attribute_init( PyObject * self, PyObject * args, PyObject * kwds)
 	        return -1;
 
 	    ((Attribute_Object*)self)->attr.line[0] = line;
-	    ((Attribute_Object*)self)->attr.line_color[0] = RGB(r,g,b);
+	    ((Attribute_Object*)self)->attr.line_color[0] = Color::FromRgb(r,g,b);
 	}
 
 	if( line1 && PySequence_Check(line1) )
@@ -1243,7 +1249,7 @@ static int Attribute_init( PyObject * self, PyObject * args, PyObject * kwds)
 	        return -1;
 
 	    ((Attribute_Object*)self)->attr.line[1] = line;
-	    ((Attribute_Object*)self)->attr.line_color[1] = RGB(r,g,b);
+	    ((Attribute_Object*)self)->attr.line_color[1] = Color::FromRgb(r,g,b);
 	}
 
     return 0;
@@ -1366,21 +1372,21 @@ static PyObject * Image_fromString( PyObject * self, PyObject * args )
 		return NULL;
 	}
 
-	COLORREF transparent_color = RGB(0,0,0);
+	Color transparent_color = Color::FromRgb(0,0,0);
 	if(py_transparent_color)
 	{
 		int r, g, b;
 	    if( ! PyArg_ParseTuple( py_transparent_color, "iii", &r, &g, &b ) )
 	        return NULL;
 
-	    transparent_color = RGB(r,g,b);
+	    transparent_color = Color::FromRgb(r,g,b);
 	}
 
 	Image * image;
 
 	if( width<=0 || height<=0 )
 	{
-		image = new Image( 0, 0, NULL, false );
+		image = new ckit::Image( 0, 0, NULL );
 	}
 	else
 	{
@@ -2148,7 +2154,7 @@ static PyObject * TextPlane_putString(PyObject* self, PyObject* args, PyObject *
 	PyObject * pystr;
 	int offset=0;
 
-    static char * kwlist[] = {
+    static const char * kwlist[] = {
         "x",
         "y",
         "width",
@@ -2159,7 +2165,7 @@ static PyObject * TextPlane_putString(PyObject* self, PyObject* args, PyObject *
         NULL
     };
 
-    if( ! PyArg_ParseTupleAndKeywords( args, kwds, "iiiiOO|i", kwlist, 
+    if( ! PyArg_ParseTupleAndKeywords( args, kwds, "iiiiOO|i", (char**)kwlist,
     	&x, &y, &width, &height, &pyattr, &pystr,
     	&offset
 	))
@@ -2253,7 +2259,7 @@ static PyObject * TextPlane_charToScreen(PyObject* self, PyObject* args)
 
 	TextPlaneBase * textPlane = ((TextPlane_Object*)self)->p;
 
-	Point point;
+    ckit::Point point;
 	point.x = x * textPlane->font->char_width + textPlane->x;
 	point.y = y * textPlane->font->char_height + textPlane->y;
 
@@ -2281,7 +2287,7 @@ static PyObject * TextPlane_charToClient(PyObject* self, PyObject* args)
 
 	TextPlaneBase * textPlane = ((TextPlane_Object*)self)->p;
 
-	POINT point;
+    ckit::Point point;
 	point.x = x * textPlane->font->char_width + textPlane->x;
 	point.y = y * textPlane->font->char_height + textPlane->y;
 
@@ -2345,7 +2351,7 @@ static PyObject * TextPlane_getStringColumns(PyObject* self, PyObject* args)
 
     TextPlaneBase * textPlane = ((TextPlane_Object*)self)->p;
 
-	int num = str.length()+1;
+	size_t num = str.length()+1;
 	int * columns = new int[num];
 
     textPlane->GetStringWidth( str.c_str(), tab_width, offset, columns );
@@ -2478,7 +2484,7 @@ static int MenuNode_init( PyObject * self, PyObject * args, PyObject * kwds)
 	PyObject * items = NULL;
 	int separator = 0;
 
-    static char * kwlist[] = {
+    static const char * kwlist[] = {
         "name",
         "text",
         "command",
@@ -2490,7 +2496,7 @@ static int MenuNode_init( PyObject * self, PyObject * args, PyObject * kwds)
         NULL
     };
 
-    if(!PyArg_ParseTupleAndKeywords( args, kwds, "|OOOOOOOi", kwlist,
+    if(!PyArg_ParseTupleAndKeywords( args, kwds, "|OOOOOOOi", (char**)kwlist,
         &pystr_name,
         &pystr_text,
         &command,
@@ -2672,8 +2678,13 @@ static int Window_init( PyObject * self, PyObject * args, PyObject * kwds)
 	Window_instance_count ++;
 	PRINTF("Window_instance_count=%d\n", Window_instance_count);
 
+#if defined(PLATFORM_WIN32)
     int x = CW_USEDEFAULT;
     int y = CW_USEDEFAULT;
+#elif defined(PLATFORM_MAC)
+    int x = 0; // FIXME: auto-layout
+    int y = 0; // FIXME: auto-layout
+#endif
     int width = 100;
     int height = 100;
     int origin = 0;
@@ -2720,7 +2731,7 @@ static int Window_init( PyObject * self, PyObject * args, PyObject * kwds)
     PyObject * mousewheel_handler = NULL;
     PyObject * nchittest_handler = NULL;
 
-    static char * kwlist[] = {
+    static const char * kwlist[] = {
 
         "x",
         "y",
@@ -2781,7 +2792,7 @@ static int Window_init( PyObject * self, PyObject * args, PyObject * kwds)
     	"OOOOO"
     	"iOOiO"
     	"iiiiiiiii"
-    	"OOOOOOOOOOOOOOOOOOOOOOO", kwlist,
+    	"OOOOOOOOOOOOOOOOOOOOOOO", (char**)kwlist,
 
         &x,
         &y,
@@ -2869,7 +2880,7 @@ static int Window_init( PyObject * self, PyObject * args, PyObject * kwds)
     else if(PyLong_Check(parent_window))
     {
     	param.parent_window = NULL;
-    	param.parent_window_hwnd = (HWND)PyLong_AS_LONG(parent_window);
+    	param.parent_window_hwnd = (WindowHandle)PyLong_AS_LONG(parent_window);
     }
     else
     {
@@ -2881,34 +2892,34 @@ static int Window_init( PyObject * self, PyObject * args, PyObject * kwds)
 		int r, g, b;
 	    if( ! PyArg_ParseTuple( pybg_color, "iii", &r, &g, &b ) )
 	        return -1;
-	    param.bg_color = RGB(r,g,b);
+	    param.bg_color = Color::FromRgb(r,g,b);
 	}
 	if(pyframe_color)
 	{
 		int r, g, b;
 	    if( ! PyArg_ParseTuple( pyframe_color, "iii", &r, &g, &b ) )
 	        return -1;
-	    param.frame_color = RGB(r,g,b);
+	    param.frame_color = Color::FromRgb(r,g,b);
 	}
 	if(pycaret0_color)
 	{
 		int r, g, b;
 	    if( ! PyArg_ParseTuple( pycaret0_color, "iii", &r, &g, &b ) )
 	        return -1;
-	    param.caret0_color = RGB(r,g,b);
+	    param.caret0_color = Color::FromRgb(r,g,b);
 	}
 	if(pycaret1_color)
 	{
 		int r, g, b;
 	    if( ! PyArg_ParseTuple( pycaret1_color, "iii", &r, &g, &b ) )
 	        return -1;
-	    param.caret1_color = RGB(r,g,b);
+	    param.caret1_color = Color::FromRgb(r,g,b);
 	}
     param.border_size = border_size;
 
 	if(pytransparency && PyLong_Check(pytransparency))
 	{
-	    param.transparency = PyLong_AS_LONG(pytransparency);
+	    param.transparency = (int)PyLong_AS_LONG(pytransparency);
 	    param.is_transparency_given = true;
 	}
 
@@ -2917,7 +2928,7 @@ static int Window_init( PyObject * self, PyObject * args, PyObject * kwds)
 		int r, g, b;
 	    if( ! PyArg_ParseTuple( pytransparent_color, "iii", &r, &g, &b ) )
 	        return -1;
-	    param.transparent_color = RGB(r,g,b);
+	    param.transparent_color = Color::FromRgb(r,g,b);
 	    param.is_transparent_color_given = true;
 	}
     param.title_bar = title_bar!=0;
@@ -2977,7 +2988,7 @@ static void Window_dealloc(PyObject* self)
     self->ob_type->tp_free(self);
 }
 
-static PyObject * Window_getHWND(PyObject* self, PyObject* args)
+static PyObject * Window_getHandle(PyObject* self, PyObject* args)
 {
 	//FUNC_TRACE;
 
@@ -2998,7 +3009,7 @@ static PyObject * Window_getHWND(PyObject* self, PyObject* args)
     return pyret;
 }
 
-static PyObject * Window_getHINSTANCE(PyObject* self, PyObject* args)
+static PyObject * Window_getInstanceHandle(PyObject* self, PyObject* args)
 {
 	//FUNC_TRACE;
 
@@ -3011,9 +3022,11 @@ static PyObject * Window_getHINSTANCE(PyObject* self, PyObject* args)
 		return NULL;
 	}
 
-    WindowBase * window = ((Window_Object*)self)->p;
-
+#if defined(PLATFORM_WIN32)
     HINSTANCE hinstance = GetModuleHandle(NULL);
+#else
+    int hinstance = 0;
+#endif
 
     PyObject * pyret = Py_BuildValue("i",hinstance);
     return pyret;
@@ -3457,7 +3470,7 @@ static PyObject * Window_setImeRect(PyObject* self, PyObject* args)
 
 	WindowBase * window = ((Window_Object*)self)->p;
 	
-	RECT rect;
+    ckit::Rect rect;
 
 	if( pyrect==Py_None )
 	{
@@ -3513,7 +3526,7 @@ static PyObject * Window_setPositionAndSize(PyObject* self, PyObject* args, PyOb
 	int height;
 	int origin;
 
-    static char * kwlist[] = {
+    static const char * kwlist[] = {
         "x",
         "y",
         "width",
@@ -3522,7 +3535,7 @@ static PyObject * Window_setPositionAndSize(PyObject* self, PyObject* args, PyOb
         NULL
     };
 
-    if(!PyArg_ParseTupleAndKeywords( args, kwds, "iiiii", kwlist,
+    if(!PyArg_ParseTupleAndKeywords( args, kwds, "iiiii", (char**)kwlist,
         &x,
         &y,
         &width,
@@ -3553,12 +3566,12 @@ static PyObject * Window_messageLoop(PyObject* self, PyObject* args, PyObject * 
 
 	PyObject * continue_cond_func = NULL;
 
-    static char * kwlist[] = {
+    static const char * kwlist[] = {
         "continue_cond_func",
         NULL
     };
 
-    if(!PyArg_ParseTupleAndKeywords( args, kwds, "|O", kwlist,
+    if(!PyArg_ParseTupleAndKeywords( args, kwds, "|O", (char**)kwlist,
         &continue_cond_func
     ))
     {
@@ -3571,6 +3584,7 @@ static PyObject * Window_messageLoop(PyObject* self, PyObject* args, PyObject * 
 		return NULL;
 	}
 
+    #if defined(PLATFORM_WIN32)
     MSG msg;
     for(;;)
     {
@@ -3625,6 +3639,7 @@ static PyObject * Window_messageLoop(PyObject* self, PyObject* args, PyObject * 
 
         Py_END_ALLOW_THREADS
     }
+    #endif //PLATFORM_WIN32
 
     end:
 
@@ -3645,10 +3660,12 @@ static PyObject * Window_removeKeyMessage(PyObject* self, PyObject* args)
 		return NULL;
 	}
 
+    #if defined(PLATFORM_WIN32)
     MSG msg;
     while( PeekMessage( &msg, NULL, WM_KEYFIRST, WM_KEYLAST, PM_REMOVE ) )
     {
     }
+    #endif // PLATFORM
 
     Py_INCREF(Py_None);
     return Py_None;
@@ -3690,7 +3707,7 @@ static PyObject * Window_getWindowRect(PyObject* self, PyObject* args)
 
 	WindowBase * window = ((Window_Object*)self)->p;
 
-	RECT rect;
+    ckit::Rect rect;
 	window->getWindowRect(&rect);
 
 	PyObject * pyret = Py_BuildValue( "(iiii)", rect.left, rect.top, rect.right, rect.bottom );
@@ -3712,7 +3729,7 @@ static PyObject * Window_getClientSize(PyObject* self, PyObject* args)
 
 	WindowBase * window = ((Window_Object*)self)->p;
 
-	Size size;
+    ckit::Size size;
 	window->getClientSize(&size);
 
 	PyObject * pyret = Py_BuildValue( "(ii)", size.cx, size.cy );
@@ -3734,7 +3751,7 @@ static PyObject * Window_getNormalWindowRect(PyObject* self, PyObject* args)
 
 	WindowBase * window = ((Window_Object*)self)->p;
 
-	RECT rect;
+    ckit::Rect rect;
 	window->getNormalWindowRect(&rect);
 
 	PyObject * pyret = Py_BuildValue( "(iiii)", rect.left, rect.top, rect.right, rect.bottom );
@@ -3756,7 +3773,7 @@ static PyObject * Window_getNormalClientSize(PyObject* self, PyObject* args)
 
 	WindowBase * window = ((Window_Object*)self)->p;
 
-	SIZE size;
+    ckit::Size size;
 	window->getNormalClientSize(&size);
 
 	PyObject * pyret = Py_BuildValue( "(ii)", size.cx, size.cy );
@@ -3781,7 +3798,7 @@ static PyObject * Window_screenToClient(PyObject* self, PyObject* args)
 
 	WindowBase * window = ((Window_Object*)self)->p;
 
-	POINT point;
+    ckit::Point point;
 	point.x = x;
 	point.y = y;
 
@@ -3809,7 +3826,7 @@ static PyObject * Window_clientToScreen(PyObject* self, PyObject* args)
 
 	WindowBase * window = ((Window_Object*)self)->p;
 
-	POINT point;
+    ckit::Point point;
 	point.x = x;
 	point.y = y;
 
@@ -4004,7 +4021,7 @@ static PyObject * Window_setBGColor(PyObject* self, PyObject* args)
 	}
 
 	WindowBase * window = ((Window_Object*)self)->p;
-	window->setBGColor( RGB(r,g,b) );
+	window->setBGColor( Color::FromRgb(r,g,b) );
 
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -4033,7 +4050,7 @@ static PyObject * Window_setFrameColor(PyObject* self, PyObject* args)
 	    if( ! PyArg_ParseTuple( pycolor, "iii", &r, &g, &b ) )
 	        return NULL;
 
-		window->setFrameColor( RGB(r,g,b) );
+		window->setFrameColor( Color::FromRgb(r,g,b) );
 	}
 
 	Py_INCREF(Py_None);
@@ -4068,7 +4085,7 @@ static PyObject * Window_setCaretColor(PyObject* self, PyObject* args)
 	    if( ! PyArg_ParseTuple( pycolor1, "iii", &r1, &g1, &b1 ) )
 	        return NULL;
 
-		window->setCaretColor( RGB(r0,g0,b0), RGB(r1,g1,b1) );
+		window->setCaretColor( Color::FromRgb(r0,g0,b0), Color::FromRgb(r1,g1,b1) );
 	}
 
 	Py_INCREF(Py_None);
@@ -4238,14 +4255,14 @@ static PyObject * Window_popupMenu(PyObject* self, PyObject* args, PyObject * kw
 	int y;
 	PyObject * items;
 
-    static char * kwlist[] = {
+    static const char * kwlist[] = {
         "x",
         "y",
         "items",
         NULL
     };
 
-    if(!PyArg_ParseTupleAndKeywords( args, kwds, "iiO", kwlist,
+    if(!PyArg_ParseTupleAndKeywords( args, kwds, "iiO", (char**)kwlist,
         &x,
         &y,
         &items
@@ -4276,8 +4293,9 @@ static PyObject * Window_popupMenu(PyObject* self, PyObject* args, PyObject * kw
 
 static PyObject * Window_sendIpc(PyObject* self, PyObject* args)
 {
-	//FUNC_TRACE;
+	FUNC_TRACE;
 
+#if defined(PLATFORM_WIN32)
 	HWND hwnd;
 	char * buf;
 	unsigned int bufsize;
@@ -4290,14 +4308,15 @@ static PyObject * Window_sendIpc(PyObject* self, PyObject* args)
 	data.cbData = bufsize;
 	data.lpData = buf;
 	SendMessage( hwnd, WM_COPYDATA, (WPARAM)NULL, (LPARAM)&data );
+#endif // PLATFORM
 
 	Py_INCREF(Py_None);
 	return Py_None;
 }
 
 static PyMethodDef Window_methods[] = {
-    { "getHWND", Window_getHWND, METH_VARARGS, "" },
-    { "getHINSTANCE", Window_getHINSTANCE, METH_VARARGS, "" },
+    { "getHandle", Window_getHandle, METH_VARARGS, "" },
+    { "getInstanceHandle", Window_getInstanceHandle, METH_VARARGS, "" },
     { "show", Window_show, METH_VARARGS, "" },
     { "enable", Window_enable, METH_VARARGS, "" },
     { "destroy", Window_destroy, METH_VARARGS, "" },
@@ -4394,6 +4413,8 @@ PyTypeObject Window_Type = {
 //
 // ----------------------------------------------------------------------------
 
+#if defined(PLATFORM_WIN32)
+
 static int TaskTrayIcon_instance_count = 0;
 
 static int TaskTrayIcon_init( PyObject * self, PyObject * args, PyObject * kwds)
@@ -4410,7 +4431,7 @@ static int TaskTrayIcon_init( PyObject * self, PyObject * args, PyObject * kwds)
     PyObject * rbuttonup_handler = NULL;
     PyObject * lbuttondoubleclick_handler= NULL;
 
-    static char * kwlist[] = {
+    static const char * kwlist[] = {
         "title",
         "lbuttondown_handler",
         "lbuttonup_handler",
@@ -4420,7 +4441,7 @@ static int TaskTrayIcon_init( PyObject * self, PyObject * args, PyObject * kwds)
         NULL
     };
 
-    if(!PyArg_ParseTupleAndKeywords( args, kwds, "|OOOOOO", kwlist,
+    if(!PyArg_ParseTupleAndKeywords( args, kwds, "|OOOOOO", (char**)kwlist,
         &pystr_title,
         &lbuttondown_handler,
         &lbuttonup_handler,
@@ -4660,6 +4681,8 @@ PyTypeObject TaskTrayIcon_Type = {
     0,					/* tp_free */
 };
 
+#endif //PLATFORM_WIN32
+
 // ----------------------------------------------------------------------------
 //
 // ----------------------------------------------------------------------------
@@ -4702,6 +4725,8 @@ static void Line_static_init()
 	line_empty = Py_BuildValue( "u", L"" );
 }
 
+#if defined(PLATFORM_WIN32)
+// FIXME : not used ?
 static void Line_static_term()
 {
 	Py_DECREF(line_cr);
@@ -4709,6 +4734,7 @@ static void Line_static_term()
 	Py_DECREF(line_crlf);
 	Py_DECREF(line_empty);
 }
+#endif // PLATFORM
 
 static int _Line_CheckLineEnd( const wchar_t * s, int len )
 {
@@ -4732,12 +4758,12 @@ static int Line_init( PyObject * self, PyObject * args, PyObject * kwds)
 	const wchar_t * s;
 	int len;
 
-    static char * kwlist[] = {
+    static const char * kwlist[] = {
         "s",
         NULL
     };
 
-    if(!PyArg_ParseTupleAndKeywords( args, kwds, "u#", kwlist,
+    if(!PyArg_ParseTupleAndKeywords( args, kwds, "u#", (char**)kwlist,
         &s, &len
     ))
     {
@@ -4897,7 +4923,7 @@ static int Line_SetAttrString( PyObject * self, const char * attr_name, PyObject
 		{
 			if(PyUnicode_Check(value))
 			{
-				int lineend = _Line_CheckLineEnd( PyUnicode_AS_UNICODE(value), PyUnicode_GET_SIZE(value) );
+				int lineend = _Line_CheckLineEnd( PyUnicode_AS_UNICODE(value), (int)PyUnicode_GET_SIZE(value) );
 				
 				((Line_Object*)self)->flags &= ~(Line_End_CR|Line_End_LF);
 				((Line_Object*)self)->flags |= lineend;
@@ -4938,11 +4964,12 @@ static int Line_SetAttrString( PyObject * self, const char * attr_name, PyObject
 			int bg;
 			if( PyLong_Check(value) )
 			{
-				bg = PyLong_AS_LONG(value);
+				bg = (int)PyLong_AS_LONG(value);
 			}
 			else if( PyLong_Check(value) )
 			{
-				bg = PyLong_AsLong(value);
+                // FIXME : is this block needed?
+				bg = (int)PyLong_AsLong(value);
 			}
 			else
 			{
@@ -4960,11 +4987,12 @@ static int Line_SetAttrString( PyObject * self, const char * attr_name, PyObject
 			int bookmark;
 			if( PyLong_Check(value) )
 			{
-				bookmark = PyLong_AS_LONG(value);
+				bookmark = (int)PyLong_AS_LONG(value);
 			}
 			else if( PyLong_Check(value) )
 			{
-				bookmark = PyLong_AsLong(value);
+                // FIXME : is this block needed?
+				bookmark = (int)PyLong_AsLong(value);
 			}
 			else
 			{
@@ -5059,7 +5087,7 @@ PyTypeObject Line_Type = {
 //
 // ----------------------------------------------------------------------------
 
-static PyObject * _registerWindowClass( PyObject * self, PyObject * args )
+static PyObject * Module_registerWindowClass( PyObject * self, PyObject * args )
 {
 	FUNC_TRACE;
 
@@ -5077,6 +5105,8 @@ static PyObject * _registerWindowClass( PyObject * self, PyObject * args )
         }
     }
 
+#if defined(PLATFORM_WIN32)
+    
 	WINDOW_CLASS_NAME 			= prefix + L"WindowClass";
 	TASKTRAY_WINDOW_CLASS_NAME  = prefix + L"TaskTrayWindowClass";
 
@@ -5092,11 +5122,13 @@ static PyObject * _registerWindowClass( PyObject * self, PyObject * args )
         return NULL;
     }
 
+#endif
+
     Py_INCREF(Py_None);
     return Py_None;
 }
 
-static PyObject * _registerCommandInfoConstructor( PyObject * self, PyObject * args )
+static PyObject * Module_registerCommandInfoConstructor( PyObject * self, PyObject * args )
 {
 	PyObject * _command_info_constructor;
 
@@ -5111,7 +5143,7 @@ static PyObject * _registerCommandInfoConstructor( PyObject * self, PyObject * a
 	return Py_None;
 }
 
-static PyObject * _setGlobalOption( PyObject * self, PyObject * args )
+static PyObject * Module_setGlobalOption( PyObject * self, PyObject * args )
 {
 	FUNC_TRACE;
 
@@ -5141,10 +5173,14 @@ static PyObject * _setGlobalOption( PyObject * self, PyObject * args )
 
 static int _blockDetectorCallback( PyObject * py_report_func, PyFrameObject * frame, int what, PyObject * arg )
 {
+#if defined(PLATFORM_WIN32)
 	static DWORD tick_prev = GetTickCount();
 	DWORD tick = GetTickCount();
 	DWORD delta = tick-tick_prev;
 	tick_prev = tick;
+#else
+    int delta = 0;
+#endif
 	
 	if( delta > 1000 )
 	{
@@ -5166,7 +5202,7 @@ static int _blockDetectorCallback( PyObject * py_report_func, PyFrameObject * fr
 
 static PyObject * py_report_func;
 
-static PyObject * _enableBlockDetector( PyObject * self, PyObject * args )
+static PyObject * Module_enableBlockDetector( PyObject * self, PyObject * args )
 {
 	PyObject * _py_report_func;
 
@@ -5181,7 +5217,7 @@ static PyObject * _enableBlockDetector( PyObject * self, PyObject * args )
 	return Py_None;
 }
 
-static PyObject * _setBlockDetector( PyObject * self, PyObject * args )
+static PyObject * Module_setBlockDetector( PyObject * self, PyObject * args )
 {
 	if( ! PyArg_ParseTuple(args,"") )
 		return NULL;
@@ -5197,11 +5233,11 @@ static PyObject * _setBlockDetector( PyObject * self, PyObject * args )
 
 static PyMethodDef ckit_funcs[] =
 {
-    { "registerWindowClass", _registerWindowClass, METH_VARARGS, "" },
-    { "registerCommandInfoConstructor", _registerCommandInfoConstructor, METH_VARARGS, "" },
-    { "setGlobalOption", _setGlobalOption, METH_VARARGS, "" },
-    { "enableBlockDetector", _enableBlockDetector, METH_VARARGS, "" },
-    { "setBlockDetector", _setBlockDetector, METH_VARARGS, "" },
+    { "registerWindowClass", Module_registerWindowClass, METH_VARARGS, "" },
+    { "registerCommandInfoConstructor", Module_registerCommandInfoConstructor, METH_VARARGS, "" },
+    { "setGlobalOption", Module_setGlobalOption, METH_VARARGS, "" },
+    { "enableBlockDetector", Module_enableBlockDetector, METH_VARARGS, "" },
+    { "setBlockDetector", Module_setBlockDetector, METH_VARARGS, "" },
     {NULL,NULL}
 };
 
@@ -5219,7 +5255,7 @@ static PyModuleDef ckitcore_module =
 	NULL, NULL, NULL, NULL
 };
 
-extern "C" PyMODINIT_FUNC PyInit_ckitcore(void)
+PyMODINIT_FUNC PyInit_ckitcore(void)
 {
 	FUNC_TRACE;
 
@@ -5230,9 +5266,11 @@ extern "C" PyMODINIT_FUNC PyInit_ckitcore(void)
     if( PyType_Ready(&TextPlane_Type)<0 ) return NULL;
     if( PyType_Ready(&MenuNode_Type)<0 ) return NULL;
     if( PyType_Ready(&Window_Type)<0 ) return NULL;
-    if( PyType_Ready(&TaskTrayIcon_Type)<0 ) return NULL;
     if( PyType_Ready(&Line_Type)<0 ) return NULL;
-
+#if defined(PLATFORM_WIN32)
+    if( PyType_Ready(&TaskTrayIcon_Type)<0 ) return NULL;
+#endif
+    
     PyObject *m, *d;
 
     m = PyModule_Create(&ckitcore_module);
@@ -5259,12 +5297,14 @@ extern "C" PyMODINIT_FUNC PyInit_ckitcore(void)
     Py_INCREF(&Window_Type);
     PyModule_AddObject( m, "Window", (PyObject*)&Window_Type );
 
-    Py_INCREF(&TaskTrayIcon_Type);
-    PyModule_AddObject( m, "TaskTrayIcon", (PyObject*)&TaskTrayIcon_Type );
-
     Py_INCREF(&Line_Type);
     PyModule_AddObject( m, "Line", (PyObject*)&Line_Type );
 
+#if defined(PLATFORM_WIN32)
+    Py_INCREF(&TaskTrayIcon_Type);
+    PyModule_AddObject( m, "TaskTrayIcon", (PyObject*)&TaskTrayIcon_Type );
+#endif
+    
 	Line_static_init();
 
     d = PyModule_GetDict(m);
@@ -5274,7 +5314,7 @@ extern "C" PyMODINIT_FUNC PyInit_ckitcore(void)
 
     if( PyErr_Occurred() )
     {
-        Py_FatalError( "can't initialize module "MODULE_NAME );
+        Py_FatalError( "can't initialize module " MODULE_NAME );
     }
 
 	return m;

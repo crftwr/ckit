@@ -42,15 +42,15 @@ namespace ckit
     		line[0] = 0;
     		line[1] = 0;
     	
-    		fg_color = RGB(255,255,255);
+    		fg_color = Color::FromRgb(255,255,255);
 
-    		bg_color[0] = RGB(0,0,0);
-    		bg_color[1] = RGB(0,0,0);
-    		bg_color[2] = RGB(0,0,0);
-    		bg_color[3] = RGB(0,0,0);
+    		bg_color[0] = Color::FromRgb(0,0,0);
+    		bg_color[1] = Color::FromRgb(0,0,0);
+    		bg_color[2] = Color::FromRgb(0,0,0);
+    		bg_color[3] = Color::FromRgb(0,0,0);
 
-    		line_color[0] = RGB(255,255,255);
-    		line_color[1] = RGB(255,255,255);
+    		line_color[0] = Color::FromRgb(255,255,255);
+    		line_color[1] = Color::FromRgb(255,255,255);
     	}
 
 		unsigned char bg;
@@ -453,6 +453,7 @@ namespace ckit
 
     struct TaskTrayIcon
     {
+        #if defined(PLATFORM_WIN32)
 	    struct Param
 	    {
 	        Param();
@@ -470,7 +471,7 @@ namespace ckit
 
         void SetPyObject( PyObject * pyobj );
         void destroy();
-
+        
         static LRESULT CALLBACK _wndProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp);
 	    static bool _registerWindowClass();
 	    void _clearPopupMenuCommands();
@@ -487,6 +488,7 @@ namespace ckit
 	    PyObject * lbuttondoubleclick_handler;
 	    
 	    std::vector<PyObject*> popup_menu_commands;	// popupメニュー用のコマンド
+        #endif // PLATFORM
 	};
 
 	struct Globals

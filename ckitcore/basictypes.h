@@ -3,7 +3,7 @@
 
 #if defined(_WIN32)
 # define PLATFORM_WIN32
-#elif defined(TARGET_OS_MAC)
+#elif defined(__APPLE__)
 # define PLATFORM_MAC
 #else
 # error unsupported platform.
@@ -27,11 +27,75 @@ namespace ckit
 #if defined(PLATFORM_MAC)
 namespace ckit
 {
-	typedef Point Point;
-	typedef SIZE Size;
-	typedef RECT Rect;
-	typedef COLORREF Color;
-	typedef HWND WindowHandle;
+    struct Point
+    {
+        int x;
+        int y;
+    };
+    
+    struct Size
+    {
+        int cx;
+        int cy;
+    };
+    
+    struct Rect
+    {
+        int left;
+        int top;
+        int right;
+        int bottom;
+    };
+    
+    struct Color
+    {
+        unsigned char r;
+        unsigned char g;
+        unsigned char b;
+        unsigned char a;
+
+        static Color FromRgb( unsigned char r, unsigned char g, unsigned char b )
+        {
+            Color color;
+            color.r = r;
+            color.g = g;
+            color.b = b;
+            color.a = 255;
+            return color;
+        }
+        
+        static Color FromRgba( unsigned char r, unsigned char g, unsigned char b, unsigned char a )
+        {
+            Color color;
+            color.r = r;
+            color.g = g;
+            color.b = b;
+            color.a = a;
+            return color;
+        }
+        
+        static Color FromInt( unsigned int src )
+        {
+            Color color;
+            color.r = ((unsigned char*)&src)[0];
+            color.g = ((unsigned char*)&src)[1];
+            color.b = ((unsigned char*)&src)[2];
+            color.a = ((unsigned char*)&src)[3];
+            return color;
+        }
+        
+        bool operator==( const Color & right ) const
+        {
+            return (r==right.r and g==right.g and b==right.b and a==right.a);
+        }
+        
+        static Color Zero()
+        {
+            return FromRgba(0,0,0,0);
+        }
+    };
+    
+	typedef void* WindowHandle;
 };
 #endif
 
