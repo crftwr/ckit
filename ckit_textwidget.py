@@ -4,7 +4,8 @@ import math
 import bisect
 import cProfile
 
-import pyauto
+if os.name=="nt":
+    import pyauto
 
 from ckit import ckitcore
 from ckit import ckit_textwindow

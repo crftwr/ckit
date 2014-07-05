@@ -122,36 +122,15 @@ FontMac::FontMac( const wchar_t * name, int height )
     
     CFRelease(name_str);
 
-    /*
-	{
-	    TEXTMETRIC met;
-	    GetTextMetrics(hDC, &met);
+    // FIXME : 真面目に計算する
+    char_width = height / 2;
+    char_height = height;
 
-		int * char_width_table = (int*)malloc(0x10000*sizeof(int));
-	    GetCharWidth32( hDC, 0, 0xffff, char_width_table );
-
-	    INT	width = 0;
-	    for(int i=0 ; i<26 ; i++)
-	    {
-	        width += char_width_table['A'+i];
-	        width += char_width_table['a'+i];
-	    }
-	    width /= 26 * 2;
-		char_width = width;
-	    char_height = met.tmHeight;
-
-		zenkaku_table.clear();
-	    for( int i=0 ; i<=0xffff ; i++ )
-	    {
-			zenkaku_table.push_back( char_width_table[i] > char_width );
-	    }
-
-	    free(char_width_table);
-	}
-
-    SelectObject(hDC, oldfont);
-    ReleaseDC(NULL, hDC);
-    */
+    zenkaku_table.clear();
+    for( int i=0 ; i<=0xffff ; i++ )
+    {
+        zenkaku_table.push_back(false);
+    }
 }
 
 FontMac::~FontMac()

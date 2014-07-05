@@ -32,7 +32,24 @@
 		33E3AA54196785F8004C7EDF /* ckitcore_mac.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ckitcore_mac.cpp; path = ../../ckitcore_mac.cpp; sourceTree = "<group>"; };
 		33E3AA55196785F8004C7EDF /* ckitcore_mac.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ckitcore_mac.h; path = ../../ckitcore_mac.h; sourceTree = "<group>"; };
 		33E3AA5819678AC6004C7EDF /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
-		33E3AA5A1967AE05004C7EDF /* Python */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = Python; path = ../../../../../../Library/Frameworks/Python.framework/Versions/3.4/Python; sourceTree = "<group>"; };
+		33E3AA5A1967AE05004C7EDF /* Python */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = Python; path = /Library/Frameworks/Python.framework/Versions/3.4/Python; sourceTree = "<absolute>"; };
+		33E3AA5D1967CC01004C7EDF /* ckit_command.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = ckit_command.py; path = ../../ckit_command.py; sourceTree = "<group>"; };
+		33E3AA5E1967CC01004C7EDF /* ckit_const.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = ckit_const.py; path = ../../ckit_const.py; sourceTree = "<group>"; };
+		33E3AA5F1967CC01004C7EDF /* ckit_dialog.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = ckit_dialog.py; path = ../../ckit_dialog.py; sourceTree = "<group>"; };
+		33E3AA601967CC01004C7EDF /* ckit_key.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = ckit_key.py; path = ../../ckit_key.py; sourceTree = "<group>"; };
+		33E3AA611967CC01004C7EDF /* ckit_migemo.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = ckit_migemo.py; path = ../../ckit_migemo.py; sourceTree = "<group>"; };
+		33E3AA621967CC01004C7EDF /* ckit_misc.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = ckit_misc.py; path = ../../ckit_misc.py; sourceTree = "<group>"; };
+		33E3AA631967CC01004C7EDF /* ckit_resource.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = ckit_resource.py; path = ../../ckit_resource.py; sourceTree = "<group>"; };
+		33E3AA641967CC01004C7EDF /* ckit_stdlib.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = ckit_stdlib.py; path = ../../ckit_stdlib.py; sourceTree = "<group>"; };
+		33E3AA651967CC01004C7EDF /* ckit_subprocess.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = ckit_subprocess.py; path = ../../ckit_subprocess.py; sourceTree = "<group>"; };
+		33E3AA661967CC01004C7EDF /* ckit_textwidget.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = ckit_textwidget.py; path = ../../ckit_textwidget.py; sourceTree = "<group>"; };
+		33E3AA671967CC01004C7EDF /* ckit_textwindow.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = ckit_textwindow.py; path = ../../ckit_textwindow.py; sourceTree = "<group>"; };
+		33E3AA681967CC01004C7EDF /* ckit_theme.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = ckit_theme.py; path = ../../ckit_theme.py; sourceTree = "<group>"; };
+		33E3AA691967CC01004C7EDF /* ckit_threadutil.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = ckit_threadutil.py; path = ../../ckit_threadutil.py; sourceTree = "<group>"; };
+		33E3AA6A1967CC01004C7EDF /* ckit_userconfig.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = ckit_userconfig.py; path = ../../ckit_userconfig.py; sourceTree = "<group>"; };
+		33E3AA6B1967CC01004C7EDF /* ckit_wallpaper.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = ckit_wallpaper.py; path = ../../ckit_wallpaper.py; sourceTree = "<group>"; };
+		33E3AA6C1967CC01004C7EDF /* ckit_widget.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = ckit_widget.py; path = ../../ckit_widget.py; sourceTree = "<group>"; };
+		33E3AA6D1967CC17004C7EDF /* __init__.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = __init__.py; path = ../../__init__.py; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -51,9 +68,8 @@
 		33E3AA3119677B22004C7EDF = {
 			isa = PBXGroup;
 			children = (
-				33E3AA5A1967AE05004C7EDF /* Python */,
-				33E3AA5819678AC6004C7EDF /* Cocoa.framework */,
 				33E3AA3C19677B22004C7EDF /* ckitcore */,
+				33E3AA5C1967CBB2004C7EDF /* ckit - python */,
 				33E3AA3B19677B22004C7EDF /* Products */,
 			);
 			sourceTree = "<group>";
@@ -79,6 +95,8 @@
 				33E3AA4219677B22004C7EDF /* ckitcorePriv.h */,
 				33E3AA4019677B22004C7EDF /* ckitcoreTarget.xcconfig */,
 				33E3AA3F19677B22004C7EDF /* ckitcoreProj.xcconfig */,
+				33E3AA5A1967AE05004C7EDF /* Python */,
+				33E3AA5819678AC6004C7EDF /* Cocoa.framework */,
 				33E3AA3D19677B22004C7EDF /* Supporting Files */,
 			);
 			path = ckitcore;
@@ -90,6 +108,30 @@
 				33E3AA3E19677B22004C7EDF /* ckitcore-Prefix.pch */,
 			);
 			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		33E3AA5C1967CBB2004C7EDF /* ckit - python */ = {
+			isa = PBXGroup;
+			children = (
+				33E3AA6D1967CC17004C7EDF /* __init__.py */,
+				33E3AA5D1967CC01004C7EDF /* ckit_command.py */,
+				33E3AA5E1967CC01004C7EDF /* ckit_const.py */,
+				33E3AA5F1967CC01004C7EDF /* ckit_dialog.py */,
+				33E3AA601967CC01004C7EDF /* ckit_key.py */,
+				33E3AA611967CC01004C7EDF /* ckit_migemo.py */,
+				33E3AA621967CC01004C7EDF /* ckit_misc.py */,
+				33E3AA631967CC01004C7EDF /* ckit_resource.py */,
+				33E3AA641967CC01004C7EDF /* ckit_stdlib.py */,
+				33E3AA651967CC01004C7EDF /* ckit_subprocess.py */,
+				33E3AA661967CC01004C7EDF /* ckit_textwidget.py */,
+				33E3AA671967CC01004C7EDF /* ckit_textwindow.py */,
+				33E3AA681967CC01004C7EDF /* ckit_theme.py */,
+				33E3AA691967CC01004C7EDF /* ckit_threadutil.py */,
+				33E3AA6A1967CC01004C7EDF /* ckit_userconfig.py */,
+				33E3AA6B1967CC01004C7EDF /* ckit_wallpaper.py */,
+				33E3AA6C1967CC01004C7EDF /* ckit_widget.py */,
+			);
+			name = "ckit - python";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */

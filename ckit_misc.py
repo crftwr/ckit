@@ -5,7 +5,8 @@ import shutil
 import ctypes
 import inspect
 
-import pyauto
+if os.name=="nt":
+    import pyauto
 
 ## @addtogroup misc その他雑多な機能
 ## @{
@@ -157,6 +158,7 @@ def removeBom(s):
 _argv = None
 
 ## Unicode 形式で sys.argv 相当の情報を取得する
+# FIXME : Python3 になったので、単に sys.argv を使えばよい？
 def getArgv():
 
     global _argv
@@ -165,26 +167,30 @@ def getArgv():
     
         _argv = []
 
-        from ctypes import POINTER, byref, cdll, c_int, windll
-        from ctypes.wintypes import LPCWSTR, LPWSTR
+        if os.name=="nt":
+            
+            from ctypes import POINTER, byref, cdll, c_int, windll
+            from ctypes.wintypes import LPCWSTR, LPWSTR
 
-        GetCommandLineW = cdll.kernel32.GetCommandLineW
-        GetCommandLineW.argtypes = []
-        GetCommandLineW.restype = LPCWSTR
+            GetCommandLineW = cdll.kernel32.GetCommandLineW
+            GetCommandLineW.argtypes = []
+            GetCommandLineW.restype = LPCWSTR
 
-        CommandLineToArgvW = windll.shell32.CommandLineToArgvW
-        CommandLineToArgvW.argtypes = [LPCWSTR, POINTER(c_int)]
-        CommandLineToArgvW.restype = POINTER(LPWSTR)
+            CommandLineToArgvW = windll.shell32.CommandLineToArgvW
+            CommandLineToArgvW.argtypes = [LPCWSTR, POINTER(c_int)]
+            CommandLineToArgvW.restype = POINTER(LPWSTR)
 
-        cmd = GetCommandLineW()
-        argc = c_int(0)
-        argv = CommandLineToArgvW(cmd, byref(argc))
-        if argc.value > 0:
-            # Remove Python executable and commands if present
-            start = argc.value - len(sys.argv)
-            for i in range(start, argc.value):
-                _argv.append(argv[i])
-    
+            cmd = GetCommandLineW()
+            argc = c_int(0)
+            argv = CommandLineToArgvW(cmd, byref(argc))
+            if argc.value > 0:
+                # Remove Python executable and commands if present
+                start = argc.value - len(sys.argv)
+                for i in range(start, argc.value):
+                    _argv.append(argv[i])
+        else:
+            _argv = sys.argv
+
     return _argv
 
 ## デスクトップディレクトリを取得する
@@ -829,7 +835,8 @@ def replacePath(path):
 
 #--------------------------------------------------------------------
 
-import winsound
+if os.name=="nt":
+    import winsound
 
 beep_enabled = True
 

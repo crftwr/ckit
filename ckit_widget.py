@@ -5,7 +5,8 @@ import struct
 
 from PIL import Image
 
-import pyauto
+if os.name=="nt":
+    import pyauto
 
 from ckit.ckit_const import *
 

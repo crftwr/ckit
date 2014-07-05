@@ -18,6 +18,9 @@ from ckit.ckit_key import *
 from ckit.ckit_command import *
 from ckit.ckit_userconfig import *
 
+if os.name=="nt":
+    del pyauto
+
 del sys
 del os
 del time
@@ -30,7 +33,6 @@ del struct
 del ctypes
 del configparser
 del Image
-del pyauto
 del ckitcore
 
 from ckit.ckitcore import Image
