@@ -9,3 +9,8 @@ ckitcore/ckitcore.sdf
 ckitcore/ckitcore.suo
 ckitcore/ckitcore.vcxproj.user
 ckitcore.pyd
+ckitcore/mac/ckitcore.xcodeproj/project.xcworkspace/contents.xcworkspacedata
+ckitcore/mac/ckitcore.xcodeproj/project.xcworkspace/xcuserdata/craftware.xcuserdatad/UserInterfaceState.xcuserstate
+ckitcore/mac/ckitcore.xcodeproj/xcuserdata/craftware.xcuserdatad/xcschemes/ckitcore.xcscheme
+ckitcore/mac/ckitcore.xcodeproj/xcuserdata/craftware.xcuserdatad/xcschemes/xcschememanagement.plist
+ckitcore/mac/ckitcore/ckitcore-Prefix.pch
