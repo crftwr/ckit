@@ -8,7 +8,14 @@
 
 #import <Foundation/Foundation.h>
 
-@interface ckitcore_cocoa : NSObject
+#import "ckitcore_cocoa_export.h"
+
+@interface CkitView : NSView <NSWindowDelegate>
+{
+    ckit_Window_Callbacks * callbacks;
+    void * owner;
+}
+
+- (id)initWithFrame:(NSRect)frame callbacks:(ckit_Window_Callbacks*)_callbacks owner:(void*)_owner;
 
 @end
-

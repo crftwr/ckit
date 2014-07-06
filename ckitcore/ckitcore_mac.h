@@ -10,6 +10,10 @@
 #include <CoreGraphics/CGImage.h>
 #include <CoreGraphics/CGLayer.h>
 #include <CoreText/CTFont.h>
+#include <CoreText/CTFontCollection.h>
+#include <CoreText/CTFontDescriptor.h>
+#include <CoreText/CTStringAttributes.h>
+#include <CoreText/CTLine.h>
 
 #include "ckitcore.h"
 #include "ckitcore_cocoa_export.h"

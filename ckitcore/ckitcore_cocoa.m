@@ -21,7 +21,37 @@
 
 //-----------------------------------------------------------------------------
 
-@implementation ckitcore_cocoa
+@implementation CkitView
+
+- (id)initWithFrame:(NSRect)frame callbacks:(ckit_Window_Callbacks*)_callbacks owner:(void*)_owner
+{
+    self = [super initWithFrame:frame];
+    if(self)
+    {
+        self->callbacks = _callbacks;
+        self->owner = _owner;
+    }
+    return self;
+}
+
+- (void)windowWillClose:(NSNotification *)notification
+{
+    [NSApp stopModal];
+}
+
+- (void)drawRect:(NSRect)dirtyRect
+{
+    TRACE;
+    
+    [super drawRect:dirtyRect];
+    
+    // Drawing code here.
+    
+    CGContextRef gctx = [[NSGraphicsContext currentContext] graphicsPort];
+    
+    printf("callback = %p, %p\n", callbacks, callbacks->drawRect );
+    callbacks->drawRect( owner, dirtyRect, gctx );    
+}
 
 @end
 
@@ -34,15 +64,21 @@ int ckit_Application_Create()
     return 0;
 }
 
-int ckit_Window_Create( CocoaObject ** _window )
+int ckit_Window_Create( ckit_Window_Callbacks * _callbacks, void * _owner, CocoaObject ** _window )
 {
     TRACE;
 
     NSWindow * window = [[NSWindow alloc]
-                  initWithContentRect:NSMakeRect(0,0,200,200)
-                  styleMask:NSTitledWindowMask
-                  backing:NSBackingStoreBuffered
-                  defer:NO];
+                         initWithContentRect:NSMakeRect(0,0,200,200)
+                         styleMask: (NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask | NSResizableWindowMask)
+                         backing:NSBackingStoreBuffered
+                         defer:NO];
+    
+    CkitView * view = [[CkitView alloc] initWithFrame:NSMakeRect(0,0,1,1) callbacks:_callbacks owner:_owner ];
+    
+    window.delegate = view;
+    
+    [window setContentView:view];
     
     *_window = (__bridge_retained CocoaObject *)window;
     
@@ -54,6 +90,8 @@ int ckit_Window_Destroy( CocoaObject * _window )
     TRACE;
     
     NSWindow * window = (__bridge_transfer NSWindow*)_window;
+    
+    (void)window;
 
     return 0;
 }

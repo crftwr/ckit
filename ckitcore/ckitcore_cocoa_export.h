@@ -6,17 +6,30 @@
 //  Copyright (c) 2014年 craftware. All rights reserved.
 //
 
+#ifndef __CKITCORE_COCOA_EXPORT_H__
+#define __CKITCORE_COCOA_EXPORT_H__
+
 #if defined(__cplusplus)
 # define EXTERN extern "C"
 #else
 # define EXTERN extern
 #endif
 
+
 typedef struct CocoaObject_t CocoaObject;
+
+typedef struct ckit_Window_Callbacks_t
+{
+    int (*drawRect)( void * owner, CGRect rect, CGContextRef gctx );
+
+} ckit_Window_Callbacks;
+
 
 EXTERN int ckit_Application_Create();
 
-EXTERN int ckit_Window_Create( CocoaObject ** window );
+EXTERN int ckit_Window_Create( ckit_Window_Callbacks * callbacks, void * owner, CocoaObject ** window );
 EXTERN int ckit_Window_Destroy( CocoaObject * window );
 EXTERN int ckit_Window_MessageLoop( CocoaObject * window );
 
+
+#endif//__CKITCORE_COCOA_EXPORT_H__
