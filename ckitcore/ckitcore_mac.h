@@ -113,13 +113,18 @@ namespace ckit
 		virtual void messageLoop();
         
         CGContextRef getCGContext();
-        void _drawBackground( const Rect & paint_rect );
-        void _drawPlanes( const Rect & paint_rect );
-        void _drawCaret( const Rect & paint_rect );
+        
+        void beginPaint( CGContextRef gtxt, const Rect & rect );
+        void endPaint();
+        void paintBackground();
+        void paintPlanes();
+        void paintCaret();
         
         CocoaObject * handle;
         Size window_frame_size;
-
+        
+        CGContextRef gctx;
+        Rect paint_rect;
 	};
 
 	typedef ImageMac Image;

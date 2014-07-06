@@ -22,6 +22,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		335238E4196997A900AAEB73 /* test.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = test.py; path = ../../test/test.py; sourceTree = "<group>"; };
 		33E3AA3A19677B22004C7EDF /* ckitcore.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = ckitcore.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		33E3AA3E19677B22004C7EDF /* ckitcore-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ckitcore-Prefix.pch"; sourceTree = "<group>"; };
 		33E3AA3F19677B22004C7EDF /* ckitcoreProj.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = ckitcoreProj.xcconfig; sourceTree = "<group>"; };
@@ -70,6 +71,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		335238E31969978C00AAEB73 /* test */ = {
+			isa = PBXGroup;
+			children = (
+				335238E4196997A900AAEB73 /* test.py */,
+			);
+			name = test;
+			sourceTree = "<group>";
+		};
 		33E3AA3119677B22004C7EDF = {
 			isa = PBXGroup;
 			children = (
@@ -121,6 +130,7 @@
 		33E3AA5C1967CBB2004C7EDF /* ckit - python */ = {
 			isa = PBXGroup;
 			children = (
+				335238E31969978C00AAEB73 /* test */,
 				33E3AA6D1967CC17004C7EDF /* __init__.py */,
 				33E3AA5D1967CC01004C7EDF /* ckit_command.py */,
 				33E3AA5E1967CC01004C7EDF /* ckit_const.py */,

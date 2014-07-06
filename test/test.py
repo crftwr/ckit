@@ -1,6 +1,8 @@
 ﻿import os
 import sys
 
+from PIL import Image
+
 sys.path[0:0] = [
     os.path.join( os.path.split(sys.argv[0])[0], '../..' ),
     ]
@@ -34,6 +36,14 @@ class Test1( ckit.TextWindow ):
             )
 
         self.putString( 0, 0, 20, 1, ckit.Attribute( fg=(255,255,255), bg=(0,0,0) ), "Hello World!" )
+    
+        pil_img = Image.open("hello.png")
+        pil_img = pil_img.convert( "RGBA" )
+        ckit_img = ckit.Image.fromString( pil_img.size, pil_img.tostring(), (0,0,0) )
+
+        self.plane = ckit.ImagePlane( self, (0,0), (100,100), 0 )
+        self.plane.setImage(ckit_img)
+    
 
     def onActivate( self, active ):
         print( "onActivate", active )

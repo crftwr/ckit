@@ -25,6 +25,9 @@ namespace ckit
 #endif
 
 #if defined(PLATFORM_MAC)
+
+#include <CoreGraphics/CGGeometry.h>
+
 namespace ckit
 {
     struct Point
@@ -45,6 +48,35 @@ namespace ckit
         int top;
         int right;
         int bottom;
+        
+        Rect()
+        {
+        }
+        
+        Rect( int _left, int _top, int _right, int _bottom )
+            :
+            left(_left),
+            top(_top),
+            right(_right),
+            bottom(_bottom)
+        {
+        }
+        
+        // FIXME : 座標系を合わせる
+        Rect( const CGRect & rect )
+            :
+            left(rect.origin.x),
+            top(rect.origin.y),
+            right(rect.origin.x+rect.size.width),
+            bottom(rect.origin.y+rect.size.height)
+        {
+        }
+        
+        // FIXME : 座標系を合わせる
+        operator CGRect ()
+        {
+            return CGRectMake(left,top,right-left,bottom-top);
+        }
     };
     
     struct Color
