@@ -31,7 +31,7 @@
 		33E3AA4C19677C2B004C7EDF /* ckitcore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ckitcore.h; path = ../../ckitcore.h; sourceTree = "<group>"; };
 		33E3AA4D19677C2B004C7EDF /* pythonutil.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pythonutil.cpp; path = ../../pythonutil.cpp; sourceTree = "<group>"; };
 		33E3AA4E19677C2B004C7EDF /* pythonutil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pythonutil.h; path = ../../pythonutil.h; sourceTree = "<group>"; };
-		33E3AA54196785F8004C7EDF /* ckitcore_mac.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ckitcore_mac.cpp; path = ../../ckitcore_mac.cpp; sourceTree = "<group>"; };
+		33E3AA54196785F8004C7EDF /* ckitcore_mac.cpp */ = {isa = PBXFileReference; fileEncoding = 2147486209; lastKnownFileType = sourcecode.cpp.cpp; name = ckitcore_mac.cpp; path = ../../ckitcore_mac.cpp; sourceTree = "<group>"; };
 		33E3AA55196785F8004C7EDF /* ckitcore_mac.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ckitcore_mac.h; path = ../../ckitcore_mac.h; sourceTree = "<group>"; };
 		33E3AA5819678AC6004C7EDF /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		33E3AA5A1967AE05004C7EDF /* Python */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = Python; path = /Library/Frameworks/Python.framework/Versions/3.4/Python; sourceTree = "<absolute>"; };

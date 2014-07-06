@@ -304,7 +304,7 @@ void TextPlaneBase::SetFont( FontBase * _font )
 {
 	FUNC_TRACE;
 
-	// FIXME : SetFont���Ȃ��� TextPlane ���g���Ǝ���ł��܂��̂𒼂�����
+	// FIXME : SetFontしないで TextPlane を使うと死んでしまうのを直したい
 
 	if( font == _font ) return;
 
@@ -314,7 +314,7 @@ void TextPlaneBase::SetFont( FontBase * _font )
 
 	if(font) font->AddRef();
 
-	// FIXME : �I�t�X�N���[���S��̋����ĕ`��
+	// FIXME : オフスクリーン全域の強制再描画
 	dirty = true;
 
 	Rect dirty_rect = { x, y, x+width, y+height };
@@ -359,7 +359,7 @@ void TextPlaneBase::PutString( int x, int y, int width, int height, const Attrib
 
     Line * line = char_buffer[y];
 
-	// ���܂��Ă��Ȃ�������󕶎��Ői�߂�
+	// 埋まっていなかったら空文字で進める
 	while( (int)line->size() < x )
 	{
         line->push_back( Char( L' ' ) );
@@ -371,13 +371,13 @@ void TextPlaneBase::PutString( int x, int y, int width, int height, const Attrib
 
     for( int i=0 ; str[i] ; i++ )
     {
-		// �����ς��܂ŕ��������܂����甲����
+		// いっぱいまで文字が埋まったら抜ける
     	if( pos + 1 > x + width )
     	{
     		break;
     	}
 
-		// �S�p���������錄�Ԃ��Ȃ�������A�X�y�[�X�𖄂߂Ĕ�����
+		// 全角文字を入れる隙間がなかったら、スペースを埋めて抜ける
     	if( font->zenkaku_table[str[i]] && pos + 2 > x + width )
     	{
 	        PutChar( line, pos, Char( L' ', attr ), &modified );
@@ -389,7 +389,7 @@ void TextPlaneBase::PutString( int x, int y, int width, int height, const Attrib
 	        PutChar( line, pos, Char( str[i], attr ), &modified );
 			pos++;
 
-	        // �S�p�����́A�������킹�邽�߂ɁA���ɖ��ʂȕ���������
+	        // 全角文字は、幅を合わせるために、後ろに無駄な文字を入れる
 	        if(font->zenkaku_table[str[i]])
 	        {
 		        PutChar( line, pos, Char(0), &modified );
@@ -401,7 +401,7 @@ void TextPlaneBase::PutString( int x, int y, int width, int height, const Attrib
 			pos++;
 	        if(font->zenkaku_table[str[i]])
 	        {
-	        	// ���[�őS�p�����̔����̈ʒu����`��͈͂ɓ���ꍇ�̓X�y�[�X�Ŗ��߂�
+	        	// 左端で全角文字の半分の位置から描画範囲に入る場合はスペースで埋める
 	        	if( pos>=x )
 	        	{
 			        PutChar( line, pos, Char( L' ', attr ), &modified );
@@ -415,7 +415,7 @@ void TextPlaneBase::PutString( int x, int y, int width, int height, const Attrib
     {
 		dirty = true;
 
-		// FIXME : PutString�S��ł͂Ȃ��A�ύX�̂������ŏ����̗̈�� dirty_rect �ɂ�����
+		// FIXME : PutString全域ではなく、変更のあった最小限の領域を dirty_rect にしたい
 		Rect dirty_rect = { x * font->char_width + this->x, y * font->char_height + this->y, pos * font->char_width + this->x, (y+height) * font->char_height + this->y };
 		window->appendDirtyRect( dirty_rect );
     }
@@ -846,7 +846,7 @@ TaskTrayIcon::TaskTrayIcon( Param & param )
 	icon_data.uCallbackMessage = WM_USER_NTFYICON;
 	lstrcpy( icon_data.szTip, param.title.c_str() );
 	
-	// Shell_NotifyIcon �ɂ̓��g���C���K�v
+	// Shell_NotifyIcon にはリトライが必要
 	// http://support.microsoft.com/kb/418138/JA/
 	while(true)
 	{
@@ -859,7 +859,7 @@ TaskTrayIcon::TaskTrayIcon( Param & param )
 		        printf("retry\n");
 		        Sleep(1000);
 		        
-		        // �^�C���A�E�g��Ɏ��͐������Ă�����������Ȃ��̂ŁA�O�̂��ߊm�F����
+		        // タイムアウト後に実は成功していたかもしれないので、念のため確認する
 		        if( Shell_NotifyIcon( NIM_MODIFY , &icon_data ) )
 		        {
 			        printf("TaskTrayIcon : Shell_NotifyIcon(NIM_MODIFY) succeeded\n" );
@@ -3898,7 +3898,7 @@ static PyObject * Window_killTimer( PyObject * self, PyObject * args )
 			Py_XDECREF( i->pyobj );
 			i->pyobj = NULL;
 
-			// Note : ���X�g����̍폜�́A�����ł͂Ȃ��Ăяo���̌�Atimer_list_ref_count �� 0 �ł��邱�Ƃ��m�F���Ȃ���s��
+			// Note : リストからの削除は、ここではなく呼び出しの後、timer_list_ref_count が 0 であることを確認しながら行う
 
 			break;
 		}
@@ -4624,12 +4624,12 @@ static PyObject * TaskTrayIcon_popupMenu(PyObject* self, PyObject* args, PyObjec
 	{
 		HWND hwnd = task_tray_icon->hwnd;
 	
-		SetForegroundWindow(hwnd); //�E�B���h�E���t�H�A�O���E���h�Ɏ����Ă��܂��B
-		SetFocus(hwnd);	//��������Ȃ��ƁA���j���[�������Ȃ��Ȃ�܂��B
+		SetForegroundWindow(hwnd); //ウィンドウをフォアグラウンドに持ってきます。
+		SetFocus(hwnd);	//これをしないと、メニューが消えなくなります。
 
 		TrackPopupMenu( menu, TPM_TOPALIGN | TPM_LEFTALIGN | TPM_RIGHTBUTTON, x, y, 0, hwnd, 0 );
 
-		PostMessage(hwnd,WM_NULL,0,0); //��������Ȃ��ƁA�Q�x�ڂ̃��j���[�������������Ⴂ�܂��B
+		PostMessage(hwnd,WM_NULL,0,0); //これをしないと、２度目のメニューがすぐ消えちゃいます。
 	}
 
 	DestroyMenu(menu);
