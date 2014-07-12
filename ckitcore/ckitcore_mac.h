@@ -114,17 +114,21 @@ namespace ckit
         
         CGContextRef getCGContext();
         
+        int drawRect( CGRect rect, CGContextRef gctx );
         void beginPaint( CGContextRef gtxt, const Rect & rect );
         void endPaint();
         void paintBackground();
         void paintPlanes();
         void paintCaret();
         
+        int viewDidEndLiveResize( CGSize size );
+        
         CocoaObject * handle;
         Size window_frame_size;
         
-        CGContextRef gctx;
+        CGContextRef paint_gctx;
         Rect paint_rect;
+        Size paint_client_size;
 	};
 
 	typedef ImageMac Image;

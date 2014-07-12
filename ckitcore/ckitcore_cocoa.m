@@ -49,8 +49,14 @@
     
     CGContextRef gctx = [[NSGraphicsContext currentContext] graphicsPort];
     
-    printf("callback = %p, %p\n", callbacks, callbacks->drawRect );
-    callbacks->drawRect( owner, dirtyRect, gctx );    
+    callbacks->drawRect( owner, dirtyRect, gctx );
+}
+
+- (void)viewDidEndLiveResize
+{
+    CGRect rect = [self frame];
+    
+    callbacks->viewDidEndLiveResize( owner, rect.size );
 }
 
 @end
@@ -69,7 +75,7 @@ int ckit_Window_Create( ckit_Window_Callbacks * _callbacks, void * _owner, Cocoa
     TRACE;
 
     NSWindow * window = [[NSWindow alloc]
-                         initWithContentRect:NSMakeRect(0,0,200,200)
+                         initWithContentRect:NSMakeRect(0,0,242,242)
                          styleMask: (NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask | NSResizableWindowMask)
                          backing:NSBackingStoreBuffered
                          defer:NO];
@@ -103,6 +109,27 @@ int ckit_Window_MessageLoop( CocoaObject * _window )
     NSWindow * window = (__bridge NSWindow*)_window;
     
     [NSApp runModalForWindow:window];
+    
+    return 0;
+}
+
+int ckit_Window_GetWindowRect( CocoaObject * _window, CGRect * rect )
+{
+    NSWindow * window = (__bridge NSWindow*)_window;
+    
+    *rect = [window frame];
+    
+    return 0;
+}
+
+int ckit_Window_GetClientSize( CocoaObject * _window, CGSize * size )
+{
+    NSWindow * window = (__bridge NSWindow*)_window;
+    
+    NSView * view = window.contentView;
+    CGRect rect = [view frame];
+    
+    *size = rect.size;
     
     return 0;
 }

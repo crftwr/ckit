@@ -1390,6 +1390,8 @@ static PyObject * Image_fromString( PyObject * self, PyObject * args )
 	}
 	else
 	{
+#if defined(PLATFORM_WIN32)
+        // FIXME : Windows のコードに引っ越し
 		void * dib_buf = malloc( width * 4 * height );
 
 		_Image_ConvertRGBAtoDIB( (char*)dib_buf, (const char*)buf, width, height, width*4 );
@@ -1397,6 +1399,9 @@ static PyObject * Image_fromString( PyObject * self, PyObject * args )
 		image = new Image( width, height, (const char *)dib_buf, py_transparent_color ? &transparent_color : 0, halftone!=0 );
 
 		free(dib_buf);
+#else
+		image = new Image( width, height, buf, py_transparent_color ? &transparent_color : 0, halftone!=0 );
+#endif
 	}
 
 	Image_Object * pyimg;

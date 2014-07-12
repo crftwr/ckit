@@ -40,6 +40,25 @@ namespace ckit
     {
         int cx;
         int cy;
+
+        Size()
+        {
+        }
+
+        Size( int _cx, int _cy )
+        :
+        cx(_cx),
+        cy(_cy)
+        {
+        }
+        
+        Size( const CGSize & size )
+        :
+        cx(size.width),
+        cy(size.height)
+        {
+        }
+        
     };
     
     struct Rect

@@ -12,21 +12,6 @@ using namespace ckit;
 
 #define MODULE_NAME "ckitcore"
 
-//static std::wstring WINDOW_CLASS_NAME 			= L"CkitWindowClass";
-//static std::wstring TASKTRAY_WINDOW_CLASS_NAME  = L"CkitTaskTrayWindowClass";
-
-/*
-const int WM_USER_NTFYICON  = WM_USER + 100;
-const int ID_MENUITEM       = 256;
-const int ID_MENUITEM_MAX   = 256+1024-1;
-const int ID_POPUP_MENUITEM       = ID_MENUITEM_MAX+1;
-const int ID_POPUP_MENUITEM_MAX   = ID_POPUP_MENUITEM+1024;
-
-const int TIMER_PAINT		   			= 0x101;
-const int TIMER_PAINT_INTERVAL 			= 10;
-const int TIMER_CARET_BLINK   			= 0x102;
-*/
-
 //-----------------------------------------------------------------------------
 
 #define PRINTF printf
@@ -35,7 +20,7 @@ const int TIMER_CARET_BLINK   			= 0x102;
 #define TRACE printf("%s(%d) : %s\n",__FILE__,__LINE__,__FUNCTION__)
 //#define TRACE
 
-#if 0
+#if 1
 	struct FuncTrace
 	{
 		FuncTrace( const char * _funcname, unsigned int _lineno )
@@ -43,12 +28,12 @@ const int TIMER_CARET_BLINK   			= 0x102;
 			funcname = _funcname;
 			lineno   = _lineno;
 
-			printf( "FuncTrace : Enter : %s(%)\n", funcname, lineno );
+			printf( "FuncTrace : Enter : %s(%d)\n", funcname, lineno );
 		}
 
 		~FuncTrace()
 		{
-			printf( "FuncTrace : Leave : %s(%)\n", funcname, lineno );
+			printf( "FuncTrace : Leave : %s(%d)\n", funcname, lineno );
 		}
 
 		const char * funcname;
@@ -57,21 +42,6 @@ const int TIMER_CARET_BLINK   			= 0x102;
 	#define FUNC_TRACE FuncTrace functrace(__FUNCTION__,__LINE__)
 #else
 	#define FUNC_TRACE
-#endif
-
-#if 0
-	#define PERF_BEGIN(tag,line) \
-		__int64 tick_prev, tick; \
-		QueryPerformanceCounter( (LARGE_INTEGER*)&tick_prev ); \
-		printf( "%s:%d: -------\n", tag, line );
-	
-	#define PERF_PRINT(tag,line) \
-		QueryPerformanceCounter( (LARGE_INTEGER*)&tick ); \
-		printf( "%s:%d: %I64d\n", tag, line, tick-tick_prev ); \
-		tick_prev = tick;
-#else
-	#define PERF_BEGIN(tag,line)
-	#define PERF_PRINT(tag,line)
 #endif
 
 //-----------------------------------------------------------------------------
@@ -83,7 +53,25 @@ ImageMac::ImageMac( int _width, int _height, const char * pixels, const Color * 
 	FUNC_TRACE;
 
     buffer = (unsigned char*)malloc(width * height * 4);
+    
     memcpy(buffer, pixels, width * height * 4);
+    
+    /*
+    int src_y = height-1;
+
+    printf( "pixel[0] : %d,%d,%d,%d\n", (unsigned char)pixels[src_y*width*4 + 0], (unsigned char)pixels[src_y*width*4 + 1], (unsigned char)pixels[src_y*width*4 + 2], (unsigned char)pixels[src_y*width*4 + 3] );
+    
+    for( int y=0 ; y<height ; ++y, --src_y )
+    {
+        for( int x=0 ; x<width ; ++x )
+        {
+            buffer[ y*width*4 + x*4 + 0 ] = pixels[ src_y*width*4 + x*4 + 0 ];
+            buffer[ y*width*4 + x*4 + 1 ] = pixels[ src_y*width*4 + x*4 + 1 ];
+            buffer[ y*width*4 + x*4 + 2 ] = pixels[ src_y*width*4 + x*4 + 2 ];
+            buffer[ y*width*4 + x*4 + 3 ] = pixels[ src_y*width*4 + x*4 + 3 ];
+        }
+    }
+     */
     
     CGDataProviderRef dataProviderRef = CGDataProviderCreateWithData(NULL, buffer, width*height*4, NULL);
     handle = CGImageCreate(width, height, 8, 32, width*4, CGColorSpaceCreateDeviceRGB(), kCGBitmapByteOrderDefault | kCGImageAlphaLast, dataProviderRef, NULL, 0, kCGRenderingIntentDefault);
@@ -165,18 +153,13 @@ void ImagePlaneMac::Draw( const Rect & paint_rect )
 		return;
 	}
 
-    Rect plane_rect = { x, y, x+width, y+height };
-   	if( plane_rect.left>=paint_rect.right || plane_rect.right<=paint_rect.left
-   		|| plane_rect.top>=paint_rect.bottom || plane_rect.bottom<=paint_rect.top )
-	{
-		return;
-	}
+    // TODO : paint_rectの範囲外だったら再描画しない
     
    	if( image )
    	{
         // FIXME : halftone, transparent をちゃんと使う
-
-        CGContextDrawImage( window->gctx, plane_rect, image->handle );
+        
+        CGContextDrawImage( window->paint_gctx, CGRectMake( x, window->paint_client_size.cy - y - height, width, height ), image->handle );
 
         window->perf_fillrect_count++;
     }
@@ -487,66 +470,49 @@ void TextPlaneMac::DrawOffscreen()
 					SetTextColor( offscreen_dc, RGB(0xff, 0xff, 0xff) );
                     */
 				}
+                
+                // テキスト描画テスト
+                {
+                    CFMutableAttributedStringRef attrString = CFAttributedStringCreateMutable(kCFAllocatorDefault, 0 );
+                    
+                    // 文字列
+                    CFStringRef str = CFStringCreateWithBytes(
+                                                           NULL,
+                                                           (const UInt8*)work_text,
+                                                           work_len * sizeof(wchar_t),
+                                                           kCFStringEncodingUTF32LE,
+                                                           false);
+                    CFAttributedStringReplaceString(attrString, CFRangeMake(0,0), str );
+                    CFRelease(str);
+                    
+                    // フォント
+                    CFAttributedStringSetAttribute(attrString, CFRangeMake(0, CFStringGetLength(str)), kCTFontAttributeName, font->handle);
+                    
+                    // 色
+                    // FIXME : 設定された色を使う
+                    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
+                    CGFloat components[] = {1,1,1,1};
+                    CGColorRef color = CGColorCreate(colorSpace, components );
+                    CFAttributedStringSetAttribute(attrString, CFRangeMake(0,work_len), kCTForegroundColorAttributeName, color);
+                    CGColorRelease(color);
+                    CGColorSpaceRelease(colorSpace);
+                    
+                    // 行の描画
+                    CTLineRef line = CTLineCreateWithAttributedString(attrString);
+                    CGContextSetTextMatrix( offscreen_context, CGAffineTransformIdentity);
+                    
+                    printf( "text position : %d\n", offscreen_size.cy - (y+1) * font->char_height + (offscreen_size.cy % font->char_height) );
 
-                /*
-	            SetBkMode( offscreen_dc, TRANSPARENT );
-
-	            ExtTextOut(
-	                offscreen_dc,
-	                x * font->char_width,
-	                y * font->char_height,
-	                0, NULL,
-	                (LPCWSTR)work_text,
-	                (UINT)(work_len),
-	                work_width );
-                */
-
+                    printf( "              : %d, %d, %d, %d\n", offscreen_size.cy, y, font->char_height, (offscreen_size.cy % font->char_height) );
+                    
+                    CGContextSetTextPosition( offscreen_context, x * font->char_width, offscreen_size.cy - (y+1) * font->char_height + (offscreen_size.cy % font->char_height) );
+                    CTLineDraw(line,offscreen_context);
+                    
+                    CFRelease(line);
+                    CFRelease(attrString);
+                }
+                
 				window->perf_drawtext_count ++;
-
-				if(chr.attr.bg)
-				{
-                    /*
-					RECT rect = {
-						x * font->char_width,
-						y * font->char_height,
-						x2 * font->char_width,
-                		(y+1) * font->char_height
-					};
-
-					// AlphaÇ 255 Ç≈ñÑÇﬂÇÈ
-					for( int py=rect.top ; py<rect.bottom ; ++py )
-					{
-						for( int px=rect.left ; px<rect.right ; ++px )
-						{
-							offscreen_buf[ (offscreen_size.cy-py-1) * offscreen_size.cx * 4 + px * 4 + 3 ] = 0xff;
-						}
-					}
-                    */
-				}
-				else
-				{
-                    /*
-					RECT rect = {
-						x * font->char_width,
-						y * font->char_height,
-						x2 * font->char_width,
-                		(y+1) * font->char_height
-					};
-
-					// Premultiplied Alpha èàóù
-					for( int py=rect.top ; py<rect.bottom ; ++py )
-					{
-						for( int px=rect.left ; px<rect.right ; ++px )
-						{
-							int alpha = offscreen_buf[ (offscreen_size.cy-py-1) * offscreen_size.cx * 4 + px * 4 + 1 ];
-							offscreen_buf[ (offscreen_size.cy-py-1) * offscreen_size.cx * 4 + px * 4 + 0 ] = GetBValue(chr.attr.fg_color) * alpha / 255;
-							offscreen_buf[ (offscreen_size.cy-py-1) * offscreen_size.cx * 4 + px * 4 + 1 ] = GetGValue(chr.attr.fg_color) * alpha / 255;
-							offscreen_buf[ (offscreen_size.cy-py-1) * offscreen_size.cx * 4 + px * 4 + 2 ] = GetRValue(chr.attr.fg_color) * alpha / 255;
-							offscreen_buf[ (offscreen_size.cy-py-1) * offscreen_size.cx * 4 + px * 4 + 3 ] = alpha;
-						}
-					}
-                    */
-				}
 
 				for( int line=0 ; line<2 ; ++line )
 				{
@@ -659,47 +625,23 @@ void TextPlaneMac::Draw( const Rect & paint_rect )
 {
 	FUNC_TRACE;
 
-	//WindowMac * window = (WindowMac*)this->window;
+	WindowMac * window = (WindowMac*)this->window;
 
 	if( !show )
 	{
 		return;
 	}
+    
+    // TODO : paint_rectの範囲外だったら再描画しない
 
-    Rect plane_rect = { x, y, x+width, y+height };
-   	if( plane_rect.left>=paint_rect.right || plane_rect.right<=paint_rect.left
-   		|| plane_rect.top>=paint_rect.bottom || plane_rect.bottom<=paint_rect.top )
-	{
-		return;
-	}
-
-	// ÉeÉLÉXÉgópÉIÉtÉXÉNÉäÅ[ÉìÉoÉbÉtÉ@ÇÃï`âÊ
+	// Textのオフスクリーンレイヤを描画
 	DrawOffscreen();
 
-	// ÉeÉLÉXÉgópÉIÉtÉXÉNÉäÅ[ÉìÉoÉbÉtÉ@Ç©ÇÁÇÃ AlphaBlend
+	// テキストレイヤを実スクリーンに描画
 	{
-		Rect _paint_rect = paint_rect;
-		if( _paint_rect.left < plane_rect.left ){ _paint_rect.left = plane_rect.left; }
-		if( _paint_rect.right > plane_rect.right ){ _paint_rect.right = plane_rect.right; }
-		if( _paint_rect.top < plane_rect.top ){ _paint_rect.top = plane_rect.top; }
-		if( _paint_rect.bottom > plane_rect.bottom ){ _paint_rect.bottom = plane_rect.bottom; }
-
-		//int paint_width = _paint_rect.right - _paint_rect.left;
-		//int paint_height = _paint_rect.bottom - _paint_rect.top;
-
-        /*
-		BLENDFUNCTION bf;
-		bf.BlendOp = AC_SRC_OVER;
-		bf.BlendFlags = 0;
-		bf.AlphaFormat = AC_SRC_ALPHA;
-		bf.SourceConstantAlpha = 255;
-	
-		AlphaBlend(
-			window->offscreen_dc, _paint_rect.left, _paint_rect.top, paint_width, paint_height,
-			offscreen_dc, _paint_rect.left-x, _paint_rect.top-y, paint_width, paint_height,
-			bf
-			);
-        */
+        CGContextDrawLayerAtPoint( window->paint_gctx, CGPointMake(x, window->paint_client_size.cy - y - height), offscreen_handle);
+        
+        window->perf_fillrect_count++;
 	}
 }
 
@@ -719,171 +661,66 @@ static int _drawRect( void * owner, CGRect rect, CGContextRef gctx )
     TRACE;
     
     WindowMac * window = (WindowMac*)owner;
+    return window->drawRect( rect, gctx );
+}
+
+int WindowMac::drawRect( CGRect rect, CGContextRef gctx )
+{
+    beginPaint( gctx, rect );
+    flushPaint();
+    endPaint();
     
-    window->beginPaint( gctx, rect );
-    window->flushPaint();
-    window->endPaint();
+    return 0;
+}
+
+static int _viewDidEndLiveResize( void * owner, CGSize size )
+{
+    TRACE;
     
-    if(0)
+    WindowMac * window = (WindowMac*)owner;
+    return window->viewDidEndLiveResize(size);
+}
+
+int WindowMac::viewDidEndLiveResize( CGSize size )
+{
+    // TODO : フレームサイズ再計算
+    //_updateWindowFrameRect();
+    
+    if( size_handler )
     {
-        // 単色矩形描画テスト
+        PyObject * pyarglist = Py_BuildValue("(ii)", (int)size.width, (int)size.height );
+        PyObject * pyresult = PyEval_CallObject( size_handler, pyarglist );
+        Py_DECREF(pyarglist);
+        if(pyresult)
         {
-            CGContextSetRGBFillColor (gctx, 1, 0, 0, 1);
-            CGContextFillRect (gctx, CGRectMake (0, 0, 200, 100 ));
-            CGContextSetRGBFillColor (gctx, 0, 0, 1, 0.5);
-            CGContextFillRect (gctx, CGRectMake (0, 0, 100, 200));
+            Py_DECREF(pyresult);
         }
-        
-        // 画像描画テスト
+        else
         {
-            int width = 100;
-            int height = 100;
-            
-            unsigned char * buffer = (unsigned char*)malloc(width * height * 4);
-            for(int y=0 ; y<height ; ++y)
-            {
-                for(int x=0 ; x<width ; ++x)
-                {
-                    int i = width * y + x;
-                    buffer[i*4+0] = (x * 4) % 255;    // R
-                    buffer[i*4+1] = (y * 4) % 255;    // G
-                    buffer[i*4+2] = 255;              // B
-                    buffer[i*4+3] = 255;              // A
-                }
-            }
-            
-            CGDataProviderRef dataProviderRef = CGDataProviderCreateWithData(NULL, buffer, width*height*4, NULL);
-            CGImageRef image = CGImageCreate(width, height, 8, 32, width*4, CGColorSpaceCreateDeviceRGB(), kCGBitmapByteOrderDefault | kCGImageAlphaLast, dataProviderRef, NULL, 0, kCGRenderingIntentDefault);
-            
-            CGContextDrawImage(gctx, CGRectMake(210,0,100,100), image );
-            
-            CGImageRelease(image);
-            CFRelease(dataProviderRef);
-            free(buffer);
-        }
-        
-        // オフスクリーン描画テスト
-        {
-            CGLayerRef layer = CGLayerCreateWithContext(gctx, CGSizeMake(200,200), NULL );
-            
-            CGContextRef layer_ctx = CGLayerGetContext(layer);
-            
-            // オフスクリーンに描画
-            {
-                CGContextSetRGBFillColor( layer_ctx, 0, 1, 0, 0.3);
-                CGContextFillRect( layer_ctx, CGRectMake (0, 0, 200, 100 ));
-                CGContextSetRGBFillColor( layer_ctx, 0, 0, 1, 0.3);
-                CGContextFillRect( layer_ctx, CGRectMake (0, 0, 100, 200));
-            }
-            
-            // 実画面にリピート描画
-            CGContextDrawLayerInRect( gctx, CGRectMake(0, 210, 50, 50), layer);
-            CGContextDrawLayerInRect( gctx, CGRectMake(60, 210, 50, 50), layer);
-            CGContextDrawLayerInRect( gctx, CGRectMake(120, 210, 50, 50), layer);
-            
-            CGLayerRelease(layer);
-        }
-        
-        // テキスト描画テスト
-        {
-            CFMutableAttributedStringRef attrString = CFAttributedStringCreateMutable(kCFAllocatorDefault, 0 );
-            
-            // 文字列
-            CFStringRef str = CFSTR("Hello World! こんにちは");
-            CFAttributedStringReplaceString(attrString, CFRangeMake(0,0), str );
-            CFRelease(str);
-            
-            // フォント
-            CTFontRef font = CTFontCreateWithName(CFSTR("HiraKakuProN-W6"), 20.f, NULL);
-            CFAttributedStringSetAttribute(attrString, CFRangeMake(0, CFStringGetLength(str)), kCTFontAttributeName, font);
-            CFRelease(font);
-            
-            // 色
-            CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
-            CGFloat components[] = {1,0,0,0.8};
-            CGColorRef color = CGColorCreate(colorSpace, components );
-            CFAttributedStringSetAttribute(attrString, CFRangeMake(0,5), kCTForegroundColorAttributeName, color);
-            CGColorRelease(color);
-            CGColorSpaceRelease(colorSpace);
-            
-            // １行描画
-            CTLineRef line = CTLineCreateWithAttributedString(attrString);
-            
-            CGContextSetTextMatrix(gctx, CGAffineTransformIdentity);
-            CGContextSetTextPosition(gctx, 110.0, 110.0);
-            CTLineDraw(line,gctx);
-            
-            CFRelease(line);
-            CFRelease(attrString);
-        }
-        
-        // フォント列挙
-        {
-            CFStringRef keys[] = { };
-            CFTypeRef values[] = { };
-            CFDictionaryRef options =
-            CFDictionaryCreate(kCFAllocatorDefault, (const void**)&keys,
-                               (const void**)&values, sizeof(keys) / sizeof(keys[0]),
-                               &kCFTypeDictionaryKeyCallBacks,
-                               &kCFTypeDictionaryValueCallBacks);
-            
-            CTFontCollectionRef fontCollection = CTFontCollectionCreateFromAvailableFonts(options);
-            
-            CFArrayRef array = CTFontCollectionCreateMatchingFontDescriptors(fontCollection);
-            
-            int numFound = 0;
-            
-            for( int i=0 ; i<CFArrayGetCount(array) ; ++i )
-            {
-                CTFontDescriptorRef fontDesc = (CTFontDescriptorRef)CFArrayGetValueAtIndex(array,i);
-                
-                CFStringRef familyName = (CFStringRef)CTFontDescriptorCopyAttribute(fontDesc, kCTFontFamilyNameAttribute);
-                CFStringRef displayName = (CFStringRef)CTFontDescriptorCopyAttribute(fontDesc, kCTFontDisplayNameAttribute);
-                //CFNumberRef fixedAdvance = CTFontDescriptorCopyAttribute(fontDesc, kCTFontFixedAdvanceAttribute);
-                
-                //if( fixedAdvance )
-                {
-                    //float fixedAdvanceValue;
-                    //CFNumberGetValue(fixedAdvance, kCFNumberFloat32Type, &fixedAdvanceValue );
-                    
-                    printf( "family  name: %s\n", CFStringGetCStringPtr(familyName, kCFStringEncodingUTF8 ) );
-                    printf( "display name: %s\n", CFStringGetCStringPtr(displayName, kCFStringEncodingUTF8 ) );
-                    //printf( "fixed advance: %f\n", fixedAdvanceValue );
-                    
-                    numFound += 1;
-                }
-                
-                CFRelease(displayName);
-                CFRelease(familyName);
-                //if(fixedAdvance){ CFRelease(fixedAdvance); }
-            }
-            
-            printf( "font count = %d\n", numFound );
-            
-            CFRelease(array);
-            CFRelease(fontCollection);
-            CFRelease(options);
+            PyErr_Print();
         }
     }
-
+    
     return 0;
 }
 
 ckit_Window_Callbacks callbacks = {
-    _drawRect
+    _drawRect,
+    _viewDidEndLiveResize
 };
 
 WindowMac::WindowMac( Param & param )
 	:
 	WindowBase(param),
     handle(0),
-    gctx(0)
+    paint_gctx(0)
 {
 	FUNC_TRACE;
     
     // initialize graphics system
     memset( &window_frame_size, 0, sizeof(window_frame_size) );
     memset( &paint_rect, 0, sizeof(paint_rect) );
+    memset( &paint_client_size, 0, sizeof(paint_client_size) );
     
     // create window
     if( ckit_Window_Create( &callbacks, this, &handle )!=0 )
@@ -920,22 +757,26 @@ void WindowMac::beginPaint(CGContextRef _gctx, const Rect & _rect )
 {
     TRACE;
 
-    gctx = _gctx;
+    paint_gctx = _gctx;
     paint_rect = _rect;
+    
+    CGSize size;
+    ckit_Window_GetClientSize(handle, &size);
+    paint_client_size = size;
 }
 
 void WindowMac::endPaint()
 {
     TRACE;
     
-    gctx = NULL;
+    paint_gctx = NULL;
 }
 
 void WindowMac::paintBackground()
 {
     // FIXME : 設定された背景色をちゃんと使う
-    CGContextSetRGBFillColor( gctx, 0, 0, 0, 1 );
-    CGContextFillRect( gctx, paint_rect );
+    CGContextSetRGBFillColor( paint_gctx, 0, 0, 0, 1 );
+    CGContextFillRect( paint_gctx, paint_rect );
 }
 
 void WindowMac::paintPlanes()
@@ -979,75 +820,12 @@ void WindowMac::flushPaint()
 {
 	FUNC_TRACE;
 
-    if(!dirty){ return; }
+    // FIMXE : dirty をどこも立ててないので一時的にコメントアウト
+    //if(!dirty){ return; }
     
     paintBackground();
     paintPlanes();
     paintCaret();
-    
-    /*
-	bool dc_need_release = false;
-	if(hDC==NULL)
-	{
-		hDC = GetDC(hwnd);
-		dc_need_release = true;
-	}
-
-    RECT client_rect;
-    GetClientRect(hwnd, &client_rect);
-
-	if( dirty_rect.left < client_rect.left ) dirty_rect.left = client_rect.left;
-	if( dirty_rect.top < client_rect.top ) dirty_rect.top = client_rect.top;
-	if( dirty_rect.right > client_rect.right ) dirty_rect.right = client_rect.right;
-	if( dirty_rect.bottom > client_rect.bottom ) dirty_rect.bottom = client_rect.bottom;
-
-	// ÉIÉtÉXÉNÉäÅ[ÉìÉoÉbÉtÉ@ê∂ê¨
-	if( offscreen_dc==NULL || offscreen_bmp==NULL || offscreen_size.cx!=client_rect.right-client_rect.left || offscreen_size.cy!=client_rect.bottom-client_rect.top )
-	{
-		if(offscreen_dc){ DeleteObject(offscreen_dc); }
-		if(offscreen_bmp){ DeleteObject(offscreen_bmp); }
-		
-		int width = client_rect.right-client_rect.left;
-		int height = client_rect.bottom-client_rect.top;
-		if(width<1){ width=1; }
-		if(height<1){ height=1; }
-
-		// ÉIÉtÉXÉNÉäÅ[Éì
-		offscreen_dc = CreateCompatibleDC(hDC);
-		offscreen_bmp = CreateCompatibleBitmap(hDC, width, height);
-		SelectObject(offscreen_dc, offscreen_bmp);
-
-		offscreen_size.cx = client_rect.right-client_rect.left;
-		offscreen_size.cy = client_rect.bottom-client_rect.top;
-		
-		// ÉIÉtÉXÉNÉäÅ[ÉìÇçÏÇ¡ÇΩíºå„ÇÕëSÇƒï`Ç≠
-		dirty_rect = client_rect;
-		FillRect( offscreen_dc, &dirty_rect, bg_brush );
-	}
-
-	// ÉIÉtÉXÉNÉäÅ[ÉìÇ÷ÇÃï`âÊ
-	{
-	    IntersectClipRect( offscreen_dc, dirty_rect.left, dirty_rect.top, dirty_rect.right, dirty_rect.bottom );
-
-		_drawBackground( dirty_rect );
-		_drawPlanes( dirty_rect );
-		_drawCaret( dirty_rect );
-
-		SelectClipRgn( offscreen_dc, NULL );
-	}
-
-	// ÉIÉtÉXÉNÉäÅ[ÉìÇ©ÇÁÉEÉCÉìÉhÉEÇ…ì]ëó
-	if(bitblt)
-	{
-	    BOOL ret = BitBlt( hDC, dirty_rect.left, dirty_rect.top, dirty_rect.right-dirty_rect.left, dirty_rect.bottom-dirty_rect.top, offscreen_dc, dirty_rect.left, dirty_rect.top, SRCCOPY );
-		assert(ret);
-	}
-
-	if(dc_need_release)
-	{
-		ReleaseDC( hwnd, hDC );
-	}
-    */
 
 	clearDirtyRect();
 
@@ -1500,30 +1278,21 @@ bool WindowMac::isForeground()
 void WindowMac::getWindowRect( Rect * rect )
 {
 	FUNC_TRACE;
+    
+    CGRect _rect;
+    ckit_Window_GetWindowRect( handle, &_rect );
 	
-    /*
-	if(::IsIconic(hwnd))
-	{
-		*rect = last_valid_window_rect;
-	}
-	else
-	{
-		::GetWindowRect(hwnd,rect);
-	}
-     */
+    *rect = Rect(_rect);
 }
 
 void WindowMac::getClientSize( Size * size )
 {
 	FUNC_TRACE;
 	
-    /*
-	Rect rect;
-    GetClientRect( hwnd, &rect );
-
-	size->cx = rect.right - rect.left;
-	size->cy = rect.bottom - rect.top;
-     */
+    CGSize _size;
+    ckit_Window_GetClientSize( handle, &_size );
+	
+    *size = Size(_size);
 }
 
 void WindowMac::getNormalWindowRect( Rect * rect )
