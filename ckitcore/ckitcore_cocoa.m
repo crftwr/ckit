@@ -16,8 +16,8 @@
 //#define PRINTF printf
 #define PRINTF(...)
 
-#define TRACE printf("%s(%d) : %s\n",__FILE__,__LINE__,__FUNCTION__)
-//#define TRACE
+//#define TRACE printf("%s(%d) : %s\n",__FILE__,__LINE__,__FUNCTION__)
+#define TRACE
 
 //-----------------------------------------------------------------------------
 
@@ -57,6 +57,12 @@
     CGRect rect = [self frame];
     
     callbacks->viewDidEndLiveResize( owner, rect.size );
+}
+
+-(void)timerHandler:(NSTimer*)timer
+{
+    //TRACE;
+    callbacks->timerHandler( owner, (__bridge CocoaObject *)(timer) );
 }
 
 @end
@@ -134,3 +140,38 @@ int ckit_Window_GetClientSize( CocoaObject * _window, CGSize * size )
     return 0;
 }
 
+int ckit_Window_SetNeedsRedraw( CocoaObject * _window )
+{
+    NSWindow * window = (__bridge NSWindow*)_window;
+
+    NSView * view = window.contentView;
+    [view setNeedsDisplay:TRUE];
+    
+    return 0;
+}
+
+int ckit_Window_SetTimer( CocoaObject * _window, float interval, CocoaObject ** _timer )
+{
+    NSWindow * window = (__bridge NSWindow*)_window;
+    NSView * view = window.contentView;
+    
+    NSTimer * timer = [NSTimer scheduledTimerWithTimeInterval:interval
+                                                       target:view
+                                                     selector:@selector(timerHandler:)
+                                                     userInfo:nil
+                                                      repeats:YES];
+    [[NSRunLoop currentRunLoop] addTimer:timer forMode:NSModalPanelRunLoopMode];
+
+    *_timer = (__bridge CocoaObject *)timer;
+    
+    return 0;
+}
+
+int ckit_Window_KillTimer( CocoaObject * _window, CocoaObject * _timer )
+{
+    NSTimer * timer = (__bridge NSTimer*)_timer;
+    
+    [timer invalidate];
+    
+    return 0;
+}

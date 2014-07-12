@@ -22,6 +22,7 @@ typedef struct ckit_Window_Callbacks_t
 {
     int (*drawRect)( void * owner, CGRect rect, CGContextRef gctx );
     int (*viewDidEndLiveResize)( void * owner, CGSize size );
+    int (*timerHandler)( void * owner, CocoaObject * timer );
 
 } ckit_Window_Callbacks;
 
@@ -33,6 +34,8 @@ EXTERN int ckit_Window_Destroy( CocoaObject * window );
 EXTERN int ckit_Window_MessageLoop( CocoaObject * window );
 EXTERN int ckit_Window_GetWindowRect( CocoaObject * window, CGRect * rect );
 EXTERN int ckit_Window_GetClientSize( CocoaObject * window, CGSize * size );
-
+EXTERN int ckit_Window_SetNeedsRedraw( CocoaObject * window );
+EXTERN int ckit_Window_SetTimer( CocoaObject * window, float interval, CocoaObject ** timer );
+EXTERN int ckit_Window_KillTimer( CocoaObject * window, CocoaObject * timer );
 
 #endif//__CKITCORE_COCOA_EXPORT_H__

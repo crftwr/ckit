@@ -112,22 +112,23 @@ namespace ckit
 		virtual void setImeFont( FontBase * font );
 		virtual void messageLoop();
         
-        CGContextRef getCGContext();
-        
         int drawRect( CGRect rect, CGContextRef gctx );
-        void beginPaint( CGContextRef gtxt, const Rect & rect );
+        void beginPaint( CGContextRef gtxt );
         void endPaint();
         void paintBackground();
         void paintPlanes();
         void paintCaret();
         
         int viewDidEndLiveResize( CGSize size );
+
+        int timerHandler( CocoaObject * timer );
         
         CocoaObject * handle;
         Size window_frame_size;
         
+        CocoaObject * timer_paint;
+        
         CGContextRef paint_gctx;
-        Rect paint_rect;
         Size paint_client_size;
 	};
 

@@ -1330,6 +1330,7 @@ static PyObject * Image_getSize(PyObject* self, PyObject* args)
 	return Py_BuildValue( "(ii)", ((Image_Object*)self)->p->width, ((Image_Object*)self)->p->height );
 }
 
+#if defined(PLATFORM_WIN32)
 static void _Image_ConvertRGBAtoDIB( char * dst, const char * src, int w, int h, int wb )
 {
 	FUNC_TRACE;
@@ -1346,6 +1347,7 @@ static void _Image_ConvertRGBAtoDIB( char * dst, const char * src, int w, int h,
 		}
 	}
 }
+#endif // PLATFORM
 
 static PyObject * Image_fromString( PyObject * self, PyObject * args )
 {

@@ -14,13 +14,13 @@ using namespace ckit;
 
 //-----------------------------------------------------------------------------
 
-#define PRINTF printf
-//#define PRINTF(...)
+//#define PRINTF printf
+#define PRINTF(...)
 
-#define TRACE printf("%s(%d) : %s\n",__FILE__,__LINE__,__FUNCTION__)
-//#define TRACE
+//#define TRACE printf("%s(%d) : %s\n",__FILE__,__LINE__,__FUNCTION__)
+#define TRACE
 
-#if 1
+#if 0
 	struct FuncTrace
 	{
 		FuncTrace( const char * _funcname, unsigned int _lineno )
@@ -44,6 +44,8 @@ using namespace ckit;
 	#define FUNC_TRACE
 #endif
 
+#define WARN_NOT_IMPLEMENTED printf("Warning: %s is not implemented.\n", __FUNCTION__)
+
 //-----------------------------------------------------------------------------
 
 ImageMac::ImageMac( int _width, int _height, const char * pixels, const Color * _transparent_color, bool _halftone )
@@ -55,23 +57,6 @@ ImageMac::ImageMac( int _width, int _height, const char * pixels, const Color * 
     buffer = (unsigned char*)malloc(width * height * 4);
     
     memcpy(buffer, pixels, width * height * 4);
-    
-    /*
-    int src_y = height-1;
-
-    printf( "pixel[0] : %d,%d,%d,%d\n", (unsigned char)pixels[src_y*width*4 + 0], (unsigned char)pixels[src_y*width*4 + 1], (unsigned char)pixels[src_y*width*4 + 2], (unsigned char)pixels[src_y*width*4 + 3] );
-    
-    for( int y=0 ; y<height ; ++y, --src_y )
-    {
-        for( int x=0 ; x<width ; ++x )
-        {
-            buffer[ y*width*4 + x*4 + 0 ] = pixels[ src_y*width*4 + x*4 + 0 ];
-            buffer[ y*width*4 + x*4 + 1 ] = pixels[ src_y*width*4 + x*4 + 1 ];
-            buffer[ y*width*4 + x*4 + 2 ] = pixels[ src_y*width*4 + x*4 + 2 ];
-            buffer[ y*width*4 + x*4 + 3 ] = pixels[ src_y*width*4 + x*4 + 3 ];
-        }
-    }
-     */
     
     CGDataProviderRef dataProviderRef = CGDataProviderCreateWithData(NULL, buffer, width*height*4, NULL);
     handle = CGImageCreate(width, height, 8, 32, width*4, CGColorSpaceCreateDeviceRGB(), kCGBitmapByteOrderDefault | kCGImageAlphaLast, dataProviderRef, NULL, 0, kCGRenderingIntentDefault);
@@ -192,17 +177,14 @@ void TextPlaneMac::Scroll( int x, int y, int width, int height, int delta_x, int
 
 	//bool ret;
 
-	// ÉeÉLÉXÉgópÉIÉtÉXÉNÉäÅ[ÉìÇ…Ç‹Çæï`Ç¢ÇƒÇ»Ç¢Ç‡ÇÃÇ™Ç†ÇÍÇŒï`Ç≠
     DrawOffscreen();
 
-	// ñÑÇ‹Ç¡ÇƒÇ¢Ç»Ç©Ç¡ÇΩÇÁãÛï∂éöÇ≈êiÇﬂÇÈ
 	while( (int)char_buffer.size() <= y+height+delta_y )
 	{
         Line * line = new Line();
         char_buffer.push_back(line);
 	}
 
-	// ÉLÉÉÉâÉNÉ^ÉoÉbÉtÉ@ÇÉRÉsÅ[
 	if(delta_y<0)
 	{
 		for( int i=0 ; i<height ; ++i )
@@ -250,6 +232,8 @@ void TextPlaneMac::Scroll( int x, int y, int width, int height, int delta_x, int
 			}
 		}
 	}
+    
+    WARN_NOT_IMPLEMENTED;
 
     /*
 	Rect src_rect = {
@@ -299,9 +283,7 @@ void TextPlaneMac::DrawOffscreen()
 		if(offscreen_size.cx<1){ offscreen_size.cx=1; }
 		if(offscreen_size.cy<1){ offscreen_size.cy=1; }
 
-        CGContextRef gctx = window->getCGContext();
-        
-        offscreen_handle = CGLayerCreateWithContext( gctx, CGSizeMake(offscreen_size.cx,offscreen_size.cy), NULL );
+        offscreen_handle = CGLayerCreateWithContext( window->paint_gctx, CGSizeMake(offscreen_size.cx,offscreen_size.cy), NULL );
         offscreen_context = CGLayerGetContext(offscreen_handle);
         
 		offscreen_rebuilt = true;
@@ -366,6 +348,9 @@ void TextPlaneMac::DrawOffscreen()
 			{
 				if( chr.attr.bg & Attribute::BG_Flat )
 				{
+                    CGContextSetRGBFillColor( offscreen_context, chr.attr.bg_color[0].r/255.0f, chr.attr.bg_color[0].g/255.0f, chr.attr.bg_color[0].b/255.0f, 1 );
+                    CGContextFillRect( offscreen_context, CGRectMake( x * font->char_width, offscreen_size.cy - (y+1) * font->char_height + (offscreen_size.cy % font->char_height), (x2-x) * font->char_width, font->char_height) );
+
                     /*
 					HBRUSH hBrush = CreateSolidBrush( chr.attr.bg_color[0] );
 					HPEN hPen = CreatePen( PS_SOLID, 0, chr.attr.bg_color[0] );
@@ -458,19 +443,6 @@ void TextPlaneMac::DrawOffscreen()
 					window->perf_fillrect_count ++;
 				}
 
-				if(chr.attr.bg)
-				{
-                    /*
-					SetTextColor( offscreen_dc, chr.attr.fg_color );
-                    */
-				}
-				else
-				{
-                    /*
-					SetTextColor( offscreen_dc, RGB(0xff, 0xff, 0xff) );
-                    */
-				}
-                
                 // テキスト描画テスト
                 {
                     CFMutableAttributedStringRef attrString = CFAttributedStringCreateMutable(kCFAllocatorDefault, 0 );
@@ -489,9 +461,8 @@ void TextPlaneMac::DrawOffscreen()
                     CFAttributedStringSetAttribute(attrString, CFRangeMake(0, CFStringGetLength(str)), kCTFontAttributeName, font->handle);
                     
                     // 色
-                    // FIXME : 設定された色を使う
                     CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
-                    CGFloat components[] = {1,1,1,1};
+                    CGFloat components[] = { chr.attr.fg_color.r/255.0f, chr.attr.fg_color.g/255.0f, chr.attr.fg_color.b/255.0f, 1 };
                     CGColorRef color = CGColorCreate(colorSpace, components );
                     CFAttributedStringSetAttribute(attrString, CFRangeMake(0,work_len), kCTForegroundColorAttributeName, color);
                     CGColorRelease(color);
@@ -500,11 +471,6 @@ void TextPlaneMac::DrawOffscreen()
                     // 行の描画
                     CTLineRef line = CTLineCreateWithAttributedString(attrString);
                     CGContextSetTextMatrix( offscreen_context, CGAffineTransformIdentity);
-                    
-                    printf( "text position : %d\n", offscreen_size.cy - (y+1) * font->char_height + (offscreen_size.cy % font->char_height) );
-
-                    printf( "              : %d, %d, %d, %d\n", offscreen_size.cy, y, font->char_height, (offscreen_size.cy % font->char_height) );
-                    
                     CGContextSetTextPosition( offscreen_context, x * font->char_width, offscreen_size.cy - (y+1) * font->char_height + (offscreen_size.cy % font->char_height) );
                     CTLineDraw(line,offscreen_context);
                     
@@ -595,6 +561,8 @@ void TextPlaneMac::DrawOffscreen()
 
 void TextPlaneMac::DrawHorizontalLine( int x1, int y1, int x2, Color color, bool dotted )
 {
+    WARN_NOT_IMPLEMENTED;
+
     /*
 	color = (0xff << 24) | (GetRValue(color) << 16) | (GetGValue(color) << 8) | GetBValue(color);
 	int step;
@@ -609,6 +577,8 @@ void TextPlaneMac::DrawHorizontalLine( int x1, int y1, int x2, Color color, bool
 
 void TextPlaneMac::DrawVerticalLine( int x1, int y1, int y2, Color color, bool dotted )
 {
+    WARN_NOT_IMPLEMENTED;
+
     /*
 	color = (0xff << 24) | (GetRValue(color) << 16) | (GetGValue(color) << 8) | GetBValue(color);
 	int step;
@@ -666,7 +636,7 @@ static int _drawRect( void * owner, CGRect rect, CGContextRef gctx )
 
 int WindowMac::drawRect( CGRect rect, CGContextRef gctx )
 {
-    beginPaint( gctx, rect );
+    beginPaint( gctx );
     flushPaint();
     endPaint();
     
@@ -679,6 +649,27 @@ static int _viewDidEndLiveResize( void * owner, CGSize size )
     
     WindowMac * window = (WindowMac*)owner;
     return window->viewDidEndLiveResize(size);
+}
+
+static int _timerHandler( void * owner, CocoaObject * timer )
+{
+    //TRACE;
+    
+    WindowMac * window = (WindowMac*)owner;
+    return window->timerHandler(timer);
+}
+
+int WindowMac::timerHandler( CocoaObject * timer )
+{
+    if( timer == timer_paint )
+    {
+        if(dirty)
+        {
+            ckit_Window_SetNeedsRedraw(handle);
+        }
+    }
+    
+    return 0;
 }
 
 int WindowMac::viewDidEndLiveResize( CGSize size )
@@ -706,20 +697,21 @@ int WindowMac::viewDidEndLiveResize( CGSize size )
 
 ckit_Window_Callbacks callbacks = {
     _drawRect,
-    _viewDidEndLiveResize
+    _viewDidEndLiveResize,
+    _timerHandler
 };
 
 WindowMac::WindowMac( Param & param )
 	:
 	WindowBase(param),
     handle(0),
+    timer_paint(0),
     paint_gctx(0)
 {
 	FUNC_TRACE;
     
     // initialize graphics system
     memset( &window_frame_size, 0, sizeof(window_frame_size) );
-    memset( &paint_rect, 0, sizeof(paint_rect) );
     memset( &paint_client_size, 0, sizeof(paint_client_size) );
     
     // create window
@@ -728,15 +720,20 @@ WindowMac::WindowMac( Param & param )
         printf("ckit_Window_Create failed\n");
         return;
     }
+    
+    ckit_Window_SetTimer( handle, 0.016, &timer_paint );
 }
 
 WindowMac::~WindowMac()
 {
 	FUNC_TRACE;
 
-	// ÉEÉCÉìÉhÉEîjä¸íÜÇ… activate_handler Ç»Ç«ÇåƒÇŒÇ»Ç¢ÇÊÇ§Ç…
+    // 終了処理中のリソースにアクセスしないように、呼び出し可能オブジェクトを破棄
 	clearCallables();
 
+    // タイマー破棄
+    ckit_Window_KillTimer( handle, timer_paint );
+    
     // terminate graphics system
     
     // destroy window
@@ -753,12 +750,11 @@ WindowHandle WindowMac::getHandle() const
 	return NULL;
 }
 
-void WindowMac::beginPaint(CGContextRef _gctx, const Rect & _rect )
+void WindowMac::beginPaint(CGContextRef _gctx )
 {
     TRACE;
 
     paint_gctx = _gctx;
-    paint_rect = _rect;
     
     CGSize size;
     ckit_Window_GetClientSize(handle, &size);
@@ -776,12 +772,14 @@ void WindowMac::paintBackground()
 {
     // FIXME : 設定された背景色をちゃんと使う
     CGContextSetRGBFillColor( paint_gctx, 0, 0, 0, 1 );
-    CGContextFillRect( paint_gctx, paint_rect );
+    CGContextFillRect( paint_gctx, CGRectMake(0,0,paint_client_size.cx, paint_client_size.cy) );
 }
 
 void WindowMac::paintPlanes()
 {
 	FUNC_TRACE;
+    
+    Rect paint_rect(0,0,paint_client_size.cx,paint_client_size.cy);
 
 	std::list<PlaneBase*>::const_iterator i;
     for( i=plane_list.begin() ; i!=plane_list.end() ; i++ )
@@ -821,7 +819,7 @@ void WindowMac::flushPaint()
 	FUNC_TRACE;
 
     // FIMXE : dirty をどこも立ててないので一時的にコメントアウト
-    //if(!dirty){ return; }
+    if(!dirty){ return; }
     
     paintBackground();
     paintPlanes();
@@ -837,6 +835,8 @@ void WindowMac::flushPaint()
 
 void WindowMac::enumFonts( std::vector<std::wstring> * font_list )
 {
+    WARN_NOT_IMPLEMENTED;
+
     /*
 	HDC hdc = GetDC(NULL);
 
@@ -854,6 +854,8 @@ void WindowMac::enumFonts( std::vector<std::wstring> * font_list )
 
 void WindowMac::setBGColor( Color color )
 {
+    WARN_NOT_IMPLEMENTED;
+
     /*
     if(bg_brush){ DeleteObject(bg_brush); }
     bg_brush = CreateSolidBrush(color);
@@ -868,6 +870,8 @@ void WindowMac::setBGColor( Color color )
 
 void WindowMac::setFrameColor( Color color )
 {
+    WARN_NOT_IMPLEMENTED;
+
     /*
     if(frame_pen){ DeleteObject(frame_pen); }
     frame_pen = CreatePen( PS_SOLID, 0, color );
@@ -879,6 +883,8 @@ void WindowMac::setFrameColor( Color color )
 void WindowMac::setCaretColor( Color color0, Color color1 )
 {
 	FUNC_TRACE;
+
+    WARN_NOT_IMPLEMENTED;
 
     /*
     if(caret0_brush){ DeleteObject(caret0_brush); }
@@ -900,6 +906,8 @@ void WindowMac::setMenu( PyObject * _menu )
 	Py_XINCREF(menu);
 	
 	clearMenuCommands();
+
+    WARN_NOT_IMPLEMENTED;
 
     /*
 	HMENU old_menu_handle = GetMenu(hwnd);
@@ -1010,6 +1018,8 @@ void WindowMac::setPositionAndSize( int x, int y, int width, int height, int ori
     	y -= window_h;
     }
     
+    WARN_NOT_IMPLEMENTED;
+
     /*
 	::SetWindowPos( hwnd, NULL, x, y, window_w, window_h, SWP_NOZORDER | SWP_NOACTIVATE );
      */
@@ -1020,6 +1030,8 @@ void WindowMac::setPositionAndSize( int x, int y, int width, int height, int ori
 
 void WindowMac::setCapture()
 {
+    WARN_NOT_IMPLEMENTED;
+
     /*
 	SetCapture(hwnd);
      */
@@ -1027,6 +1039,8 @@ void WindowMac::setCapture()
 
 void WindowMac::releaseCapture()
 {
+    WARN_NOT_IMPLEMENTED;
+
     /*
     if(hwnd!=GetCapture())
     {
@@ -1038,6 +1052,8 @@ void WindowMac::releaseCapture()
 
 void WindowMac::setMouseCursor( int id )
 {
+    WARN_NOT_IMPLEMENTED;
+
     /*
 	LPCTSTR idc;
 	
@@ -1097,6 +1113,8 @@ void WindowMac::setMouseCursor( int id )
 
 void WindowMac::drag( int x, int y )
 {
+    WARN_NOT_IMPLEMENTED;
+
     /*
 	PostMessage( hwnd, WM_NCLBUTTONDOWN, (WPARAM)HTCAPTION, ((y<<16)|x) );
      */
@@ -1105,6 +1123,8 @@ void WindowMac::drag( int x, int y )
 void WindowMac::show( bool show, bool activate )
 {
 	FUNC_TRACE;
+
+    WARN_NOT_IMPLEMENTED;
 
     /*
     ShowWindow( hwnd, show ? (activate?SW_SHOW:SW_SHOWNOACTIVATE) : SW_HIDE );
@@ -1115,6 +1135,8 @@ void WindowMac::enable( bool enable )
 {
 	FUNC_TRACE;
 
+    WARN_NOT_IMPLEMENTED;
+
     /*
     EnableWindow( hwnd, enable );
      */
@@ -1124,6 +1146,8 @@ void WindowMac::activate()
 {
 	FUNC_TRACE;
 
+    WARN_NOT_IMPLEMENTED;
+
     /*
     SetActiveWindow(hwnd);
      */
@@ -1132,6 +1156,8 @@ void WindowMac::activate()
 void WindowMac::inactivate()
 {
 	FUNC_TRACE;
+
+    WARN_NOT_IMPLEMENTED;
 
     /*
 	HWND _hwnd = GetForegroundWindow();
@@ -1166,6 +1192,8 @@ void WindowMac::foreground()
 {
 	FUNC_TRACE;
 
+    WARN_NOT_IMPLEMENTED;
+
     /*
     HWND hwnd_last_active = GetLastActivePopup( hwnd );
     SetForegroundWindow( hwnd_last_active );
@@ -1176,6 +1204,8 @@ void WindowMac::restore()
 {
 	FUNC_TRACE;
 
+    WARN_NOT_IMPLEMENTED;
+
     /*
     ShowWindow( hwnd, SW_RESTORE );
      */
@@ -1184,6 +1214,8 @@ void WindowMac::restore()
 void WindowMac::maximize()
 {
 	FUNC_TRACE;
+
+    WARN_NOT_IMPLEMENTED;
 
     /*
     ShowWindow( hwnd, SW_MAXIMIZE );
@@ -1194,6 +1226,8 @@ void WindowMac::minimize()
 {
 	FUNC_TRACE;
 
+    WARN_NOT_IMPLEMENTED;
+
     /*
     ShowWindow( hwnd, SW_MINIMIZE );
      */
@@ -1202,6 +1236,8 @@ void WindowMac::minimize()
 void WindowMac::topmost( bool topmost )
 {
 	FUNC_TRACE;
+
+    WARN_NOT_IMPLEMENTED;
 
     /*
 	if(topmost)
@@ -1219,6 +1255,8 @@ bool WindowMac::isEnabled()
 {
 	FUNC_TRACE;
 
+    WARN_NOT_IMPLEMENTED;
+
     /*
 	return ::IsWindowEnabled( hwnd )!=FALSE;
      */
@@ -1228,6 +1266,8 @@ bool WindowMac::isEnabled()
 bool WindowMac::isVisible()
 {
 	FUNC_TRACE;
+
+    WARN_NOT_IMPLEMENTED;
 
     /*
 	return ::IsWindowVisible( hwnd )!=FALSE;
@@ -1239,6 +1279,8 @@ bool WindowMac::isMaximized()
 {
 	FUNC_TRACE;
 	
+    WARN_NOT_IMPLEMENTED;
+
     /*
 	return ::IsZoomed( hwnd )!=FALSE;
      */
@@ -1248,6 +1290,8 @@ bool WindowMac::isMaximized()
 bool WindowMac::isMinimized()
 {
 	FUNC_TRACE;
+
+    WARN_NOT_IMPLEMENTED;
 
     /*
 	return ::IsIconic( hwnd )!=FALSE;
@@ -1259,6 +1303,8 @@ bool WindowMac::isActive()
 {
 	FUNC_TRACE;
 	
+    WARN_NOT_IMPLEMENTED;
+
     /*
 	return active;
      */
@@ -1268,6 +1314,8 @@ bool WindowMac::isActive()
 bool WindowMac::isForeground()
 {
 	FUNC_TRACE;
+
+    WARN_NOT_IMPLEMENTED;
 
 	/*
 	return hwnd==GetForegroundWindow();
@@ -1299,6 +1347,8 @@ void WindowMac::getNormalWindowRect( Rect * rect )
 {
 	FUNC_TRACE;
 
+    WARN_NOT_IMPLEMENTED;
+
     /*
 	WINDOWPLACEMENT window_place;
 	memset( &window_place, 0, sizeof(window_place) );
@@ -1312,6 +1362,8 @@ void WindowMac::getNormalWindowRect( Rect * rect )
 void WindowMac::getNormalClientSize( Size * size )
 {
 	FUNC_TRACE;
+
+    WARN_NOT_IMPLEMENTED;
 
     /*
 	WINDOWPLACEMENT window_place;
@@ -1328,6 +1380,8 @@ void WindowMac::clientToScreen(Point * point)
 {
 	FUNC_TRACE;
 
+    WARN_NOT_IMPLEMENTED;
+
     /*
 	ClientToScreen( hwnd, point );
     */
@@ -1337,6 +1391,8 @@ void WindowMac::screenToClient(Point * point)
 {
 	FUNC_TRACE;
 
+    WARN_NOT_IMPLEMENTED;
+
     /*
 	ScreenToClient( hwnd, point );
     */
@@ -1344,6 +1400,8 @@ void WindowMac::screenToClient(Point * point)
 
 void WindowMac::setTimer( PyObject * func, int interval )
 {
+    WARN_NOT_IMPLEMENTED;
+
     /*
 	SetTimer( hwnd, (UINT_PTR)func, interval, NULL );
     */
@@ -1351,6 +1409,8 @@ void WindowMac::setTimer( PyObject * func, int interval )
 
 void WindowMac::killTimer( PyObject * func )
 {
+    WARN_NOT_IMPLEMENTED;
+
     /*
 	KillTimer( hwnd, (UINT_PTR)(func) );
     */
@@ -1358,6 +1418,8 @@ void WindowMac::killTimer( PyObject * func )
 
 void WindowMac::setHotKey( int vk, int mod, PyObject * func )
 {
+    WARN_NOT_IMPLEMENTED;
+
     /*
 	// 0x0000 - 0xBFFF ÇÃîÕàÕÇ≈ÅAégÇÌÇÍÇƒÇ¢Ç»Ç¢IDÇåüçıÇ∑ÇÈ
 	int id;
@@ -1391,6 +1453,8 @@ void WindowMac::setHotKey( int vk, int mod, PyObject * func )
 
 void WindowMac::killHotKey( PyObject * func )
 {
+    WARN_NOT_IMPLEMENTED;
+
     /*
 	for( std::list<HotKeyInfo>::iterator i=hotkey_list.begin(); i!=hotkey_list.end() ; i++ )
 	{
@@ -1413,6 +1477,8 @@ void WindowMac::killHotKey( PyObject * func )
 
 void WindowMac::setText( const wchar_t * text )
 {
+    WARN_NOT_IMPLEMENTED;
+
     /*
 	SetWindowText( hwnd, text );
     */
@@ -1420,6 +1486,8 @@ void WindowMac::setText( const wchar_t * text )
 
 bool WindowMac::popupMenu( int x, int y, PyObject * items )
 {
+    WARN_NOT_IMPLEMENTED;
+
     /*
 	HMENU menu;
 	menu = CreatePopupMenu();
@@ -1511,6 +1579,8 @@ void WindowMac::enableIme( bool enable )
 {
 	FUNC_TRACE;
 
+    WARN_NOT_IMPLEMENTED;
+
     /*
 	if(enable)
 	{
@@ -1536,16 +1606,12 @@ void WindowMac::setImeFont( FontBase * _font )
 {
 	FUNC_TRACE;
 
+    WARN_NOT_IMPLEMENTED;
+
     /*
 	FontMac * font = (FontMac*)_font;
 	ime_logfont = font->logfont;
     */
-}
-
-CGContextRef WindowMac::getCGContext()
-{
-    // FIXME : implement
-    return NULL;
 }
 
 void WindowMac::messageLoop()
