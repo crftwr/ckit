@@ -35,6 +35,8 @@ namespace ckit
     	virtual ~FontMac();
 
         CTFontRef handle;
+        CGFloat ascent;
+        CGFloat descent;
     };
 
     struct ImagePlaneMac : public ImagePlaneBase

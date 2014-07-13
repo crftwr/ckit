@@ -24,7 +24,7 @@ class Test1( ckit.TextWindow ):
             y=10, 
             width=80, 
             height=24,
-            font_size = 18,
+            font_size = 30,
             title_bar = True,
             title = "Ckit Test",
             sysmenu=True,
@@ -36,8 +36,8 @@ class Test1( ckit.TextWindow ):
             char_handler = self.onChar,
             )
 
-        self.putString( 0, 0, 20, 1, ckit.Attribute( fg=(255,255,255), bg=(0,0,0) ), "Hello World!" )
-        self.putString( 0, 1, 20, 1, ckit.Attribute( fg=(0,255,0), bg=(0,0,0) ), "こんにちは！" )
+        self.putString( 0, 0, 20, 1, ckit.Attribute( fg=(255,255,255), bg=(50,0,0) ), "Hello World!" )
+        self.putString( 0, 1, 20, 1, ckit.Attribute( fg=(0,255,0), bg=(0,50,0) ), "こんにちは！" )
         self.putString( 0, 2, 30, 1, ckit.Attribute( fg=(255,255,255), bg=(100,100,255) ), "abcdefghijklmnopqrstuvwxyz" )
     
         pil_img = Image.open("hello.png")

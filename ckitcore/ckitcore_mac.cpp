@@ -79,7 +79,9 @@ ImageMac::~ImageMac()
 FontMac::FontMac( const wchar_t * name, int height )
 	:
 	FontBase(),
-	handle(0)
+	handle(0),
+    ascent(0.0),
+    descent(0.0)
 {
 	FUNC_TRACE;
 
@@ -91,11 +93,48 @@ FontMac::FontMac( const wchar_t * name, int height )
         name_len * sizeof(wchar_t),
         kCFStringEncodingUTF32LE,
         false);
-    
-    handle = CTFontCreateWithName( name_str, (CGFloat)height, NULL );
-    
-    CFRelease(name_str);
 
+    // heightはピクセル単位なので、ちょうどいいポイントを探す
+    {
+        CTFontRef _handle;
+        
+        // まずはピクセル＝ポイントと見なして作ってみる
+        _handle = CTFontCreateWithName( name_str, (CGFloat)height, NULL );
+        ascent = CTFontGetAscent(_handle);
+        descent = CTFontGetDescent(_handle);
+        CFRelease(_handle);
+        
+        printf("font size adjust : step1 : %f,%f,%d\n", ascent, descent, height );
+
+        // 比率で当たりを付けて作ってみる
+        CGFloat size_in_point = height * height / (ascent + descent);
+        _handle = CTFontCreateWithName( name_str, size_in_point, NULL );
+        ascent = CTFontGetAscent(_handle);
+        descent = CTFontGetDescent(_handle);
+
+        printf("font size adjust : step2 : %f,%f,%f\n", ascent, descent, size_in_point );
+        
+        // 微調整する
+        CGFloat adjust_step = size_in_point * 0.01;
+        while( ascent + descent > height )
+        {
+            CFRelease(_handle);
+
+            size_in_point -= adjust_step;
+            _handle = CTFontCreateWithName( name_str, size_in_point, NULL );
+            ascent = CTFontGetAscent(_handle);
+            descent = CTFontGetDescent(_handle);
+
+            printf("font size adjust : step3 : %f,%f,%f\n", ascent, descent, size_in_point );
+        }
+        
+        handle = _handle;
+        
+        printf("font size adjust : done\n" );
+    }
+
+    CFRelease(name_str);
+    
     // FIXME : 真面目に計算する
     char_width = height / 2;
     char_height = height;
@@ -471,7 +510,7 @@ void TextPlaneMac::DrawOffscreen()
                     // 行の描画
                     CTLineRef line = CTLineCreateWithAttributedString(attrString);
                     CGContextSetTextMatrix( offscreen_context, CGAffineTransformIdentity);
-                    CGContextSetTextPosition( offscreen_context, x * font->char_width, offscreen_size.cy - (y+1) * font->char_height + (offscreen_size.cy % font->char_height) );
+                    CGContextSetTextPosition( offscreen_context, x * font->char_width, offscreen_size.cy - y * font->char_height - font->ascent + (offscreen_size.cy % font->char_height) );
                     CTLineDraw(line,offscreen_context);
                     
                     CFRelease(line);
