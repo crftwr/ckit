@@ -1,4 +1,5 @@
-﻿import ctypes
+﻿import os
+import ctypes
 
 import ckit
 from ckit.ckit_const import *
@@ -354,7 +355,11 @@ class KeyEvent:
     @staticmethod
     def initTables():
         
-        keyboard_type = ctypes.windll.user32.GetKeyboardType(0)
+        if os.name=="nt":
+            keyboard_type = ctypes.windll.user32.GetKeyboardType(0)
+        else:
+            # FIXME : 実装
+            keyboard_type = 4
         
         KeyEvent.str_vk_table = KeyEvent.str_vk_table_common
         KeyEvent.vk_str_table = KeyEvent.vk_str_table_common

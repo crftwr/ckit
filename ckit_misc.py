@@ -211,13 +211,19 @@ def getAppExePath():
 ## アプリケーションのデータディレクトリのパスを取得する
 def getAppDataPath():
 
-    MAX_PATH = 260
-    CSIDL_APPDATA = 26
+    if os.name=="nt":
 
-    buf = ctypes.create_unicode_buffer(MAX_PATH)
-    ctypes.windll.shell32.SHGetSpecialFolderPathW( None, buf, CSIDL_APPDATA, 0 )
+        MAX_PATH = 260
+        CSIDL_APPDATA = 26
 
-    return buf.value
+        buf = ctypes.create_unicode_buffer(MAX_PATH)
+        ctypes.windll.shell32.SHGetSpecialFolderPathW( None, buf, CSIDL_APPDATA, 0 )
+
+        return buf.value
+
+    else:
+        # FIXME : 実装
+        return "."
 
 ## ドキュメントディレクトリのパスを取得する
 def getDocumentsPath():
