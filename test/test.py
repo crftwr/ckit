@@ -24,6 +24,7 @@ class Test1( ckit.TextWindow ):
             y=10, 
             width=80, 
             height=24,
+            font_name = "Menlo-Regular",
             font_size = 30,
             title_bar = True,
             title = "Ckit Test",

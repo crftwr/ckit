@@ -100,6 +100,7 @@ FontMac::FontMac( const wchar_t * name, int height )
         
         // まずはピクセル＝ポイントと見なして作ってみる
         _handle = CTFontCreateWithName( name_str, (CGFloat)height, NULL );
+        //_handle = CTFontCreateUIFontForLanguage( kCTFontUserFixedPitchFontType, (CGFloat)height, NULL);
         ascent = CTFontGetAscent(_handle);
         descent = CTFontGetDescent(_handle);
         CFRelease(_handle);
@@ -109,6 +110,7 @@ FontMac::FontMac( const wchar_t * name, int height )
         // 比率で当たりを付けて作ってみる
         CGFloat size_in_point = height * height / (ascent + descent);
         _handle = CTFontCreateWithName( name_str, size_in_point, NULL );
+        //_handle = CTFontCreateUIFontForLanguage( kCTFontUserFixedPitchFontType, size_in_point, NULL);
         ascent = CTFontGetAscent(_handle);
         descent = CTFontGetDescent(_handle);
 
@@ -122,6 +124,7 @@ FontMac::FontMac( const wchar_t * name, int height )
 
             size_in_point -= adjust_step;
             _handle = CTFontCreateWithName( name_str, size_in_point, NULL );
+            //_handle = CTFontCreateUIFontForLanguage( kCTFontUserFixedPitchFontType, size_in_point, NULL);
             ascent = CTFontGetAscent(_handle);
             descent = CTFontGetDescent(_handle);
 
