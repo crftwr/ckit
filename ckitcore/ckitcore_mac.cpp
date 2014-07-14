@@ -716,6 +716,8 @@ int WindowMac::timerHandler( CocoaObject * timer )
 
 int WindowMac::viewDidEndLiveResize( CGSize size )
 {
+	PythonUtil::GIL_Ensure gil_ensure;
+
     // TODO : フレームサイズ再計算
     //_updateWindowFrameRect();
     
@@ -1658,6 +1660,10 @@ void WindowMac::setImeFont( FontBase * _font )
 
 void WindowMac::messageLoop()
 {
+    Py_BEGIN_ALLOW_THREADS
+    
     ckit_Window_MessageLoop(handle);
+
+    Py_END_ALLOW_THREADS
 }
 
