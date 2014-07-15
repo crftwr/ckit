@@ -32,6 +32,7 @@ EXTERN int ckit_Application_Create();
 EXTERN int ckit_Window_Create( ckit_Window_Callbacks * callbacks, void * owner, CocoaObject ** window );
 EXTERN int ckit_Window_Destroy( CocoaObject * window );
 EXTERN int ckit_Window_MessageLoop( CocoaObject * window );
+EXTERN int ckit_Window_Quit( CocoaObject * _window );
 EXTERN int ckit_Window_GetWindowRect( CocoaObject * window, CGRect * rect );
 EXTERN int ckit_Window_GetClientSize( CocoaObject * window, CGSize * size );
 EXTERN int ckit_Window_SetNeedsRedraw( CocoaObject * window );

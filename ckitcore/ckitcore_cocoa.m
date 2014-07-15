@@ -102,7 +102,6 @@ int ckit_Window_Destroy( CocoaObject * _window )
     TRACE;
     
     NSWindow * window = (__bridge_transfer NSWindow*)_window;
-    
     (void)window;
 
     return 0;
@@ -115,6 +114,18 @@ int ckit_Window_MessageLoop( CocoaObject * _window )
     NSWindow * window = (__bridge NSWindow*)_window;
     
     [NSApp runModalForWindow:window];
+    
+    return 0;
+}
+
+int ckit_Window_Quit( CocoaObject * _window )
+{
+    TRACE;
+    
+    NSWindow * window = (__bridge NSWindow*)_window;
+    (void)window;
+    
+    [NSApp stopModal];
     
     return 0;
 }

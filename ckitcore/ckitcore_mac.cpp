@@ -703,11 +703,37 @@ static int _timerHandler( void * owner, CocoaObject * timer )
 
 int WindowMac::timerHandler( CocoaObject * timer )
 {
+	PythonUtil::GIL_Ensure gil_ensure;
+
     if( timer == timer_paint )
     {
         if(dirty)
         {
             ckit_Window_SetNeedsRedraw(handle);
+        }
+    }
+    else if( timer == timer_check_quit )
+    {
+        PyObject * continue_cond_func = messageloop_continue_cond_func_stack.back();
+        if(continue_cond_func)
+        {
+            PyObject * pyarglist = Py_BuildValue("()");
+            PyObject * pyresult = PyEval_CallObject( continue_cond_func, pyarglist );
+            Py_DECREF(pyarglist);
+            if(pyresult)
+            {
+                int result;
+                PyArg_Parse(pyresult,"i", &result );
+                Py_DECREF(pyresult);
+                if(!result)
+                {
+                    ckit_Window_Quit(handle);
+                }
+            }
+            else
+            {
+                PyErr_Print();
+            }
         }
     }
     
@@ -750,6 +776,7 @@ WindowMac::WindowMac( Param & param )
 	WindowBase(param),
     handle(0),
     timer_paint(0),
+    timer_check_quit(0),
     paint_gctx(0)
 {
 	FUNC_TRACE;
@@ -766,6 +793,7 @@ WindowMac::WindowMac( Param & param )
     }
     
     ckit_Window_SetTimer( handle, 0.016, &timer_paint );
+    ckit_Window_SetTimer( handle, 0.016, &timer_check_quit );
 }
 
 WindowMac::~WindowMac()
@@ -777,6 +805,7 @@ WindowMac::~WindowMac()
 
     // タイマー破棄
     ckit_Window_KillTimer( handle, timer_paint );
+    ckit_Window_KillTimer( handle, timer_check_quit );
     
     // terminate graphics system
     
@@ -1658,11 +1687,15 @@ void WindowMac::setImeFont( FontBase * _font )
     */
 }
 
-void WindowMac::messageLoop()
+void WindowMac::messageLoop( PyObject * continue_cond_func )
 {
     Py_BEGIN_ALLOW_THREADS
     
+    messageloop_continue_cond_func_stack.push_back(continue_cond_func);
+    
     ckit_Window_MessageLoop(handle);
+    
+    messageloop_continue_cond_func_stack.pop_back();
 
     Py_END_ALLOW_THREADS
 }

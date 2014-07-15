@@ -112,7 +112,7 @@ namespace ckit
 		virtual bool popupMenu( int x, int y, PyObject * items );
         virtual void enableIme( bool enable );
 		virtual void setImeFont( FontBase * font );
-		virtual void messageLoop();
+		virtual void messageLoop( PyObject * continue_cond_func );
         
         int drawRect( CGRect rect, CGContextRef gctx );
         void beginPaint( CGContextRef gtxt );
@@ -129,6 +129,9 @@ namespace ckit
         Size window_frame_size;
         
         CocoaObject * timer_paint;
+        CocoaObject * timer_check_quit;
+        
+        std::vector<PyObject*> messageloop_continue_cond_func_stack;
         
         CGContextRef paint_gctx;
         Size paint_client_size;

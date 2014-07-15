@@ -3650,7 +3650,7 @@ static PyObject * Window_messageLoop(PyObject* self, PyObject* args, PyObject * 
         Py_END_ALLOW_THREADS
     }
     #elif defined(PLATFORM_MAC)
-    window->messageLoop();
+    window->messageLoop(continue_cond_func);
     #endif //PLATFORM_WIN32
 
     end:

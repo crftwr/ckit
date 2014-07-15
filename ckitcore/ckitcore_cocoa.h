@@ -18,6 +18,4 @@
 
 - (id)initWithFrame:(NSRect)frame callbacks:(ckit_Window_Callbacks*)_callbacks owner:(void*)_owner;
 
-//@property (retain) NSTimer * timer_paint;
-
 @end
