@@ -104,8 +104,8 @@ namespace ckit
         virtual void getNormalClientSize( Size * size );
 		virtual void clientToScreen(Point * point);
 		virtual void screenToClient(Point * point);
-		virtual void setTimer( PyObject * func, int interval );
-		virtual void killTimer( PyObject * func );
+		virtual void setTimer( TimerInfo * timer_info );
+		virtual void killTimer( TimerInfo * timer_info );
 		virtual void setHotKey( int vk, int mod, PyObject * func );
 		virtual void killHotKey( PyObject * func );
 		virtual void setText( const wchar_t * text );

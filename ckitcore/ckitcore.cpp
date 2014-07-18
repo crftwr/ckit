@@ -3866,12 +3866,15 @@ static PyObject * Window_setTimer( PyObject * self, PyObject * args )
 
 	WindowBase * window = ((Window_Object*)self)->p;
 
-	window->setTimer( func, interval );
-
 	Py_XINCREF(func);
-	window->timer_list.push_back(func);
 
-	window->setTimer( func, interval );
+    TimerInfo timer_info;
+    timer_info.pyobj = func;
+    timer_info.interval = interval;
+    
+	window->setTimer( &timer_info );
+    
+	window->timer_list.push_back(timer_info);
 
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -3900,7 +3903,7 @@ static PyObject * Window_killTimer( PyObject * self, PyObject * args )
 
 		if( PyObject_RichCompareBool( func, (i->pyobj), Py_EQ )==1 )
 		{
-			window->killTimer(func);
+			window->killTimer(&*i);
 
 			Py_XDECREF( i->pyobj );
 			i->pyobj = NULL;

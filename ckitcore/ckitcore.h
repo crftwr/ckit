@@ -215,9 +215,11 @@ namespace ckit
 
     struct TimerInfo
     {
-    	TimerInfo( PyObject * _pyobj ) : pyobj(_pyobj), calling(false) {}
+    	TimerInfo() : pyobj(NULL), interval(0), handle(NULL), calling(false) {}
 
     	PyObject * pyobj;
+        int interval;
+        void * handle;
     	bool calling;
     };
 
@@ -375,8 +377,8 @@ namespace ckit
         virtual void getNormalClientSize( Size * size ) = 0;
 		virtual void clientToScreen(Point * point) = 0;
 		virtual void screenToClient(Point * point) = 0;
-		virtual void setTimer( PyObject * func, int interval ) = 0;
-		virtual void killTimer( PyObject * func ) = 0;
+		virtual void setTimer( TimerInfo * timer_info ) = 0;
+		virtual void killTimer( TimerInfo * timer_info ) = 0;
 		virtual void setHotKey( int vk, int mod, PyObject * func ) = 0;
 		virtual void killHotKey( PyObject * func ) = 0;
 		virtual void setText( const wchar_t * text ) = 0;

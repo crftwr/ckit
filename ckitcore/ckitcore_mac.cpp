@@ -764,6 +764,59 @@ int WindowMac::timerHandler( CocoaObject * timer )
             }
         }
     }
+    else
+    {
+        timer_list_ref_count ++;
+
+        for( std::list<TimerInfo>::iterator i=timer_list.begin(); i!=timer_list.end() ; i++ )
+        {
+            if( timer == i->handle )
+            {
+                if(i->calling) continue;
+                
+                i->calling = true;
+                
+                PyObject * pyarglist = Py_BuildValue("()" );
+                PyObject * pyresult = PyEval_CallObject( (i->pyobj), pyarglist );
+                Py_DECREF(pyarglist);
+                if(pyresult)
+                {
+                    Py_DECREF(pyresult);
+                }
+                else
+                {
+                    if( PyErr_Occurred()==PyExc_KeyboardInterrupt )
+                    {
+                        printf("KeyboardInterrupt\n");
+                        exit(0);
+                    }
+                    
+                    PyErr_Print();
+                }
+                
+                i->calling = false;
+                
+                break;
+            }
+        }
+
+        timer_list_ref_count --;
+
+        if(timer_list_ref_count==0)
+        {
+            for( std::list<TimerInfo>::iterator i=timer_list.begin(); i!=timer_list.end() ; )
+            {
+                if( (i->pyobj)==0 )
+                {
+                    i = timer_list.erase(i);
+                }
+                else
+                {
+                    i++;
+                }
+            }
+        }
+    }
     
     return 0;
 }
@@ -1499,22 +1552,14 @@ void WindowMac::screenToClient(Point * point)
     */
 }
 
-void WindowMac::setTimer( PyObject * func, int interval )
+void WindowMac::setTimer( TimerInfo * timer_info )
 {
-    WARN_NOT_IMPLEMENTED;
-
-    /*
-	SetTimer( hwnd, (UINT_PTR)func, interval, NULL );
-    */
+    ckit_Window_SetTimer( handle, timer_info->interval/1000.0f, (CocoaObject**)&timer_info->handle );
 }
 
-void WindowMac::killTimer( PyObject * func )
+void WindowMac::killTimer( TimerInfo * timer_info )
 {
-    WARN_NOT_IMPLEMENTED;
-
-    /*
-	KillTimer( hwnd, (UINT_PTR)(func) );
-    */
+    ckit_Window_KillTimer( handle, (CocoaObject*)timer_info->handle );
 }
 
 void WindowMac::setHotKey( int vk, int mod, PyObject * func )
