@@ -108,27 +108,38 @@ FontMac::FontMac( const wchar_t * name, int height )
         printf("font size adjust : step1 : %f,%f,%d\n", ascent, descent, height );
 
         // 比率で当たりを付けて作ってみる
-        CGFloat size_in_point = height * height / (ascent + descent);
+        int size_in_point = int(height * height / (ascent + descent));
         _handle = CTFontCreateWithName( name_str, size_in_point, NULL );
         //_handle = CTFontCreateUIFontForLanguage( kCTFontUserFixedPitchFontType, size_in_point, NULL);
         ascent = CTFontGetAscent(_handle);
         descent = CTFontGetDescent(_handle);
 
-        printf("font size adjust : step2 : %f,%f,%f\n", ascent, descent, size_in_point );
-        
+        printf("font size adjust : step2 : %f,%f,%d\n", ascent, descent, size_in_point );
+
         // 微調整する
-        CGFloat adjust_step = size_in_point * 0.01;
-        while( ascent + descent > height )
+        while(true)
         {
+            UniChar unichars[1];
+            unichars[0] = 'W';
+            CGGlyph glyphs[1];
+            CTFontGetGlyphsForCharacters( _handle, unichars, glyphs, 1 );
+            CGSize advances[1];
+            double advance = CTFontGetAdvancesForGlyphs( _handle, kCTFontDefaultOrientation, glyphs, advances, 1 );
+            
+            if( ascent + descent <= height && fabs(advance-int(advance))<0.0001f )
+            {
+                break;
+            }
+            
             CFRelease(_handle);
 
-            size_in_point -= adjust_step;
+            size_in_point -= 1;
             _handle = CTFontCreateWithName( name_str, size_in_point, NULL );
             //_handle = CTFontCreateUIFontForLanguage( kCTFontUserFixedPitchFontType, size_in_point, NULL);
             ascent = CTFontGetAscent(_handle);
             descent = CTFontGetDescent(_handle);
 
-            printf("font size adjust : step3 : %f,%f,%f\n", ascent, descent, size_in_point );
+            printf("font size adjust : step3 : %f,%f,%d\n", ascent, descent, size_in_point );
         }
         
         handle = _handle;
@@ -137,15 +148,32 @@ FontMac::FontMac( const wchar_t * name, int height )
     }
 
     CFRelease(name_str);
-    
-    // FIXME : 真面目に計算する
-    char_width = height / 2;
-    char_height = height;
 
-    zenkaku_table.clear();
-    for( int i=0 ; i<=0xffff ; i++ )
+    // 文字の幅を取得する
     {
-        zenkaku_table.push_back(false);
+        UniChar unichars[0x10000];
+        for( int i=0 ; i<0x10000 ; ++i )
+        {
+            unichars[i] = i;
+        }
+        
+        CGGlyph glyphs[0x10000];
+        CTFontGetGlyphsForCharacters( handle, unichars, glyphs, 0x10000 );
+        
+        CGSize advances[0x10000];
+        CTFontGetAdvancesForGlyphs( handle, kCTFontDefaultOrientation, glyphs, advances, 0x10000 );
+        
+        char_width = advances['a'].width;
+        char_height = height;
+        
+        printf("advance[W] = %f,%f\n", advances['W'].width, advances['W'].height );
+        printf("advance[i] = %f,%f\n", advances['i'].width, advances['i'].height );
+        
+        zenkaku_table.clear();
+        for( int i=0 ; i<=0x10000 ; i++ )
+        {
+            zenkaku_table.push_back(advances[i].width >= char_width * 2);
+        }
     }
 }
 
