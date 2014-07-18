@@ -23,6 +23,8 @@ typedef struct ckit_Window_Callbacks_t
     int (*drawRect)( void * owner, CGRect rect, CGContextRef gctx );
     int (*viewDidEndLiveResize)( void * owner, CGSize size );
     int (*timerHandler)( void * owner, CocoaObject * timer );
+    int (*keyDown)( void * owner, int vk, int mod );
+    int (*keyUp)( void * owner, int vk, int mod );
 
 } ckit_Window_Callbacks;
 

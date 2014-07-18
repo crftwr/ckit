@@ -846,10 +846,72 @@ int WindowMac::viewDidEndLiveResize( CGSize size )
     return 0;
 }
 
+static int _keyDown( void * owner, int vk, int mod )
+{
+    //TRACE;
+    
+    WindowMac * window = (WindowMac*)owner;
+    return window->keyDown(vk,mod);
+}
+
+int WindowMac::keyDown( int vk, int mod )
+{
+	PythonUtil::GIL_Ensure gil_ensure;
+
+    if(keydown_handler)
+    {
+        PyObject * pyarglist = Py_BuildValue("(ii)", vk, mod );
+        PyObject * pyresult = PyEval_CallObject( keydown_handler, pyarglist );
+        Py_DECREF(pyarglist);
+        if(pyresult)
+        {
+            Py_DECREF(pyresult);
+        }
+        else
+        {
+            PyErr_Print();
+        }
+    }
+
+    return 0;
+}
+
+static int _keyUp( void * owner, int vk, int mod )
+{
+    //TRACE;
+    
+    WindowMac * window = (WindowMac*)owner;
+    return window->keyUp(vk,mod);
+}
+
+int WindowMac::keyUp( int vk, int mod )
+{
+	PythonUtil::GIL_Ensure gil_ensure;
+    
+    if(keydown_handler)
+    {
+        PyObject * pyarglist = Py_BuildValue("(ii)", vk, mod );
+        PyObject * pyresult = PyEval_CallObject( keyup_handler, pyarglist );
+        Py_DECREF(pyarglist);
+        if(pyresult)
+        {
+            Py_DECREF(pyresult);
+        }
+        else
+        {
+            PyErr_Print();
+        }
+    }
+    
+    return 0;
+}
+
 ckit_Window_Callbacks callbacks = {
     _drawRect,
     _viewDidEndLiveResize,
-    _timerHandler
+    _timerHandler,
+    _keyDown,
+    _keyUp
 };
 
 WindowMac::WindowMac( Param & param )

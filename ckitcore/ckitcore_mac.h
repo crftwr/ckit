@@ -125,6 +125,9 @@ namespace ckit
 
         int timerHandler( CocoaObject * timer );
         
+        int keyDown( int vk, int mod );
+        int keyUp( int vk, int mod );
+        
         CocoaObject * handle;
         Size window_frame_size;
         
