@@ -383,8 +383,8 @@ static int translateVk(int src)
     int keyCode = [theEvent keyCode];
     int vk = translateVk(keyCode);
     
-    printf("keyCode: %d\n", keyCode);
-    printf("vk: %d\n", vk);
+    //printf("keyCode: %d\n", keyCode);
+    //printf("vk: %d\n", vk);
     
     if(vk<0){return;}
 
