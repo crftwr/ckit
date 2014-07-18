@@ -431,12 +431,16 @@ def deleteFilesUsingRecycleBin( hwnd, filename_list ):
 
 ## ディスクの空き容量と全体の容量を取得する
 def getDiskSize(drive):
-    free_size_for_user = ctypes.c_longlong()
-    total_size = ctypes.c_longlong()
-    free_size = ctypes.c_longlong()
-    ctypes.windll.kernel32.GetDiskFreeSpaceExW( drive, ctypes.pointer(free_size_for_user), ctypes.pointer(total_size), ctypes.pointer(free_size) )
+    # FIXME : 実装
+    if os.name=="nt":
+        free_size_for_user = ctypes.c_longlong()
+        total_size = ctypes.c_longlong()
+        free_size = ctypes.c_longlong()
+        ctypes.windll.kernel32.GetDiskFreeSpaceExW( drive, ctypes.pointer(free_size_for_user), ctypes.pointer(total_size), ctypes.pointer(free_size) )
+        return (free_size.value,total_size.value)
+    else:
+        return (100*1024*1024*1024, 200*1024*1024*1024)
 
-    return (free_size.value,total_size.value)
 
 #--------------------------------------------------------------------
 
