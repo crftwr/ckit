@@ -420,30 +420,16 @@ void TextPlaneMac::DrawOffscreen()
 				{
                     CGContextSetRGBFillColor( offscreen_context, chr.attr.bg_color[0].r/255.0f, chr.attr.bg_color[0].g/255.0f, chr.attr.bg_color[0].b/255.0f, 1 );
                     CGContextFillRect( offscreen_context, CGRectMake( x * font->char_width, offscreen_size.cy - (y+1) * font->char_height + (offscreen_size.cy % font->char_height), (x2-x) * font->char_width, font->char_height) );
-
-                    /*
-					HBRUSH hBrush = CreateSolidBrush( chr.attr.bg_color[0] );
-					HPEN hPen = CreatePen( PS_SOLID, 0, chr.attr.bg_color[0] );
-
-            		SelectObject( offscreen_dc, hBrush );
-            		SelectObject( offscreen_dc, hPen );
-
-					Rectangle(
-						offscreen_dc,
-						x * font->char_width,
-						y * font->char_height,
-						x2 * font->char_width,
-                		(y+1) * font->char_height
-						);
-
-					DeleteObject(hBrush);
-					DeleteObject(hPen);
-					*/
                     
 					window->perf_fillrect_count ++;
 				}
 				else if( chr.attr.bg & Attribute::BG_Gradation )
 				{
+                    // FIXME : グラデーションになってない
+                    
+                    CGContextSetRGBFillColor( offscreen_context, chr.attr.bg_color[0].r/255.0f, chr.attr.bg_color[0].g/255.0f, chr.attr.bg_color[0].b/255.0f, 1 );
+                    CGContextFillRect( offscreen_context, CGRectMake( x * font->char_width, offscreen_size.cy - (y+1) * font->char_height + (offscreen_size.cy % font->char_height), (x2-x) * font->char_width, font->char_height) );
+                    
                     /*
 					TRIVERTEX v[4];
 
@@ -497,18 +483,7 @@ void TextPlaneMac::DrawOffscreen()
 				}
 				else
 				{
-                    /*
-					HBRUSH brush = (HBRUSH)GetStockObject( BLACK_BRUSH );
-
-					RECT rect = {
-						x * font->char_width,
-						y * font->char_height,
-						x2 * font->char_width,
-                		(y+1) * font->char_height
-					};
-
-					FillRect( offscreen_dc, &rect, brush );
-                    */
+                    CGContextClearRect( offscreen_context, CGRectMake( x * font->char_width, offscreen_size.cy - (y+1) * font->char_height + (offscreen_size.cy % font->char_height), (x2-x) * font->char_width, font->char_height) );
 
 					window->perf_fillrect_count ++;
 				}
