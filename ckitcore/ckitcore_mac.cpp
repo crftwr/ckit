@@ -503,8 +503,8 @@ void TextPlaneMac::DrawOffscreen()
                     CFRelease(str);
                     
                     // フォント
-                    CFAttributedStringSetAttribute(attrString, CFRangeMake(0, CFStringGetLength(str)), kCTFontAttributeName, font->handle);
-                    
+                    CFAttributedStringSetAttribute(attrString, CFRangeMake(0,work_len), kCTFontAttributeName, font->handle);
+
                     // 色
                     CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
                     CGFloat components[] = { chr.attr.fg_color.r/255.0f, chr.attr.fg_color.g/255.0f, chr.attr.fg_color.b/255.0f, 1 };
