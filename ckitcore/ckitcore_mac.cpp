@@ -529,10 +529,14 @@ void TextPlaneMac::DrawOffscreen()
 				{
 		            if( chr.attr.line[line] & (Attribute::Line_Left|Attribute::Line_Right|Attribute::Line_Top|Attribute::Line_Bottom) )
 		            {
-                        /*
-		            	HPEN hPen;
+                        CGFloat components[] = { chr.attr.line_color[line].r/255.0f, chr.attr.line_color[line].g/255.0f, chr.attr.line_color[line].b/255.0f, 1 };
+                        CGContextSetStrokeColor( offscreen_context, components );
+
+                        CGContextSetLineWidth(offscreen_context, 1.0);
+                        
 		            	if(chr.attr.line[line] & Attribute::Line_Dot)
 		            	{
+                            /*
 							LOGBRUSH log_brush;
 							log_brush.lbColor = chr.attr.line_color[line];
 							log_brush.lbHatch = 0;
@@ -540,56 +544,76 @@ void TextPlaneMac::DrawOffscreen()
 							DWORD pattern[] = { 1, 1 };
 					    
 						    hPen = ExtCreatePen( PS_GEOMETRIC | PS_ENDCAP_FLAT | PS_USERSTYLE, 1, &log_brush, 2, pattern );
+                            */
 		            	}
 		            	else
 		            	{
+                            /*
 						    hPen = CreatePen( PS_SOLID, 1, chr.attr.line_color[line] );
+                            */
 		            	}
-
-		            	SelectObject( offscreen_dc, hPen );
 
 						if(chr.attr.line[line] & Attribute::Line_Left)
 						{
-							DrawVerticalLine( 
+                            CGContextMoveToPoint(offscreen_context, x * font->char_width, offscreen_size.cy - (y+1) * font->char_height + (offscreen_size.cy % font->char_height) );
+                            CGContextAddLineToPoint(offscreen_context, x * font->char_width, offscreen_size.cy - (y) * font->char_height + (offscreen_size.cy % font->char_height) );
+                            
+                            /*
+							DrawVerticalLine(
 								x * font->char_width, 
 								y * font->char_height, 
 								(y+1) * font->char_height, 
 								chr.attr.line_color[line], 
 								(chr.attr.line[line] & Attribute::Line_Dot)!=0 );
+                            */
 						}
 
 						if(chr.attr.line[line] & Attribute::Line_Bottom)
 						{
+                            CGContextMoveToPoint(offscreen_context, x * font->char_width, offscreen_size.cy - (y+1) * font->char_height + (offscreen_size.cy % font->char_height) + 1 );
+                            CGContextAddLineToPoint(offscreen_context, x2 * font->char_width, offscreen_size.cy - (y+1) * font->char_height + (offscreen_size.cy % font->char_height) + 1 );
+
+                            /*
 							DrawHorizontalLine( 
 								x * font->char_width, 
 								(y+1) * font->char_height - 1, 
 								x2 * font->char_width, 
 								chr.attr.line_color[line], 
 								(chr.attr.line[line] & Attribute::Line_Dot)!=0 );
+                            */
 						}
 
 						if(chr.attr.line[line] & Attribute::Line_Right)
 						{
+                            CGContextMoveToPoint(offscreen_context, x2 * font->char_width - 1, offscreen_size.cy - (y+1) * font->char_height + (offscreen_size.cy % font->char_height) );
+                            CGContextAddLineToPoint(offscreen_context, x2 * font->char_width, offscreen_size.cy - (y) * font->char_height + (offscreen_size.cy % font->char_height) );
+
+                            /*
 							DrawVerticalLine( 
 								x2 * font->char_width - 1, 
 			                	y * font->char_height,
 								(y+1) * font->char_height, 
 								chr.attr.line_color[line], 
 								(chr.attr.line[line] & Attribute::Line_Dot)!=0 );
+                            */
 						}
 
 						if(chr.attr.line[line] & Attribute::Line_Top)
 						{
+                            CGContextMoveToPoint(offscreen_context, x * font->char_width, offscreen_size.cy - (y) * font->char_height + (offscreen_size.cy % font->char_height) );
+                            CGContextAddLineToPoint(offscreen_context, x2 * font->char_width, offscreen_size.cy - (y) * font->char_height + (offscreen_size.cy % font->char_height) );
+
+                            /*
 							DrawHorizontalLine( 
 								x * font->char_width, 
 			                	y * font->char_height,
 				            	x2 * font->char_width,
 								chr.attr.line_color[line], 
 								(chr.attr.line[line] & Attribute::Line_Dot)!=0 );
+                            */
 						}
 
-			            DeleteObject(hPen);
-                        */
+                        CGContextStrokePath(offscreen_context);
 		            }
 				}
 			}

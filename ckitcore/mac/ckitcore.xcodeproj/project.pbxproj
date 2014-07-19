@@ -113,10 +113,10 @@
 		33E3AA3119677B22004C7EDF = {
 			isa = PBXGroup;
 			children = (
-				33F95561197A080900E57104 /* cfiler - python */,
-				33E3AA3D19677B22004C7EDF /* Supporting Files */,
 				33E3AA3C19677B22004C7EDF /* ckitcore */,
 				33E3AA5C1967CBB2004C7EDF /* ckit - python */,
+				33F95561197A080900E57104 /* cfiler - python */,
+				33E3AA3D19677B22004C7EDF /* Supporting Files */,
 				33E3AA3B19677B22004C7EDF /* Products */,
 			);
 			sourceTree = "<group>";
