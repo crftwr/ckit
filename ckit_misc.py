@@ -767,9 +767,10 @@ def joinPath(*args):
 #  os.path.split() とは違い、UNC形式 ( //machine/share/ で始まるもの ) のパスを扱うことが出来ます。
 #
 def splitPath(path):
-    unc = os.path.splitunc(path)
-    if not unc[1]:
-        return unc
+    if os.name=="nt":
+        unc = os.path.splitunc(path)
+        if not unc[1]:
+            return unc
     return os.path.split( path )
 
 
