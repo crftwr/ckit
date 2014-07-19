@@ -100,21 +100,19 @@ FontMac::FontMac( const wchar_t * name, int height )
         
         // まずはピクセル＝ポイントと見なして作ってみる
         _handle = CTFontCreateWithName( name_str, (CGFloat)height, NULL );
-        //_handle = CTFontCreateUIFontForLanguage( kCTFontUserFixedPitchFontType, (CGFloat)height, NULL);
         ascent = CTFontGetAscent(_handle);
         descent = CTFontGetDescent(_handle);
         CFRelease(_handle);
         
-        printf("font size adjust : step1 : %f,%f,%d\n", ascent, descent, height );
+        PRINTF("font size adjust : step1 : %f,%f,%d\n", ascent, descent, height );
 
         // 比率で当たりを付けて作ってみる
         int size_in_point = int(height * height / (ascent + descent));
         _handle = CTFontCreateWithName( name_str, size_in_point, NULL );
-        //_handle = CTFontCreateUIFontForLanguage( kCTFontUserFixedPitchFontType, size_in_point, NULL);
         ascent = CTFontGetAscent(_handle);
         descent = CTFontGetDescent(_handle);
 
-        printf("font size adjust : step2 : %f,%f,%d\n", ascent, descent, size_in_point );
+        PRINTF("font size adjust : step2 : %f,%f,%d\n", ascent, descent, size_in_point );
 
         // 微調整する
         while(true)
@@ -135,16 +133,15 @@ FontMac::FontMac( const wchar_t * name, int height )
 
             size_in_point -= 1;
             _handle = CTFontCreateWithName( name_str, size_in_point, NULL );
-            //_handle = CTFontCreateUIFontForLanguage( kCTFontUserFixedPitchFontType, size_in_point, NULL);
             ascent = CTFontGetAscent(_handle);
             descent = CTFontGetDescent(_handle);
 
-            printf("font size adjust : step3 : %f,%f,%d\n", ascent, descent, size_in_point );
+            PRINTF("font size adjust : step3 : %f,%f,%d\n", ascent, descent, size_in_point );
         }
         
         handle = _handle;
         
-        printf("font size adjust : done\n" );
+        PRINTF("font size adjust : done\n" );
     }
 
     CFRelease(name_str);
@@ -166,8 +163,8 @@ FontMac::FontMac( const wchar_t * name, int height )
         char_width = advances['a'].width;
         char_height = height;
         
-        printf("advance[W] = %f,%f\n", advances['W'].width, advances['W'].height );
-        printf("advance[i] = %f,%f\n", advances['i'].width, advances['i'].height );
+        PRINTF("advance[W] = %f,%f\n", advances['W'].width, advances['W'].height );
+        PRINTF("advance[i] = %f,%f\n", advances['i'].width, advances['i'].height );
         
         zenkaku_table.clear();
         for( int i=0 ; i<=0x10000 ; i++ )
@@ -198,7 +195,7 @@ ImagePlaneMac::~ImagePlaneMac()
 
 void ImagePlaneMac::Draw( const Rect & paint_rect )
 {
-    TRACE;
+    //TRACE;
     
 	WindowMac * window = (WindowMac*)this->window;
 	ImageMac * image = (ImageMac*)this->image;
@@ -720,6 +717,88 @@ static int _viewDidEndLiveResize( void * owner, CGSize size )
     return window->viewDidEndLiveResize(size);
 }
 
+int WindowMac::viewDidEndLiveResize( CGSize size )
+{
+	PythonUtil::GIL_Ensure gil_ensure;
+    
+    calculateFrameSize();
+    
+    if( size_handler )
+    {
+        PyObject * pyarglist = Py_BuildValue("(ii)", (int)size.width, (int)size.height );
+        PyObject * pyresult = PyEval_CallObject( size_handler, pyarglist );
+        Py_DECREF(pyarglist);
+        if(pyresult)
+        {
+            Py_DECREF(pyresult);
+        }
+        else
+        {
+            PyErr_Print();
+        }
+    }
+    
+    return 0;
+}
+
+int _windowWillResize( void * owner, CGSize * size )
+{
+    TRACE;
+    
+    WindowMac * window = (WindowMac*)owner;
+    return window->windowWillResize(size);
+}
+
+int WindowMac::windowWillResize( CGSize * size )
+{
+    TRACE;
+    
+	PythonUtil::GIL_Ensure gil_ensure;
+
+    calculateFrameSize();
+    
+    int width = size->width - window_frame_size.cx;
+    int height = size->height - window_frame_size.cy;
+    
+	if( sizing_handler )
+	{
+		PyObject * pysize = Py_BuildValue("[ii]", width, height );
+        
+		PyObject * pyarglist = Py_BuildValue("(O)", pysize );
+		PyObject * pyresult = PyEval_CallObject( sizing_handler, pyarglist );
+		Py_DECREF(pyarglist);
+		if(pyresult)
+		{
+			Py_DECREF(pyresult);
+            
+			PyArg_Parse( pysize, "(ii)", &width, &height );
+		}
+		else
+		{
+			PyErr_Print();
+		}
+        
+		Py_DECREF(pysize);
+	}
+    
+    size->width = width + window_frame_size.cx;
+    size->height= height + window_frame_size.cy;
+    
+    return 0;
+}
+
+void WindowMac::calculateFrameSize()
+{
+    CGRect window_rect;
+    ckit_Window_GetWindowRect( handle, &window_rect );
+
+    CGSize client_size;
+    ckit_Window_GetClientSize( handle, &client_size );
+    
+    window_frame_size.cx = window_rect.size.width - client_size.width;
+    window_frame_size.cy = window_rect.size.height - client_size.height;
+}
+
 static int _timerHandler( void * owner, CocoaObject * timer )
 {
     //TRACE;
@@ -741,6 +820,12 @@ int WindowMac::timerHandler( CocoaObject * timer )
     }
     else if( timer == timer_check_quit )
     {
+        if(quit_requested)
+        {
+            quit_requested = false;
+            ckit_Window_Quit(handle);
+        }
+        
         PyObject * continue_cond_func = messageloop_continue_cond_func_stack.back();
         if(continue_cond_func)
         {
@@ -820,31 +905,6 @@ int WindowMac::timerHandler( CocoaObject * timer )
     return 0;
 }
 
-int WindowMac::viewDidEndLiveResize( CGSize size )
-{
-	PythonUtil::GIL_Ensure gil_ensure;
-
-    // TODO : フレームサイズ再計算
-    //_updateWindowFrameRect();
-    
-    if( size_handler )
-    {
-        PyObject * pyarglist = Py_BuildValue("(ii)", (int)size.width, (int)size.height );
-        PyObject * pyresult = PyEval_CallObject( size_handler, pyarglist );
-        Py_DECREF(pyarglist);
-        if(pyresult)
-        {
-            Py_DECREF(pyresult);
-        }
-        else
-        {
-            PyErr_Print();
-        }
-    }
-    
-    return 0;
-}
-
 static int _keyDown( void * owner, int vk, int mod )
 {
     //TRACE;
@@ -887,7 +947,7 @@ int WindowMac::keyUp( int vk, int mod )
 {
 	PythonUtil::GIL_Ensure gil_ensure;
     
-    if(keydown_handler)
+    if(keyup_handler)
     {
         PyObject * pyarglist = Py_BuildValue("(ii)", vk, mod );
         PyObject * pyresult = PyEval_CallObject( keyup_handler, pyarglist );
@@ -908,6 +968,7 @@ int WindowMac::keyUp( int vk, int mod )
 ckit_Window_Callbacks callbacks = {
     _drawRect,
     _viewDidEndLiveResize,
+    _windowWillResize,
     _timerHandler,
     _keyDown,
     _keyUp
@@ -933,6 +994,8 @@ WindowMac::WindowMac( Param & param )
         printf("ckit_Window_Create failed\n");
         return;
     }
+
+    calculateFrameSize();
     
     ckit_Window_SetTimer( handle, 0.016, &timer_paint );
     ckit_Window_SetTimer( handle, 0.016, &timer_check_quit );
@@ -1494,24 +1557,20 @@ bool WindowMac::isMaximized()
 {
 	FUNC_TRACE;
 	
-    WARN_NOT_IMPLEMENTED;
+    int maximized = 0;
+    ckit_Window_IsMaximized(handle, &maximized);
 
-    /*
-	return ::IsZoomed( hwnd )!=FALSE;
-     */
-    return false;
+    return maximized!=0;
 }
 
 bool WindowMac::isMinimized()
 {
 	FUNC_TRACE;
 
-    WARN_NOT_IMPLEMENTED;
-
-    /*
-	return ::IsIconic( hwnd )!=FALSE;
-     */
-    return false;
+    int minimized = 0;
+    ckit_Window_IsMinimized(handle, &minimized);
+    
+    return minimized!=0;
 }
 
 bool WindowMac::isActive()

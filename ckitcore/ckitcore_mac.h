@@ -122,6 +122,8 @@ namespace ckit
         void paintCaret();
         
         int viewDidEndLiveResize( CGSize size );
+        int windowWillResize( CGSize * size );
+        void calculateFrameSize();
 
         int timerHandler( CocoaObject * timer );
         

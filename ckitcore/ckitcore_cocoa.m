@@ -34,9 +34,11 @@
     return self;
 }
 
-- (void)windowWillClose:(NSNotification *)notification
+- (BOOL)windowShouldClose:(id)sender
 {
+    // 閉じるボタンが押されても、メッセージループを抜けるだけで、ウインドウの破棄はdestroy()に任せる
     [NSApp stopModal];
+    return FALSE;
 }
 
 - (void)drawRect:(NSRect)dirtyRect
@@ -54,9 +56,17 @@
 
 - (void)viewDidEndLiveResize
 {
+    [super viewDidEndLiveResize];
+    
     CGRect rect = [self frame];
     
     callbacks->viewDidEndLiveResize( owner, rect.size );
+}
+
+- (NSSize)windowWillResize:(NSWindow *)sender toSize:(NSSize)frameSize
+{
+    callbacks->windowWillResize( owner, &frameSize );
+    return frameSize;
 }
 
 -(void)timerHandler:(NSTimer*)timer
@@ -429,7 +439,7 @@ int ckit_Window_Create( ckit_Window_Callbacks * _callbacks, void * _owner, Cocoa
     TRACE;
 
     NSWindow * window = [[NSWindow alloc]
-                         initWithContentRect:NSMakeRect(0,0,242,242)
+                         initWithContentRect:NSMakeRect(0,0,600,400)
                          styleMask: (NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask | NSResizableWindowMask)
                          backing:NSBackingStoreBuffered
                          defer:NO];
@@ -449,9 +459,10 @@ int ckit_Window_Destroy( CocoaObject * _window )
 {
     TRACE;
     
+    // FIXME : ウインドウの破棄の方法として、これで合っているのか確認
     NSWindow * window = (__bridge_transfer NSWindow*)_window;
     (void)window;
-
+    
     return 0;
 }
 
@@ -461,8 +472,12 @@ int ckit_Window_MessageLoop( CocoaObject * _window )
     
     NSWindow * window = (__bridge NSWindow*)_window;
     
+    TRACE;
+
     [NSApp runModalForWindow:window];
     
+    TRACE;
+
     return 0;
 }
 
@@ -495,6 +510,24 @@ int ckit_Window_GetClientSize( CocoaObject * _window, CGSize * size )
     CGRect rect = [view frame];
     
     *size = rect.size;
+    
+    return 0;
+}
+
+int ckit_Window_IsMaximized( CocoaObject * _window, int * maximized )
+{
+    NSWindow * window = (__bridge NSWindow*)_window;
+    
+    *maximized = [window isZoomed];
+    
+    return 0;
+}
+
+int ckit_Window_IsMinimized( CocoaObject * _window, int * minimized )
+{
+    NSWindow * window = (__bridge NSWindow*)_window;
+    
+    *minimized = [window isMiniaturized];
     
     return 0;
 }
