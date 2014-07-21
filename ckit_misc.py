@@ -273,10 +273,11 @@ def setDataPath( data_path ):
 ## 利用可能なドライブ文字を連結した文字列を取得する
 def getDrives():
     drives = ""
-    drive_bits = ctypes.windll.kernel32.GetLogicalDrives()
-    for i in range(26):
-        if drive_bits & (1<<i):
-            drives += chr(ord('A')+i)
+    if os.name=="nt":
+        drive_bits = ctypes.windll.kernel32.GetLogicalDrives()
+        for i in range(26):
+            if drive_bits & (1<<i):
+                drives += chr(ord('A')+i)
     return drives
 
 ## ドライブの種別を取得する
