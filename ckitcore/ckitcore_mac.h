@@ -129,6 +129,7 @@ namespace ckit
         
         int keyDown( int vk, int mod );
         int keyUp( int vk, int mod );
+        int insertText( const wchar_t * text, int mod );
         
         CocoaObject * handle;
         Size window_frame_size;

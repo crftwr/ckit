@@ -406,7 +406,12 @@ static int translateVk(int src)
     if( theEvent.modifierFlags & NSAlternateKeyMask ){ mod |= MODKEY_ALT; }
     if( theEvent.modifierFlags & NSControlKeyMask ){ mod |= MODKEY_WIN; }
     
-    callbacks->keyDown( owner, vk, mod );
+    int consumed = callbacks->keyDown( owner, vk, mod );
+    
+    if(!consumed)
+    {
+        [self interpretKeyEvents: [NSArray arrayWithObject: theEvent]];
+    }
 }
 
 - (void)keyUp:(NSEvent *)theEvent
@@ -423,6 +428,17 @@ static int translateVk(int src)
     if( theEvent.modifierFlags & NSControlKeyMask ){ mod |= MODKEY_WIN; }
     
     callbacks->keyUp( owner, vk, mod );
+}
+
+- (void)insertText:(id)insertString
+{
+    // FIXME : BackSpaceやTABやEnterはここで処理されない。
+
+    // FIXME : insertString が　AttributedStringである可能性もある
+    NSString * s = insertString;
+    
+    // FIXME : modifierをちゃんとする
+    callbacks->insertText( owner, (const wchar_t*)[s cStringUsingEncoding:NSUTF32LittleEndianStringEncoding], 0 );
 }
 
 @end

@@ -969,13 +969,47 @@ int WindowMac::keyUp( int vk, int mod )
     return 0;
 }
 
+static int _insertText( void * owner, const wchar_t * text, int mod )
+{
+    //TRACE;
+    
+    WindowMac * window = (WindowMac*)owner;
+    return window->insertText(text,mod);
+}
+
+int WindowMac::insertText( const wchar_t * text, int mod )
+{
+	PythonUtil::GIL_Ensure gil_ensure;
+    
+    if(char_handler)
+    {
+        for( const wchar_t * t=text ; *t ; ++t )
+        {
+            PyObject * pyarglist = Py_BuildValue("(ii)", *t, mod );
+            PyObject * pyresult = PyEval_CallObject( char_handler, pyarglist );
+            Py_DECREF(pyarglist);
+            if(pyresult)
+            {
+                Py_DECREF(pyresult);
+            }
+            else
+            {
+                PyErr_Print();
+            }
+        }
+    }
+    
+    return 0;
+}
+
 ckit_Window_Callbacks callbacks = {
     _drawRect,
     _viewDidEndLiveResize,
     _windowWillResize,
     _timerHandler,
     _keyDown,
-    _keyUp
+    _keyUp,
+    _insertText
 };
 
 WindowMac::WindowMac( Param & _params )

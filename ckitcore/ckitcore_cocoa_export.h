@@ -26,6 +26,7 @@ typedef struct ckit_Window_Callbacks_t
     int (*timerHandler)( void * owner, CocoaObject * timer );
     int (*keyDown)( void * owner, int vk, int mod );
     int (*keyUp)( void * owner, int vk, int mod );
+    int (*insertText)( void * owner, const wchar_t * text, int mod );
 
 } ckit_Window_Callbacks;
 
