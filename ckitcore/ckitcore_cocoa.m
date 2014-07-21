@@ -451,6 +451,9 @@ int ckit_Window_Create( ckit_Window_Create_Parameters * params, CocoaObject ** _
                          backing:NSBackingStoreBuffered
                          defer:YES];
     
+    // FIXME : なぜか、位置の指定が効いていない。サイズは効いている。
+    // setFrame しても同様。
+    
     CkitView * view = [[CkitView alloc] initWithFrame:NSMakeRect(0,0,1,1) callbacks:params->callbacks owner:params->owner ];
     
     window.delegate = view;
@@ -458,8 +461,6 @@ int ckit_Window_Create( ckit_Window_Create_Parameters * params, CocoaObject ** _
     [window setContentView:view];
     
     ckit_Window_SetTitle( (__bridge CocoaObject*)window, params->title );
-    
-    //[window setFrame:NSMakeRect(500,200,100,100) display:true];
     
     *_window = (__bridge_retained CocoaObject *)window;
     
@@ -634,6 +635,16 @@ int ckit_Window_SetTitle( CocoaObject * _window, const wchar_t * _title )
     NSString * title = [[NSString alloc] initWithBytes:_title length:wcslen(_title)*sizeof(wchar_t) encoding:NSUTF32LittleEndianStringEncoding];
 
     [window setTitle:title];
+    
+    return 0;
+}
+
+int ckit_Window_Activate( CocoaObject * _window )
+{
+    NSWindow * window = (__bridge NSWindow*)_window;
+    
+    [window makeKeyWindow];
+    [window makeMainWindow];
     
     return 0;
 }

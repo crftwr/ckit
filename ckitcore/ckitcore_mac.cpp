@@ -1444,11 +1444,7 @@ void WindowMac::activate()
 {
 	FUNC_TRACE;
 
-    WARN_NOT_IMPLEMENTED;
-
-    /*
-    SetActiveWindow(hwnd);
-     */
+    ckit_Window_Activate(handle);
 }
 
 void WindowMac::inactivate()

@@ -59,5 +59,6 @@ EXTERN int ckit_Window_KillTimer( CocoaObject * window, CocoaObject * timer );
 EXTERN int ckit_Window_ClientToScreen( CocoaObject * window, CGPoint * point );
 EXTERN int ckit_Window_ScreenToClient( CocoaObject * window, CGPoint * point );
 EXTERN int ckit_Window_SetTitle( CocoaObject * window, const wchar_t * title );
+EXTERN int ckit_Window_Activate( CocoaObject * window );
 
 #endif//__CKITCORE_COCOA_EXPORT_H__
