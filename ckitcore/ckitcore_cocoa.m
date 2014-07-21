@@ -441,6 +441,12 @@ static int translateVk(int src)
     callbacks->insertText( owner, (const wchar_t*)[s cStringUsingEncoding:NSUTF32LittleEndianStringEncoding], 0 );
 }
 
+- (void)deleteBackward:(id)sender
+{
+    // FIXME : modifierをちゃんとする
+    callbacks->insertText( owner, L"\b", 0 );
+}
+
 @end
 
 int ckit_Application_Create()
