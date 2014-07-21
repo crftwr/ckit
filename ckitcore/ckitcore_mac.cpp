@@ -163,6 +163,8 @@ FontMac::FontMac( const wchar_t * name, int height )
         char_width = advances['a'].width;
         char_height = height;
         
+        printf( "char size : %d, %d\n", char_width, char_height );
+        
         PRINTF("advance[W] = %f,%f\n", advances['W'].width, advances['W'].height );
         PRINTF("advance[i] = %f,%f\n", advances['i'].width, advances['i'].height );
         
@@ -797,6 +799,8 @@ void WindowMac::calculateFrameSize()
     
     window_frame_size.cx = window_rect.size.width - client_size.width;
     window_frame_size.cy = window_rect.size.height - client_size.height;
+    
+    printf( "frame size : %d, %d\n", window_frame_size.cx, window_frame_size.cy );
 }
 
 static int _timerHandler( void * owner, CocoaObject * timer )
@@ -974,9 +978,9 @@ ckit_Window_Callbacks callbacks = {
     _keyUp
 };
 
-WindowMac::WindowMac( Param & param )
+WindowMac::WindowMac( Param & _params )
 	:
-	WindowBase(param),
+	WindowBase(_params),
     handle(0),
     timer_paint(0),
     timer_check_quit(0),
@@ -988,8 +992,17 @@ WindowMac::WindowMac( Param & param )
     memset( &window_frame_size, 0, sizeof(window_frame_size) );
     memset( &paint_client_size, 0, sizeof(paint_client_size) );
     
+    ckit_Window_Create_Parameters params;
+    memset(&params, 0, sizeof(params));
+    params.callbacks = &callbacks;
+    params.owner = this;
+    params.title = _params.title.c_str();
+    params.titlebar = _params.title_bar;
+    params.minimizable = _params.minimizebox;
+    params.resizable = _params.resizable;
+    
     // create window
-    if( ckit_Window_Create( &callbacks, this, &handle )!=0 )
+    if( ckit_Window_Create( &params, &handle )!=0 )
     {
         printf("ckit_Window_Create failed\n");
         return;
@@ -1024,7 +1037,8 @@ WindowMac::~WindowMac()
 
 WindowHandle WindowMac::getHandle() const
 {
-    // FIXME : implement
+    WARN_NOT_IMPLEMENTED;
+
 	return NULL;
 }
 
@@ -1272,6 +1286,8 @@ void WindowMac::_refreshMenu()
 void WindowMac::setPositionAndSize( int x, int y, int width, int height, int origin )
 {
 	FUNC_TRACE;
+    
+    printf("setPositionAndSize : (%d, %d, %d, %d), %d\n", x, y, width, height, origin);
 	
     int client_w = width;
     int client_h = height;
@@ -1296,12 +1312,16 @@ void WindowMac::setPositionAndSize( int x, int y, int width, int height, int ori
     	y -= window_h;
     }
     
-    WARN_NOT_IMPLEMENTED;
-
-    /*
-	::SetWindowPos( hwnd, NULL, x, y, window_w, window_h, SWP_NOZORDER | SWP_NOACTIVATE );
-     */
-
+    // FIXME : 左下原点に変換
+    CGSize screen_size;
+    ckit_Window_GetScreenSize(handle, &screen_size);
+    printf("screen size : %f, %f\n", screen_size.width, screen_size.height);
+    y = screen_size.height-(y+window_h);
+    
+    printf("ckit_Window_SetWindowRect : %d, %d, %d, %d\n", x, y, window_w, window_h);
+    
+    ckit_Window_SetWindowRect( handle, CGRectMake( x, y, window_w, window_h ) );
+    
 	Rect dirty_rect = { 0, 0, client_w, client_h };
 	appendDirtyRect( dirty_rect );
 }
@@ -1604,6 +1624,8 @@ void WindowMac::getWindowRect( Rect * rect )
     CGRect _rect;
     ckit_Window_GetWindowRect( handle, &_rect );
 	
+    // FIXME : 左上原点に変換
+    
     *rect = Rect(_rect);
 }
 
@@ -1621,55 +1643,56 @@ void WindowMac::getNormalWindowRect( Rect * rect )
 {
 	FUNC_TRACE;
 
-    WARN_NOT_IMPLEMENTED;
+    // FIXME : 最大化されていない状態の矩形を返すべきか
+    
+    CGRect _rect;
+    ckit_Window_GetWindowRect( handle, &_rect );
 
-    /*
-	WINDOWPLACEMENT window_place;
-	memset( &window_place, 0, sizeof(window_place) );
-	window_place.length = sizeof(window_place);
-	::GetWindowPlacement( hwnd, &window_place );
-
-	*rect = window_place.rcNormalPosition;
-    */
+    // FIXME : 左上原点に変換
+	
+    *rect = Rect(_rect);
 }
 
 void WindowMac::getNormalClientSize( Size * size )
 {
 	FUNC_TRACE;
 
-    WARN_NOT_IMPLEMENTED;
-
-    /*
-	WINDOWPLACEMENT window_place;
-	memset( &window_place, 0, sizeof(window_place) );
-	window_place.length = sizeof(window_place);
-	::GetWindowPlacement( hwnd, &window_place );
-
-	size->cx = window_place.rcNormalPosition.right - window_place.rcNormalPosition.left - window_frame_size.cx;
-	size->cy = window_place.rcNormalPosition.bottom - window_place.rcNormalPosition.top - window_frame_size.cy;
-    */
+    // FIXME : 最大化されていない状態のサイズを返すべきか
+    
+    CGSize _size;
+    ckit_Window_GetClientSize( handle, &_size );
+	
+    *size = Size(_size);
 }
 
-void WindowMac::clientToScreen(Point * point)
+void WindowMac::clientToScreen(Point * _point)
 {
 	FUNC_TRACE;
 
-    WARN_NOT_IMPLEMENTED;
+    // FIXME : 左下原点に変換
+    
+    CGPoint point = CGPointMake(_point->x, _point->y);
+    ckit_Window_ClientToScreen(handle, &point);
 
-    /*
-	ClientToScreen( hwnd, point );
-    */
+    // FIXME : 左上原点に変換
+    
+    _point->x = point.x;
+    _point->y = point.y;
 }
 
-void WindowMac::screenToClient(Point * point)
+void WindowMac::screenToClient(Point * _point)
 {
 	FUNC_TRACE;
 
-    WARN_NOT_IMPLEMENTED;
+    // FIXME : 左下原点に変換
 
-    /*
-	ScreenToClient( hwnd, point );
-    */
+    CGPoint point = CGPointMake(_point->x, _point->y);
+    ckit_Window_ScreenToClient(handle, &point);
+    
+    // FIXME : 左上原点に変換
+
+    _point->x = point.x;
+    _point->y = point.y;
 }
 
 void WindowMac::setTimer( TimerInfo * timer_info )
@@ -1743,11 +1766,7 @@ void WindowMac::killHotKey( PyObject * func )
 
 void WindowMac::setText( const wchar_t * text )
 {
-    WARN_NOT_IMPLEMENTED;
-
-    /*
-	SetWindowText( hwnd, text );
-    */
+    ckit_Window_SetTitle( handle, text );
 }
 
 bool WindowMac::popupMenu( int x, int y, PyObject * items )

@@ -6,6 +6,8 @@
 //  Copyright (c) 2014年 craftware. All rights reserved.
 //
 
+#import <wchar.h>
+
 #import <Cocoa/Cocoa.h>
 
 #import "ckitcore_cocoa.h"
@@ -434,21 +436,30 @@ int ckit_Application_Create()
     return 0;
 }
 
-int ckit_Window_Create( ckit_Window_Callbacks * _callbacks, void * _owner, CocoaObject ** _window )
+int ckit_Window_Create( ckit_Window_Create_Parameters * params, CocoaObject ** _window )
 {
     TRACE;
 
+    int style = NSClosableWindowMask;
+    if(params->titlebar){ style |= NSTitledWindowMask; }
+    if(params->minimizable){ style |= NSMiniaturizableWindowMask; }
+    if(params->resizable){ style |= NSResizableWindowMask; }
+    
     NSWindow * window = [[NSWindow alloc]
                          initWithContentRect:NSMakeRect(0,0,600,400)
-                         styleMask: (NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask | NSResizableWindowMask)
+                         styleMask:style
                          backing:NSBackingStoreBuffered
-                         defer:NO];
+                         defer:YES];
     
-    CkitView * view = [[CkitView alloc] initWithFrame:NSMakeRect(0,0,1,1) callbacks:_callbacks owner:_owner ];
+    CkitView * view = [[CkitView alloc] initWithFrame:NSMakeRect(0,0,1,1) callbacks:params->callbacks owner:params->owner ];
     
     window.delegate = view;
     
     [window setContentView:view];
+    
+    ckit_Window_SetTitle( (__bridge CocoaObject*)window, params->title );
+    
+    //[window setFrame:NSMakeRect(500,200,100,100) display:true];
     
     *_window = (__bridge_retained CocoaObject *)window;
     
@@ -493,6 +504,15 @@ int ckit_Window_Quit( CocoaObject * _window )
     return 0;
 }
 
+int ckit_Window_SetWindowRect( CocoaObject * _window, CGRect rect )
+{
+    NSWindow * window = (__bridge NSWindow*)_window;
+
+    [window setFrame:rect display:true];
+
+    return 0;
+}
+
 int ckit_Window_GetWindowRect( CocoaObject * _window, CGRect * rect )
 {
     NSWindow * window = (__bridge NSWindow*)_window;
@@ -508,6 +528,19 @@ int ckit_Window_GetClientSize( CocoaObject * _window, CGSize * size )
     
     NSView * view = window.contentView;
     CGRect rect = [view frame];
+    
+    *size = rect.size;
+    
+    return 0;
+}
+
+int ckit_Window_GetScreenSize( CocoaObject * _window, CGSize * size )
+{
+    NSWindow * window = (__bridge NSWindow*)_window;
+    
+    NSScreen * screen = [window screen];
+    
+    CGRect rect = [screen frame];
     
     *size = rect.size;
     
@@ -567,3 +600,42 @@ int ckit_Window_KillTimer( CocoaObject * _window, CocoaObject * _timer )
     
     return 0;
 }
+
+int ckit_Window_ClientToScreen( CocoaObject * _window, CGPoint * point )
+{
+    NSWindow * window = (__bridge NSWindow*)_window;
+    NSView * view = window.contentView;
+
+    CGPoint window_point = [view convertPoint:*point toView:nil];
+    CGPoint screen_point = [window convertBaseToScreen:window_point];
+    
+    *point = screen_point;
+    
+    return 0;
+}
+
+int ckit_Window_ScreenToClient( CocoaObject * _window, CGPoint * point )
+{
+    NSWindow * window = (__bridge NSWindow*)_window;
+    NSView * view = window.contentView;
+    
+    CGPoint window_point = [window convertScreenToBase:*point];
+    CGPoint client_point = [view convertPoint:window_point fromView:nil];
+    
+    *point = client_point;
+    
+    return 0;
+}
+
+int ckit_Window_SetTitle( CocoaObject * _window, const wchar_t * _title )
+{
+    NSWindow * window = (__bridge NSWindow*)_window;
+    
+    NSString * title = [[NSString alloc] initWithBytes:_title length:wcslen(_title)*sizeof(wchar_t) encoding:NSUTF32LittleEndianStringEncoding];
+
+    [window setTitle:title];
+    
+    return 0;
+}
+
+
