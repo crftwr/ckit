@@ -27,6 +27,8 @@
 
 - (id)initWithFrame:(NSRect)frame callbacks:(ckit_Window_Callbacks*)_callbacks owner:(void*)_owner
 {
+    TRACE;
+
     self = [super initWithFrame:frame];
     if(self)
     {
@@ -38,6 +40,8 @@
 
 - (BOOL)windowShouldClose:(id)sender
 {
+    TRACE;
+
     // 閉じるボタンが押されても、メッセージループを抜けるだけで、ウインドウの破棄はdestroy()に任せる
     [NSApp stopModal];
     return FALSE;
@@ -56,17 +60,28 @@
     callbacks->drawRect( owner, dirtyRect, gctx );
 }
 
-- (void)viewDidEndLiveResize
+- (void)windowDidResize:(NSNotification *)notification
 {
-    [super viewDidEndLiveResize];
+    TRACE;
     
     CGRect rect = [self frame];
     
-    callbacks->viewDidEndLiveResize( owner, rect.size );
+    callbacks->windowDidResize( owner, rect.size );
+}
+
+- (void)windowDidEndLiveResize:(NSNotification *)notification
+{
+    TRACE;
+
+    CGRect rect = [self frame];
+    
+    callbacks->windowDidResize( owner, rect.size );
 }
 
 - (NSSize)windowWillResize:(NSWindow *)sender toSize:(NSSize)frameSize
 {
+    TRACE;
+
     callbacks->windowWillResize( owner, &frameSize );
     return frameSize;
 }
@@ -392,6 +407,8 @@ static int translateVk(int src)
 
 - (void)keyDown:(NSEvent *)theEvent
 {
+    TRACE;
+
     int keyCode = [theEvent keyCode];
     int vk = translateVk(keyCode);
     
@@ -416,6 +433,8 @@ static int translateVk(int src)
 
 - (void)keyUp:(NSEvent *)theEvent
 {
+    TRACE;
+
     int keyCode = [theEvent keyCode];
     int vk = translateVk(keyCode);
     
@@ -432,6 +451,8 @@ static int translateVk(int src)
 
 - (void)insertText:(id)insertString
 {
+    TRACE;
+
     // FIXME : BackSpaceやTABやEnterはここで処理されない。
 
     // FIXME : insertString が　AttributedStringである可能性もある
@@ -443,6 +464,8 @@ static int translateVk(int src)
 
 - (void)deleteBackward:(id)sender
 {
+    TRACE;
+
     // FIXME : modifierをちゃんとする
     callbacks->insertText( owner, L"\b", 0 );
 }
@@ -468,7 +491,7 @@ int ckit_Window_Create( ckit_Window_Create_Parameters * params, CocoaObject ** _
     if(params->resizable){ style |= NSResizableWindowMask; }
     
     NSWindow * window = [[NSWindow alloc]
-                         initWithContentRect:NSMakeRect(0,0,600,400)
+                         initWithContentRect:NSMakeRect(0,0,100,100)
                          styleMask:style
                          backing:NSBackingStoreBuffered
                          defer:YES];
@@ -529,6 +552,8 @@ int ckit_Window_Quit( CocoaObject * _window )
 
 int ckit_Window_SetWindowRect( CocoaObject * _window, CGRect rect )
 {
+    TRACE;
+
     NSWindow * window = (__bridge NSWindow*)_window;
 
     [window setFrame:rect display:true];
@@ -538,6 +563,8 @@ int ckit_Window_SetWindowRect( CocoaObject * _window, CGRect rect )
 
 int ckit_Window_GetWindowRect( CocoaObject * _window, CGRect * rect )
 {
+    TRACE;
+
     NSWindow * window = (__bridge NSWindow*)_window;
     
     *rect = [window frame];
@@ -547,6 +574,8 @@ int ckit_Window_GetWindowRect( CocoaObject * _window, CGRect * rect )
 
 int ckit_Window_GetClientSize( CocoaObject * _window, CGSize * size )
 {
+    TRACE;
+
     NSWindow * window = (__bridge NSWindow*)_window;
     
     NSView * view = window.contentView;
@@ -559,6 +588,8 @@ int ckit_Window_GetClientSize( CocoaObject * _window, CGSize * size )
 
 int ckit_Window_GetScreenSize( CocoaObject * _window, CGSize * size )
 {
+    TRACE;
+
     NSWindow * window = (__bridge NSWindow*)_window;
     
     NSScreen * screen = [window screen];
@@ -572,6 +603,8 @@ int ckit_Window_GetScreenSize( CocoaObject * _window, CGSize * size )
 
 int ckit_Window_IsMaximized( CocoaObject * _window, int * maximized )
 {
+    TRACE;
+
     NSWindow * window = (__bridge NSWindow*)_window;
     
     *maximized = [window isZoomed];
@@ -581,6 +614,8 @@ int ckit_Window_IsMaximized( CocoaObject * _window, int * maximized )
 
 int ckit_Window_IsMinimized( CocoaObject * _window, int * minimized )
 {
+    TRACE;
+
     NSWindow * window = (__bridge NSWindow*)_window;
     
     *minimized = [window isMiniaturized];
@@ -590,6 +625,8 @@ int ckit_Window_IsMinimized( CocoaObject * _window, int * minimized )
 
 int ckit_Window_SetNeedsRedraw( CocoaObject * _window )
 {
+    //TRACE;
+
     NSWindow * window = (__bridge NSWindow*)_window;
 
     NSView * view = window.contentView;
@@ -600,6 +637,8 @@ int ckit_Window_SetNeedsRedraw( CocoaObject * _window )
 
 int ckit_Window_SetTimer( CocoaObject * _window, float interval, CocoaObject ** _timer )
 {
+    TRACE;
+
     NSWindow * window = (__bridge NSWindow*)_window;
     NSView * view = window.contentView;
     
@@ -617,6 +656,8 @@ int ckit_Window_SetTimer( CocoaObject * _window, float interval, CocoaObject ** 
 
 int ckit_Window_KillTimer( CocoaObject * _window, CocoaObject * _timer )
 {
+    TRACE;
+
     NSTimer * timer = (__bridge NSTimer*)_timer;
     
     [timer invalidate];
@@ -626,6 +667,8 @@ int ckit_Window_KillTimer( CocoaObject * _window, CocoaObject * _timer )
 
 int ckit_Window_ClientToScreen( CocoaObject * _window, CGPoint * point )
 {
+    TRACE;
+
     NSWindow * window = (__bridge NSWindow*)_window;
     NSView * view = window.contentView;
 
@@ -639,6 +682,8 @@ int ckit_Window_ClientToScreen( CocoaObject * _window, CGPoint * point )
 
 int ckit_Window_ScreenToClient( CocoaObject * _window, CGPoint * point )
 {
+    TRACE;
+
     NSWindow * window = (__bridge NSWindow*)_window;
     NSView * view = window.contentView;
     
@@ -652,6 +697,8 @@ int ckit_Window_ScreenToClient( CocoaObject * _window, CGPoint * point )
 
 int ckit_Window_SetTitle( CocoaObject * _window, const wchar_t * _title )
 {
+    TRACE;
+
     NSWindow * window = (__bridge NSWindow*)_window;
     
     NSString * title = [[NSString alloc] initWithBytes:_title length:wcslen(_title)*sizeof(wchar_t) encoding:NSUTF32LittleEndianStringEncoding];
@@ -663,6 +710,8 @@ int ckit_Window_SetTitle( CocoaObject * _window, const wchar_t * _title )
 
 int ckit_Window_Activate( CocoaObject * _window )
 {
+    TRACE;
+    
     NSWindow * window = (__bridge NSWindow*)_window;
     
     [window makeKeyWindow];

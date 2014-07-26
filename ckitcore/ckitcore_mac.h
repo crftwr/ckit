@@ -121,7 +121,7 @@ namespace ckit
         void paintPlanes();
         void paintCaret();
         
-        int viewDidEndLiveResize( CGSize size );
+        int windowDidResize( CGSize size );
         int windowWillResize( CGSize * size );
         void calculateFrameSize();
 
@@ -133,6 +133,9 @@ namespace ckit
         
         CocoaObject * handle;
         Size window_frame_size;
+        
+        bool initial_rect_set;
+        CGRect initial_rect;
         
         CocoaObject * timer_paint;
         CocoaObject * timer_check_quit;

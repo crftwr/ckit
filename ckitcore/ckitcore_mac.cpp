@@ -704,6 +704,14 @@ static int _drawRect( void * owner, CGRect rect, CGContextRef gctx )
 
 int WindowMac::drawRect( CGRect rect, CGContextRef gctx )
 {
+    // なぜかウインドウ作成直後のsetFrameでは位置設定が効かないので、
+    // ここで遅延して設定する
+    if(initial_rect_set)
+    {
+        ckit_Window_SetWindowRect(handle, initial_rect);
+        initial_rect_set=false;
+    }
+    
     beginPaint( gctx );
     flushPaint();
     endPaint();
@@ -711,15 +719,15 @@ int WindowMac::drawRect( CGRect rect, CGContextRef gctx )
     return 0;
 }
 
-static int _viewDidEndLiveResize( void * owner, CGSize size )
+static int _windowDidResize( void * owner, CGSize size )
 {
     TRACE;
     
     WindowMac * window = (WindowMac*)owner;
-    return window->viewDidEndLiveResize(size);
+    return window->windowDidResize(size);
 }
 
-int WindowMac::viewDidEndLiveResize( CGSize size )
+int WindowMac::windowDidResize( CGSize size )
 {
 	PythonUtil::GIL_Ensure gil_ensure;
     
@@ -1004,7 +1012,7 @@ int WindowMac::insertText( const wchar_t * text, int mod )
 
 ckit_Window_Callbacks callbacks = {
     _drawRect,
-    _viewDidEndLiveResize,
+    _windowDidResize,
     _windowWillResize,
     _timerHandler,
     _keyDown,
@@ -1016,6 +1024,7 @@ WindowMac::WindowMac( Param & _params )
 	:
 	WindowBase(_params),
     handle(0),
+    initial_rect_set(false),
     timer_paint(0),
     timer_check_quit(0),
     paint_gctx(0)
@@ -1024,6 +1033,7 @@ WindowMac::WindowMac( Param & _params )
     
     // initialize graphics system
     memset( &window_frame_size, 0, sizeof(window_frame_size) );
+    memset( &initial_rect, 0, sizeof(initial_rect) );
     memset( &paint_client_size, 0, sizeof(paint_client_size) );
     
     ckit_Window_Create_Parameters params;
@@ -1043,6 +1053,12 @@ WindowMac::WindowMac( Param & _params )
     }
 
     calculateFrameSize();
+    
+    // ウインドウ初期位置
+    CGSize screen_size;
+    ckit_Window_GetScreenSize(handle, &screen_size);
+    initial_rect = CGRectMake( _params.winpos_x, screen_size.height - _params.winpos_y - _params.winsize_h - window_frame_size.cy, _params.winsize_w + window_frame_size.cx, _params.winsize_h + window_frame_size.cy );
+    initial_rect_set = true;
     
     ckit_Window_SetTimer( handle, 0.016, &timer_paint );
     ckit_Window_SetTimer( handle, 0.016, &timer_check_quit );
@@ -1346,7 +1362,7 @@ void WindowMac::setPositionAndSize( int x, int y, int width, int height, int ori
     	y -= window_h;
     }
     
-    // FIXME : 左下原点に変換
+    // 左下原点に変換
     CGSize screen_size;
     ckit_Window_GetScreenSize(handle, &screen_size);
     printf("screen size : %f, %f\n", screen_size.width, screen_size.height);
@@ -1654,7 +1670,10 @@ void WindowMac::getWindowRect( Rect * rect )
     CGRect _rect;
     ckit_Window_GetWindowRect( handle, &_rect );
 	
-    // FIXME : 左上原点に変換
+    // 左上原点に変換
+    CGSize screen_size;
+    ckit_Window_GetScreenSize( handle, &screen_size );
+    _rect.origin.y = screen_size.height - _rect.origin.y - _rect.size.height;
     
     *rect = Rect(_rect);
 }
@@ -1678,7 +1697,10 @@ void WindowMac::getNormalWindowRect( Rect * rect )
     CGRect _rect;
     ckit_Window_GetWindowRect( handle, &_rect );
 
-    // FIXME : 左上原点に変換
+    // 左上原点に変換
+    CGSize screen_size;
+    ckit_Window_GetScreenSize( handle, &screen_size );
+    _rect.origin.y = screen_size.height - _rect.origin.y - _rect.size.height;
 	
     *rect = Rect(_rect);
 }
