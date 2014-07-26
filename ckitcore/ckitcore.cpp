@@ -38,7 +38,8 @@ namespace ckit
 };
 
 #if defined(PLATFORM_WIN32)
-const int WM_USER_NTFYICON  = WM_USER + 100; // FIXME : cant build on mac
+// FIXME : Windows用ソースに移動させる
+const int WM_USER_NTFYICON  = WM_USER + 100;
 const int ID_MENUITEM       = 256;
 const int ID_MENUITEM_MAX   = 256+1024-1;
 const int ID_POPUP_MENUITEM       = ID_MENUITEM_MAX+1;
@@ -1392,7 +1393,7 @@ static PyObject * Image_fromString( PyObject * self, PyObject * args )
 	}
 	else
 	{
-#if defined(PLATFORM_WIN32)
+        #if defined(PLATFORM_WIN32)
         // FIXME : Windows のコードに引っ越し
 		void * dib_buf = malloc( width * 4 * height );
 
@@ -1401,9 +1402,9 @@ static PyObject * Image_fromString( PyObject * self, PyObject * args )
 		image = new Image( width, height, (const char *)dib_buf, py_transparent_color ? &transparent_color : 0, halftone!=0 );
 
 		free(dib_buf);
-#else
+        #else
 		image = new Image( width, height, buf, py_transparent_color ? &transparent_color : 0, halftone!=0 );
-#endif
+        #endif
 	}
 
 	Image_Object * pyimg;
@@ -2685,13 +2686,13 @@ static int Window_init( PyObject * self, PyObject * args, PyObject * kwds)
 	Window_instance_count ++;
 	PRINTF("Window_instance_count=%d\n", Window_instance_count);
 
-#if defined(PLATFORM_WIN32)
+    #if defined(PLATFORM_WIN32)
     int x = CW_USEDEFAULT;
     int y = CW_USEDEFAULT;
-#elif defined(PLATFORM_MAC)
+    #elif defined(PLATFORM_MAC)
     int x = 0; // FIXME: auto-layout
     int y = 0; // FIXME: auto-layout
-#endif
+    #endif
     int width = 100;
     int height = 100;
     int origin = 0;
@@ -3593,8 +3594,8 @@ static PyObject * Window_messageLoop(PyObject* self, PyObject* args, PyObject * 
 
     WindowBase * window = ((Window_Object*)self)->p;
 
-    // FIXME : move to platform source
     #if defined(PLATFORM_WIN32)
+    // FIXME : Windows用ソースに移動
     MSG msg;
     for(;;)
     {
@@ -4981,11 +4982,6 @@ static int Line_SetAttrString( PyObject * self, const char * attr_name, PyObject
 			{
 				bg = (int)PyLong_AS_LONG(value);
 			}
-			else if( PyLong_Check(value) )
-			{
-                // FIXME : is this block needed?
-				bg = (int)PyLong_AsLong(value);
-			}
 			else
 			{
 				PyErr_SetString( PyExc_TypeError, "'bg' must be a int object." );
@@ -5003,11 +4999,6 @@ static int Line_SetAttrString( PyObject * self, const char * attr_name, PyObject
 			if( PyLong_Check(value) )
 			{
 				bookmark = (int)PyLong_AS_LONG(value);
-			}
-			else if( PyLong_Check(value) )
-			{
-                // FIXME : is this block needed?
-				bookmark = (int)PyLong_AsLong(value);
 			}
 			else
 			{
@@ -5121,7 +5112,7 @@ static PyObject * Module_registerWindowClass( PyObject * self, PyObject * args )
         }
     }
 
-#if defined(PLATFORM_WIN32)
+    #if defined(PLATFORM_WIN32)
     
     // FIXME : prepare and use Window::initializeSystem instead.
     
@@ -5140,11 +5131,11 @@ static PyObject * Module_registerWindowClass( PyObject * self, PyObject * args )
         return NULL;
     }
 
-#elif defined(PLATFORM_MAC)
+    #elif defined(PLATFORM_MAC)
     
     Window::initializeSystem( prefix.c_str() );
     
-#endif
+    #endif
 
     Py_INCREF(Py_None);
     return Py_None;

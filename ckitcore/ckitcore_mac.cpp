@@ -163,7 +163,7 @@ FontMac::FontMac( const wchar_t * name, int height )
         char_width = advances['a'].width;
         char_height = height;
         
-        PRINTF( "char size : %d, %d\n", char_width, char_height );
+        PRINTF("char size = %d,%d\n", char_width, char_height );
         PRINTF("advance[W] = %f,%f\n", advances['W'].width, advances['W'].height );
         PRINTF("advance[i] = %f,%f\n", advances['i'].width, advances['i'].height );
         

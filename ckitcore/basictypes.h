@@ -81,7 +81,6 @@ namespace ckit
         {
         }
         
-        // FIXME : 座標系を合わせる
         Rect( const CGRect & rect )
             :
             left(rect.origin.x),
@@ -91,7 +90,6 @@ namespace ckit
         {
         }
         
-        // FIXME : 座標系を合わせる
         operator CGRect ()
         {
             return CGRectMake(left,top,right-left,bottom-top);

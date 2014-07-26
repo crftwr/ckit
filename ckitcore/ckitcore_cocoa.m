@@ -453,7 +453,7 @@ static int translateVk(int src)
 {
     TRACE;
 
-    // FIXME : BackSpaceやTABやEnterはここで処理されない。
+    // FIXME : TABやEnterはここで処理されない。
 
     // FIXME : insertString が　AttributedStringである可能性もある
     NSString * s = insertString;
@@ -495,9 +495,6 @@ int ckit_Window_Create( ckit_Window_Create_Parameters * params, CocoaObject ** _
                          styleMask:style
                          backing:NSBackingStoreBuffered
                          defer:YES];
-    
-    // FIXME : なぜか、位置の指定が効いていない。サイズは効いている。
-    // setFrame しても同様。
     
     CkitView * view = [[CkitView alloc] initWithFrame:NSMakeRect(0,0,1,1) callbacks:params->callbacks owner:params->owner ];
     
