@@ -163,8 +163,7 @@ FontMac::FontMac( const wchar_t * name, int height )
         char_width = advances['a'].width;
         char_height = height;
         
-        printf( "char size : %d, %d\n", char_width, char_height );
-        
+        PRINTF( "char size : %d, %d\n", char_width, char_height );
         PRINTF("advance[W] = %f,%f\n", advances['W'].width, advances['W'].height );
         PRINTF("advance[i] = %f,%f\n", advances['i'].width, advances['i'].height );
         
@@ -749,8 +748,6 @@ void WindowMac::callSizeHandler( Size size )
 {
     TRACE;
     
-    printf("callSizeHandler : %d, %d\n", size.cx, size.cy);
-    
 	PythonUtil::GIL_Ensure gil_ensure;
     
     calculateFrameSize();
@@ -781,8 +778,6 @@ void WindowMac::calculateFrameSize()
     
     window_frame_size.cx = window_rect.size.width - client_size.width;
     window_frame_size.cy = window_rect.size.height - client_size.height;
-    
-    printf( "frame size : %d, %d\n", window_frame_size.cx, window_frame_size.cy );
 }
 
 static int _timerHandler( void * owner, CocoaObject * timer )
