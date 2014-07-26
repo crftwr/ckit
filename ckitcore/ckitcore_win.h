@@ -44,8 +44,8 @@ namespace ckit
 
 		virtual void Scroll( int x, int y, int width, int height, int delta_x, int delta_y );
 		virtual void DrawOffscreen();
-		virtual void DrawHorizontalLine( int x1, int y1, int x2, COLORREF color, bool dotted );
-		virtual void DrawVerticalLine( int x1, int y1, int y2, COLORREF color, bool dotted );
+		void DrawHorizontalLine( int x1, int y1, int x2, COLORREF color, bool dotted );
+		void DrawVerticalLine( int x1, int y1, int y2, COLORREF color, bool dotted );
         virtual void Draw( const RECT & paint_rect );
 
 		HDC	offscreen_dc;

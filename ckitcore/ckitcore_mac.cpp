@@ -627,38 +627,6 @@ void TextPlaneMac::DrawOffscreen()
 	dirty = false;
 }
 
-void TextPlaneMac::DrawHorizontalLine( int x1, int y1, int x2, Color color, bool dotted )
-{
-    WARN_NOT_IMPLEMENTED;
-
-    /*
-	color = (0xff << 24) | (GetRValue(color) << 16) | (GetGValue(color) << 8) | GetBValue(color);
-	int step;
-	if(dotted) { step=2; } else { step=1; }
-
-	for( int x=x1 ; x<x2 ; x+=step )
-	{
-		*(int*)(&offscreen_buf[ (offscreen_size.cy-y1-1) * offscreen_size.cx * 4 + x * 4 + 0 ]) = color;
-	}
-    */
-}
-
-void TextPlaneMac::DrawVerticalLine( int x1, int y1, int y2, Color color, bool dotted )
-{
-    WARN_NOT_IMPLEMENTED;
-
-    /*
-	color = (0xff << 24) | (GetRValue(color) << 16) | (GetGValue(color) << 8) | GetBValue(color);
-	int step;
-	if(dotted) { step=2; } else { step=1; }
-
-	for( int y=y1 ; y<y2 ; y+=step )
-	{
-		*(int*)(&offscreen_buf[ (offscreen_size.cy-y-1) * offscreen_size.cx * 4 + x1 * 4 + 0 ]) = color;
-	}
-    */
-}
-
 void TextPlaneMac::Draw( const Rect & paint_rect )
 {
 	FUNC_TRACE;
@@ -696,16 +664,16 @@ void WindowMac::terminateSystem()
 
 static int _drawRect( void * owner, CGRect rect, CGContextRef gctx )
 {
-    TRACE;
-    
     WindowMac * window = (WindowMac*)owner;
     return window->drawRect( rect, gctx );
 }
 
 int WindowMac::drawRect( CGRect rect, CGContextRef gctx )
 {
-    // なぜかウインドウ作成直後のsetFrameでは位置設定が効かないので、
-    // ここで遅延して設定する
+    TRACE;
+    
+    // なぜかウインドウ作成直後のsetFrameでは位置設定が効かないので、ここで遅延して設定する
+    // (runModalForWindow を呼び出したときに、位置がリセットされているような振る舞い。)
     if(initial_rect_set)
     {
         ckit_Window_SetWindowRect(handle, initial_rect);
@@ -721,33 +689,13 @@ int WindowMac::drawRect( CGRect rect, CGContextRef gctx )
 
 static int _windowDidResize( void * owner, CGSize size )
 {
-    TRACE;
-    
     WindowMac * window = (WindowMac*)owner;
     return window->windowDidResize(size);
 }
 
 int WindowMac::windowDidResize( CGSize size )
 {
-	PythonUtil::GIL_Ensure gil_ensure;
-    
-    calculateFrameSize();
-    
-    if( size_handler )
-    {
-        PyObject * pyarglist = Py_BuildValue("(ii)", (int)size.width, (int)size.height );
-        PyObject * pyresult = PyEval_CallObject( size_handler, pyarglist );
-        Py_DECREF(pyarglist);
-        if(pyresult)
-        {
-            Py_DECREF(pyresult);
-        }
-        else
-        {
-            PyErr_Print();
-        }
-    }
-    
+    callSizeHandler(size);
     return 0;
 }
 
@@ -795,6 +743,32 @@ int WindowMac::windowWillResize( CGSize * size )
     size->height= height + window_frame_size.cy;
     
     return 0;
+}
+
+void WindowMac::callSizeHandler( Size size )
+{
+    TRACE;
+    
+    printf("callSizeHandler : %d, %d\n", size.cx, size.cy);
+    
+	PythonUtil::GIL_Ensure gil_ensure;
+    
+    calculateFrameSize();
+    
+    if( initialized && size_handler )
+    {
+        PyObject * pyarglist = Py_BuildValue("(ii)", size.cx, size.cy );
+        PyObject * pyresult = PyEval_CallObject( size_handler, pyarglist );
+        Py_DECREF(pyarglist);
+        if(pyresult)
+        {
+            Py_DECREF(pyresult);
+        }
+        else
+        {
+            PyErr_Print();
+        }
+    }
 }
 
 void WindowMac::calculateFrameSize()
@@ -1023,6 +997,7 @@ ckit_Window_Callbacks callbacks = {
 WindowMac::WindowMac( Param & _params )
 	:
 	WindowBase(_params),
+    initialized(false),
     handle(0),
     initial_rect_set(false),
     timer_paint(0),
@@ -1058,10 +1033,13 @@ WindowMac::WindowMac( Param & _params )
     CGSize screen_size;
     ckit_Window_GetScreenSize(handle, &screen_size);
     initial_rect = CGRectMake( _params.winpos_x, screen_size.height - _params.winpos_y - _params.winsize_h - window_frame_size.cy, _params.winsize_w + window_frame_size.cx, _params.winsize_h + window_frame_size.cy );
+    ckit_Window_SetWindowRect(handle, initial_rect);
     initial_rect_set = true;
     
     ckit_Window_SetTimer( handle, 0.016, &timer_paint );
     ckit_Window_SetTimer( handle, 0.016, &timer_check_quit );
+    
+    initialized = true;
 }
 
 WindowMac::~WindowMac()
@@ -1160,7 +1138,6 @@ void WindowMac::flushPaint()
 {
 	FUNC_TRACE;
 
-    // FIMXE : dirty をどこも立ててないので一時的にコメントアウト
     if(!dirty){ return; }
     
     paintBackground();
@@ -1370,10 +1347,11 @@ void WindowMac::setPositionAndSize( int x, int y, int width, int height, int ori
         // 最初のdrawRectが呼ばれる前にsetPositionAndSizeが呼ばれたら遅延設定のために保存する
         initial_rect = CGRectMake( x, y, window_w, window_h );
     }
-    else
-    {
-        ckit_Window_SetWindowRect( handle, CGRectMake( x, y, window_w, window_h ) );
-    }
+
+    ckit_Window_SetWindowRect( handle, CGRectMake( x, y, window_w, window_h ) );
+    
+    // size_handler を明示的に呼び出し
+    callSizeHandler( Size(client_w, client_h) );
     
 	Rect dirty_rect = { 0, 0, client_w, client_h };
 	appendDirtyRect( dirty_rect );

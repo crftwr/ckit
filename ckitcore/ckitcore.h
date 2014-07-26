@@ -203,9 +203,7 @@ namespace ckit
 		
 		virtual void Scroll( int x, int y, int width, int height, int delta_x, int delta_y ) = 0;
 		virtual void DrawOffscreen() = 0;
-		virtual void DrawHorizontalLine( int x1, int y1, int x2, Color color, bool dotted ) = 0;
-		virtual void DrawVerticalLine( int x1, int y1, int y2, Color color, bool dotted ) = 0;
-        void SetCaretPosition( int x, int y );
+		void SetCaretPosition( int x, int y );
 
 		PyObject * pyobj;
     	FontBase * font;

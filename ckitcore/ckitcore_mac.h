@@ -54,9 +54,7 @@ namespace ckit
 
 		virtual void Scroll( int x, int y, int width, int height, int delta_x, int delta_y );
 		virtual void DrawOffscreen();
-		virtual void DrawHorizontalLine( int x1, int y1, int x2, Color color, bool dotted );
-		virtual void DrawVerticalLine( int x1, int y1, int y2, Color color, bool dotted );
-        virtual void Draw( const Rect & paint_rect );
+		virtual void Draw( const Rect & paint_rect );
 
         CGLayerRef offscreen_handle;
         CGContextRef offscreen_context;
@@ -123,6 +121,7 @@ namespace ckit
         
         int windowDidResize( CGSize size );
         int windowWillResize( CGSize * size );
+        void callSizeHandler( Size size );
         void calculateFrameSize();
 
         int timerHandler( CocoaObject * timer );
@@ -131,6 +130,8 @@ namespace ckit
         int keyUp( int vk, int mod );
         int insertText( const wchar_t * text, int mod );
         
+        bool initialized;
+
         CocoaObject * handle;
         Size window_frame_size;
         
