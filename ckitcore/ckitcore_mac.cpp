@@ -801,31 +801,36 @@ int WindowMac::timerHandler( CocoaObject * timer )
     }
     else if( timer == timer_check_quit )
     {
+        // FIXME : 一番深い messageLoop だけを Quit 判定するようにすべき
+        
         if(quit_requested)
         {
             quit_requested = false;
             ckit_Window_Quit(handle);
         }
         
-        PyObject * continue_cond_func = messageloop_continue_cond_func_stack.back();
-        if(continue_cond_func)
+        if(messageloop_continue_cond_func_stack.size()>0)
         {
-            PyObject * pyarglist = Py_BuildValue("()");
-            PyObject * pyresult = PyEval_CallObject( continue_cond_func, pyarglist );
-            Py_DECREF(pyarglist);
-            if(pyresult)
+            PyObject * continue_cond_func = messageloop_continue_cond_func_stack.back();
+            if(continue_cond_func)
             {
-                int result;
-                PyArg_Parse(pyresult,"i", &result );
-                Py_DECREF(pyresult);
-                if(!result)
+                PyObject * pyarglist = Py_BuildValue("()");
+                PyObject * pyresult = PyEval_CallObject( continue_cond_func, pyarglist );
+                Py_DECREF(pyarglist);
+                if(pyresult)
                 {
-                    ckit_Window_Quit(handle);
+                    int result;
+                    PyArg_Parse(pyresult,"i", &result );
+                    Py_DECREF(pyresult);
+                    if(!result)
+                    {
+                        ckit_Window_Quit(handle);
+                    }
                 }
-            }
-            else
-            {
-                PyErr_Print();
+                else
+                {
+                    PyErr_Print();
+                }
             }
         }
     }

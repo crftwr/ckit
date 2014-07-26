@@ -752,9 +752,10 @@ def pathDriveUpper():
 #
 def joinPath(*args):
     left = 0
-    for i in range(len(args)):
-        if os.path.splitunc(args[i])[0]:
-            left = i
+    if os.name=="nt":
+        for i in range(len(args)):
+            if os.path.splitunc(args[i])[0]:
+                left = i
     path = os.path.join( *args[left:] )
     path = replacePath(path)
     return path

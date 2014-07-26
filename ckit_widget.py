@@ -1515,14 +1515,15 @@ class CandidateWindow( ckit_textwindow.TextWindow ):
         
         # 画面に収まらない場合は上方向に配置する
         y = y2
-        monitor_info_list = pyauto.Window.getMonitorInfo()
-        for monitor_info in monitor_info_list:
-            if monitor_info[0][0] <= x < monitor_info[0][2] and monitor_info[0][1] <= y1 < monitor_info[0][3]:
-                window_rect = self.getWindowRect()
-                char_w, char_h = self.getCharSize()
-                if y2 + (window_rect[3]-window_rect[1]) + (self.max_height-self.height())*char_h >= monitor_info[1][3]:
-                    y = y1 - ((window_rect[3]-window_rect[1]) + (window_height-self.height())*char_h)
-                break
+        if os.name=="nt":
+            monitor_info_list = pyauto.Window.getMonitorInfo()
+            for monitor_info in monitor_info_list:
+                if monitor_info[0][0] <= x < monitor_info[0][2] and monitor_info[0][1] <= y1 < monitor_info[0][3]:
+                    window_rect = self.getWindowRect()
+                    char_w, char_h = self.getCharSize()
+                    if y2 + (window_rect[3]-window_rect[1]) + (self.max_height-self.height())*char_h >= monitor_info[1][3]:
+                        y = y1 - ((window_rect[3]-window_rect[1]) + (window_height-self.height())*char_h)
+                    break
         
         if not len(items):
             self.show( False, False )
