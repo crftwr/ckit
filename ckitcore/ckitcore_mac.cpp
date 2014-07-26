@@ -1337,8 +1337,6 @@ void WindowMac::setPositionAndSize( int x, int y, int width, int height, int ori
 {
 	FUNC_TRACE;
     
-    printf("setPositionAndSize : (%d, %d, %d, %d), %d\n", x, y, width, height, origin);
-	
     int client_w = width;
     int client_h = height;
     int window_w = client_w + window_frame_size.cx;
@@ -1365,12 +1363,17 @@ void WindowMac::setPositionAndSize( int x, int y, int width, int height, int ori
     // 左下原点に変換
     CGSize screen_size;
     ckit_Window_GetScreenSize(handle, &screen_size);
-    printf("screen size : %f, %f\n", screen_size.width, screen_size.height);
     y = screen_size.height-(y+window_h);
     
-    printf("ckit_Window_SetWindowRect : %d, %d, %d, %d\n", x, y, window_w, window_h);
-    
-    ckit_Window_SetWindowRect( handle, CGRectMake( x, y, window_w, window_h ) );
+    if(initial_rect_set)
+    {
+        // 最初のdrawRectが呼ばれる前にsetPositionAndSizeが呼ばれたら遅延設定のために保存する
+        initial_rect = CGRectMake( x, y, window_w, window_h );
+    }
+    else
+    {
+        ckit_Window_SetWindowRect( handle, CGRectMake( x, y, window_w, window_h ) );
+    }
     
 	Rect dirty_rect = { 0, 0, client_w, client_h };
 	appendDirtyRect( dirty_rect );
