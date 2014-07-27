@@ -367,8 +367,10 @@ FILE_ATTRIBUTE_NORMAL	 = 0x00000080
 
 ## ファイルの属性を取得する
 def getFileAttribute(filename):
-    return ctypes.windll.kernel32.GetFileAttributesW(filename)
-
+    if os.name=="nt":
+        return ctypes.windll.kernel32.GetFileAttributesW(filename)
+    else:
+        return 0
 
 ## ファイルの属性を設定する
 def setFileAttribute(filename,attribute):

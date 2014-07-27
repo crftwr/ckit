@@ -505,11 +505,13 @@ int ckit_Window_Create( ckit_Window_Create_Parameters * params, CocoaObject ** _
                          styleMask:style
                          backing:NSBackingStoreBuffered
                          defer:YES];
+
+    // NSWindowオブジェクトの解放は Close 時ではなく ARC を使って制御する
+    [window setReleasedWhenClosed:FALSE];
     
     CkitView * view = [[CkitView alloc] initWithFrame:NSMakeRect(0,0,1,1) callbacks:params->callbacks owner:params->owner ];
     
     window.delegate = view;
-    
     [window setContentView:view];
     
     ckit_Window_SetTitle( (__bridge CocoaObject*)window, params->title );
@@ -523,9 +525,8 @@ int ckit_Window_Destroy( CocoaObject * _window )
 {
     TRACE;
     
-    // FIXME : ウインドウの破棄の方法として、これで合っているのか確認
     NSWindow * window = (__bridge_transfer NSWindow*)_window;
-    (void)window;
+    [window close];
     
     return 0;
 }

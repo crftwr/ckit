@@ -12,6 +12,9 @@ using namespace ckit;
 
 #define MODULE_NAME "ckitcore"
 
+const double TIMER_PAINT_INTERVAL = 0.01666;
+const double TIMER_CHECK_QUIT_INTERVAL = 0.01666;
+
 //-----------------------------------------------------------------------------
 
 //#define PRINTF printf
@@ -891,6 +894,55 @@ int WindowMac::timerHandler( CocoaObject * timer )
         {
             ckit_Window_SetNeedsRedraw(handle);
         }
+
+        if( delayed_call_list.size() )
+        {
+            delayed_call_list_ref_count ++;
+            
+            for( std::list<DelayedCallInfo>::iterator i=delayed_call_list.begin(); i!=delayed_call_list.end() ; i++ )
+            {
+                if(i->pyobj)
+                {
+                    i->timeout -= TIMER_PAINT_INTERVAL * 1000;
+                    if(i->timeout<=0)
+                    {
+                        PyObject * pyobj = i->pyobj;
+                        i->pyobj = NULL;
+                        
+                        PyObject * pyarglist = Py_BuildValue("()" );
+                        PyObject * pyresult = PyEval_CallObject( pyobj, pyarglist );
+                        Py_DECREF(pyarglist);
+                        if(pyresult)
+                        {
+                            Py_DECREF(pyresult);
+                        }
+                        else
+                        {
+                            PyErr_Print();
+                        }
+						
+                        Py_XDECREF(pyobj);
+                    }
+                }
+            }
+            
+            delayed_call_list_ref_count --;
+            
+            if(delayed_call_list_ref_count==0)
+            {
+                for( std::list<DelayedCallInfo>::iterator i=delayed_call_list.begin(); i!=delayed_call_list.end() ; )
+                {
+                    if( (i->pyobj)==0 )
+                    {
+                        i = delayed_call_list.erase(i);
+                    }
+                    else
+                    {
+                        i++;
+                    }
+                }
+            }
+        }
     }
     else if( timer == timer_check_quit )
     {
@@ -1134,8 +1186,8 @@ WindowMac::WindowMac( Param & _params )
     ckit_Window_SetWindowRect(handle, initial_rect);
     initial_rect_set = true;
     
-    ckit_Window_SetTimer( handle, 0.016, &timer_paint );
-    ckit_Window_SetTimer( handle, 0.016, &timer_check_quit );
+    ckit_Window_SetTimer( handle, TIMER_PAINT_INTERVAL, &timer_paint );
+    ckit_Window_SetTimer( handle, TIMER_CHECK_QUIT_INTERVAL, &timer_check_quit );
     
     initialized = true;
 }
