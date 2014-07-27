@@ -146,6 +146,7 @@ namespace ckit
         
         std::vector<PyObject*> messageloop_continue_cond_func_stack;
         
+        Color bg_color;
         Color caret_color0;
         Color caret_color1;
         

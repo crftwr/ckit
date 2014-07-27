@@ -1150,6 +1150,7 @@ WindowMac::WindowMac( Param & _params )
     initial_rect_set(false),
     timer_paint(0),
     timer_check_quit(0),
+    bg_color(_params.bg_color),
     caret_color0(_params.caret0_color),
     caret_color1(_params.caret1_color),
     paint_gctx(0)
@@ -1241,7 +1242,7 @@ void WindowMac::endPaint()
 void WindowMac::paintBackground()
 {
     // FIXME : 設定された背景色をちゃんと使う
-    CGContextSetRGBFillColor( paint_gctx, 0, 0, 0, 1 );
+    CGContextSetRGBFillColor( paint_gctx, bg_color.r/255.0, bg_color.g/255.0, bg_color.b/255.0, 1 );
     CGContextFillRect( paint_gctx, CGRectMake(0,0,paint_client_size.cx, paint_client_size.cy) );
 }
 
@@ -1319,18 +1320,13 @@ void WindowMac::enumFonts( std::vector<std::wstring> * font_list )
 
 void WindowMac::setBGColor( Color color )
 {
-    WARN_NOT_IMPLEMENTED;
-
-    /*
-    if(bg_brush){ DeleteObject(bg_brush); }
-    bg_brush = CreateSolidBrush(color);
-
-	RECT dirty_rect;
-    GetClientRect( hwnd, &dirty_rect );
-	appendDirtyRect( dirty_rect );
-
-	RedrawWindow( hwnd, NULL, NULL, RDW_FRAME | RDW_INVALIDATE );
-    */
+	FUNC_TRACE;
+    
+    bg_color = color;
+    
+    CGSize client_size;
+    ckit_Window_GetClientSize( handle, &client_size );
+	appendDirtyRect( Rect(0,0,client_size.width,client_size.height) );
 }
 
 void WindowMac::setFrameColor( Color color )
