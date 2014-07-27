@@ -119,6 +119,7 @@ namespace ckit
         void paintPlanes();
         void paintCaret();
         
+        int windowShouldClose();
         int windowDidResize( CGSize size );
         int windowWillResize( CGSize * size );
         void callSizeHandler( Size size );

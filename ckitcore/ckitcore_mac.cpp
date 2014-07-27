@@ -686,6 +686,40 @@ int WindowMac::drawRect( CGRect rect, CGContextRef gctx )
     return 0;
 }
 
+static int _windowShouldClose( void * owner )
+{
+    WindowMac * window = (WindowMac*)owner;
+    return window->windowShouldClose();
+}
+
+int WindowMac::windowShouldClose()
+{
+    TRACE;
+    
+	PythonUtil::GIL_Ensure gil_ensure;
+    
+    if( close_handler )
+    {
+        PyObject * pyarglist = Py_BuildValue("()");
+        PyObject * pyresult = PyEval_CallObject( close_handler, pyarglist );
+        Py_DECREF(pyarglist);
+        if(pyresult)
+        {
+            Py_DECREF(pyresult);
+        }
+        else
+        {
+            PyErr_Print();
+        }
+    }
+    else
+    {
+        quit_requested = true;
+    }
+
+    return 0;
+}
+
 static int _windowDidResize( void * owner, CGSize size )
 {
     WindowMac * window = (WindowMac*)owner;
@@ -986,6 +1020,7 @@ int WindowMac::insertText( const wchar_t * text, int mod )
 
 ckit_Window_Callbacks callbacks = {
     _drawRect,
+    _windowShouldClose,
     _windowDidResize,
     _windowWillResize,
     _timerHandler,

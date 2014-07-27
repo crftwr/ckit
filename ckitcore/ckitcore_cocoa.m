@@ -42,8 +42,8 @@
 {
     TRACE;
 
-    // 閉じるボタンが押されても、メッセージループを抜けるだけで、ウインドウの破棄はdestroy()に任せる
-    [NSApp stopModal];
+    callbacks->windowShouldClose( owner );
+    
     return FALSE;
 }
 
