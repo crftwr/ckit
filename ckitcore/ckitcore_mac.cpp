@@ -1098,6 +1098,8 @@ WindowMac::WindowMac( Param & _params )
     initial_rect_set(false),
     timer_paint(0),
     timer_check_quit(0),
+    caret_color0(_params.caret0_color),
+    caret_color1(_params.caret1_color),
     paint_gctx(0)
 {
 	FUNC_TRACE;
@@ -1207,27 +1209,23 @@ void WindowMac::paintPlanes()
 
 void WindowMac::paintCaret()
 {
-    /*
     if( caret && caret_blink )
     {
-		RECT rect;
-		IntersectRect( &rect, &paint_rect, &caret_rect );
-
-		if(rect.right>0 || rect.bottom>0)
+		if(caret_rect.right>0 || caret_rect.bottom>0)
 		{
 			if(ime_on)
 			{
-				SelectObject( offscreen_dc, caret1_brush ) ;
+                CGContextSetRGBFillColor( paint_gctx, caret_color1.r/255.0, caret_color1.g/255.0, caret_color1.b/255.0, 1 );
 			}
 			else
 			{
-	            SelectObject( offscreen_dc, caret0_brush ) ;
+                CGContextSetRGBFillColor( paint_gctx, caret_color0.r/255.0, caret_color0.g/255.0, caret_color0.b/255.0, 1 );
 			}
 
-			PatBlt( offscreen_dc, rect.left, rect.top, rect.right-rect.left, rect.bottom-rect.top, PATINVERT );
+            // FIXME : 文字と被って見えなくならないように、XOR的な処理をするべき
+            CGContextFillRect( paint_gctx, CGRectMake( caret_rect.left, paint_client_size.cy - caret_rect.bottom, caret_rect.right - caret_rect.left, caret_rect.bottom - caret_rect.top ) );
 		}
     }
-    */
 }
 
 void WindowMac::flushPaint()
@@ -1299,15 +1297,8 @@ void WindowMac::setCaretColor( Color color0, Color color1 )
 {
 	FUNC_TRACE;
 
-    WARN_NOT_IMPLEMENTED;
-
-    /*
-    if(caret0_brush){ DeleteObject(caret0_brush); }
-    if(caret1_brush){ DeleteObject(caret1_brush); }
-
-    caret0_brush = CreateSolidBrush(color0);
-    caret1_brush = CreateSolidBrush(color1);
-    */
+    caret_color0 = color0;
+    caret_color1 = color1;
 
 	appendDirtyRect( caret_rect );
 }

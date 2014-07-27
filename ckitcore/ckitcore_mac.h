@@ -146,6 +146,9 @@ namespace ckit
         
         std::vector<PyObject*> messageloop_continue_cond_func_stack;
         
+        Color caret_color0;
+        Color caret_color1;
+        
         CGContextRef paint_gctx;
         Size paint_client_size;
 	};
