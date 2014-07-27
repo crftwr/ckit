@@ -122,6 +122,8 @@ namespace ckit
         int windowShouldClose();
         int windowDidResize( CGSize size );
         int windowWillResize( CGSize * size );
+        int windowDidBecomeKey();
+        int windowDidResignKey();
         void callSizeHandler( Size size );
         void calculateFrameSize();
 

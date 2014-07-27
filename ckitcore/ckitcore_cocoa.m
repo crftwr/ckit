@@ -86,6 +86,16 @@
     return frameSize;
 }
 
+- (void)windowDidBecomeKey:(NSNotification *)notification
+{
+    callbacks->windowDidBecomeKey(owner);
+}
+
+- (void)windowDidResignKey:(NSNotification *)notification
+{
+    callbacks->windowDidResignKey(owner);
+}
+
 -(void)timerHandler:(NSTimer*)timer
 {
     //TRACE;
@@ -637,8 +647,8 @@ int ckit_Window_IsActive( CocoaObject * _window, int * active )
     
     NSWindow * window = (__bridge NSWindow*)_window;
     
-    *active = [window isMainWindow];
-    //*active = [window isKeyWindow];
+    //*active = [window isMainWindow];
+    *active = [window isKeyWindow];
     
     return 0;
 }

@@ -486,7 +486,7 @@ void TextPlaneMac::DrawOffscreen()
 					window->perf_fillrect_count ++;
 				}
 
-                // テキスト描画テスト
+                // テキスト描画
                 {
                     CFMutableAttributedStringRef attrString = CFAttributedStringCreateMutable(kCFAllocatorDefault, 0 );
                     
@@ -527,11 +527,10 @@ void TextPlaneMac::DrawOffscreen()
 				{
 		            if( chr.attr.line[line] & (Attribute::Line_Left|Attribute::Line_Right|Attribute::Line_Top|Attribute::Line_Bottom) )
 		            {
-                        CGFloat components[] = { chr.attr.line_color[line].r/255.0f, chr.attr.line_color[line].g/255.0f, chr.attr.line_color[line].b/255.0f, 1 };
-                        CGContextSetStrokeColor( offscreen_context, components );
+                        CGContextSetRGBStrokeColor( offscreen_context, chr.attr.line_color[line].r/255.0, chr.attr.line_color[line].g/255.0, chr.attr.line_color[line].b/255.0, 1 );
+                        CGContextSetLineWidth(offscreen_context, 1);
+                        CGContextBeginPath(offscreen_context);
 
-                        CGContextSetLineWidth(offscreen_context, 1.0);
-                        
 		            	if(chr.attr.line[line] & Attribute::Line_Dot)
 		            	{
                             /*
@@ -553,8 +552,8 @@ void TextPlaneMac::DrawOffscreen()
 
 						if(chr.attr.line[line] & Attribute::Line_Left)
 						{
-                            CGContextMoveToPoint(offscreen_context, x * font->char_width, offscreen_size.cy - (y+1) * font->char_height + (offscreen_size.cy % font->char_height) );
-                            CGContextAddLineToPoint(offscreen_context, x * font->char_width, offscreen_size.cy - (y) * font->char_height + (offscreen_size.cy % font->char_height) );
+                            CGContextMoveToPoint(offscreen_context, x * font->char_width + 0.5, offscreen_size.cy - (y+1) * font->char_height + (offscreen_size.cy % font->char_height) );
+                            CGContextAddLineToPoint(offscreen_context, x * font->char_width + 0.5, offscreen_size.cy - (y) * font->char_height + (offscreen_size.cy % font->char_height) );
                             
                             /*
 							DrawVerticalLine(
@@ -568,8 +567,8 @@ void TextPlaneMac::DrawOffscreen()
 
 						if(chr.attr.line[line] & Attribute::Line_Bottom)
 						{
-                            CGContextMoveToPoint(offscreen_context, x * font->char_width, offscreen_size.cy - (y+1) * font->char_height + (offscreen_size.cy % font->char_height) + 1 );
-                            CGContextAddLineToPoint(offscreen_context, x2 * font->char_width, offscreen_size.cy - (y+1) * font->char_height + (offscreen_size.cy % font->char_height) + 1 );
+                            CGContextMoveToPoint(offscreen_context, x * font->char_width, offscreen_size.cy - (y+1) * font->char_height + (offscreen_size.cy % font->char_height) + 0.5 );
+                            CGContextAddLineToPoint(offscreen_context, x2 * font->char_width, offscreen_size.cy - (y+1) * font->char_height + (offscreen_size.cy % font->char_height) + 0.5 );
 
                             /*
 							DrawHorizontalLine( 
@@ -583,8 +582,8 @@ void TextPlaneMac::DrawOffscreen()
 
 						if(chr.attr.line[line] & Attribute::Line_Right)
 						{
-                            CGContextMoveToPoint(offscreen_context, x2 * font->char_width - 1, offscreen_size.cy - (y+1) * font->char_height + (offscreen_size.cy % font->char_height) );
-                            CGContextAddLineToPoint(offscreen_context, x2 * font->char_width, offscreen_size.cy - (y) * font->char_height + (offscreen_size.cy % font->char_height) );
+                            CGContextMoveToPoint(offscreen_context, x2 * font->char_width - 0.5, offscreen_size.cy - (y+1) * font->char_height + (offscreen_size.cy % font->char_height) );
+                            CGContextAddLineToPoint(offscreen_context, x2 * font->char_width - 0.5, offscreen_size.cy - (y) * font->char_height + (offscreen_size.cy % font->char_height) );
 
                             /*
 							DrawVerticalLine( 
@@ -598,8 +597,8 @@ void TextPlaneMac::DrawOffscreen()
 
 						if(chr.attr.line[line] & Attribute::Line_Top)
 						{
-                            CGContextMoveToPoint(offscreen_context, x * font->char_width, offscreen_size.cy - (y) * font->char_height + (offscreen_size.cy % font->char_height) );
-                            CGContextAddLineToPoint(offscreen_context, x2 * font->char_width, offscreen_size.cy - (y) * font->char_height + (offscreen_size.cy % font->char_height) );
+                            CGContextMoveToPoint(offscreen_context, x * font->char_width, offscreen_size.cy - (y) * font->char_height + (offscreen_size.cy % font->char_height) - 0.5 );
+                            CGContextAddLineToPoint(offscreen_context, x2 * font->char_width, offscreen_size.cy - (y) * font->char_height + (offscreen_size.cy % font->char_height) - 0.5 );
 
                             /*
 							DrawHorizontalLine( 
@@ -774,6 +773,66 @@ int WindowMac::windowWillResize( CGSize * size )
     
     size->width = width + window_frame_size.cx;
     size->height= height + window_frame_size.cy;
+    
+    return 0;
+}
+
+int _windowDidBecomeKey( void * owner )
+{
+    WindowMac * window = (WindowMac*)owner;
+    return window->windowDidBecomeKey();
+}
+
+int WindowMac::windowDidBecomeKey()
+{
+    TRACE;
+    
+	PythonUtil::GIL_Ensure gil_ensure;
+    
+    if( activate_handler )
+    {
+        PyObject * pyarglist = Py_BuildValue( "(i)", 1 );
+        PyObject * pyresult = PyEval_CallObject( activate_handler, pyarglist );
+        Py_DECREF(pyarglist);
+        if(pyresult)
+        {
+            Py_DECREF(pyresult);
+        }
+        else
+        {
+            PyErr_Print();
+        }
+    }
+    
+    return 0;
+}
+
+int _windowDidResignKey( void * owner )
+{
+    WindowMac * window = (WindowMac*)owner;
+    return window->windowDidResignKey();
+}
+
+int WindowMac::windowDidResignKey()
+{
+    TRACE;
+    
+	PythonUtil::GIL_Ensure gil_ensure;
+    
+    if( activate_handler )
+    {
+        PyObject * pyarglist = Py_BuildValue( "(i)", 0 );
+        PyObject * pyresult = PyEval_CallObject( activate_handler, pyarglist );
+        Py_DECREF(pyarglist);
+        if(pyresult)
+        {
+            Py_DECREF(pyresult);
+        }
+        else
+        {
+            PyErr_Print();
+        }
+    }
     
     return 0;
 }
@@ -1023,6 +1082,8 @@ ckit_Window_Callbacks callbacks = {
     _windowShouldClose,
     _windowDidResize,
     _windowWillResize,
+    _windowDidBecomeKey,
+    _windowDidResignKey,
     _timerHandler,
     _keyDown,
     _keyUp,

@@ -24,6 +24,8 @@ typedef struct ckit_Window_Callbacks_t
     int (*windowShouldClose)( void * owner );
     int (*windowDidResize)( void * owner, CGSize size );
     int (*windowWillResize)( void * owner, CGSize * size );
+    int (*windowDidBecomeKey)( void * owner );
+    int (*windowDidResignKey)( void * owner );
     int (*timerHandler)( void * owner, CocoaObject * timer );
     int (*keyDown)( void * owner, int vk, int mod );
     int (*keyUp)( void * owner, int vk, int mod );
