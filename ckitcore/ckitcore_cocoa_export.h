@@ -52,14 +52,18 @@ EXTERN int ckit_Window_SetWindowRect( CocoaObject * window, CGRect rect );
 EXTERN int ckit_Window_GetWindowRect( CocoaObject * window, CGRect * rect );
 EXTERN int ckit_Window_GetClientSize( CocoaObject * window, CGSize * size );
 EXTERN int ckit_Window_GetScreenSize( CocoaObject * _window, CGSize * size );
+EXTERN int ckit_Window_IsVisible( CocoaObject * window, int * visible );
 EXTERN int ckit_Window_IsMaximized( CocoaObject * window, int * maximized );
 EXTERN int ckit_Window_IsMinimized( CocoaObject * window, int * minimized );
+EXTERN int ckit_Window_IsActive( CocoaObject * window, int * active );
 EXTERN int ckit_Window_SetNeedsRedraw( CocoaObject * window );
 EXTERN int ckit_Window_SetTimer( CocoaObject * window, float interval, CocoaObject ** timer );
 EXTERN int ckit_Window_KillTimer( CocoaObject * window, CocoaObject * timer );
 EXTERN int ckit_Window_ClientToScreen( CocoaObject * window, CGPoint * point );
 EXTERN int ckit_Window_ScreenToClient( CocoaObject * window, CGPoint * point );
 EXTERN int ckit_Window_SetTitle( CocoaObject * window, const wchar_t * title );
+EXTERN int ckit_Window_Show( CocoaObject * window, bool show, bool activate );
 EXTERN int ckit_Window_Activate( CocoaObject * window );
+EXTERN int ckit_Window_SetForeground( CocoaObject * window );
 
 #endif//__CKITCORE_COCOA_EXPORT_H__

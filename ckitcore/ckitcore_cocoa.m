@@ -598,6 +598,17 @@ int ckit_Window_GetScreenSize( CocoaObject * _window, CGSize * size )
     return 0;
 }
 
+int ckit_Window_IsVisible( CocoaObject * _window, int * visible )
+{
+    TRACE;
+    
+    NSWindow * window = (__bridge NSWindow*)_window;
+    
+    *visible = [window isVisible];
+    
+    return 0;
+}
+
 int ckit_Window_IsMaximized( CocoaObject * _window, int * maximized )
 {
     TRACE;
@@ -616,6 +627,18 @@ int ckit_Window_IsMinimized( CocoaObject * _window, int * minimized )
     NSWindow * window = (__bridge NSWindow*)_window;
     
     *minimized = [window isMiniaturized];
+    
+    return 0;
+}
+
+int ckit_Window_IsActive( CocoaObject * _window, int * active )
+{
+    TRACE;
+    
+    NSWindow * window = (__bridge NSWindow*)_window;
+    
+    *active = [window isMainWindow];
+    //*active = [window isKeyWindow];
     
     return 0;
 }
@@ -705,6 +728,31 @@ int ckit_Window_SetTitle( CocoaObject * _window, const wchar_t * _title )
     return 0;
 }
 
+int ckit_Window_Show( CocoaObject * _window, bool show, bool activate )
+{
+    TRACE;
+    
+    NSWindow * window = (__bridge NSWindow*)_window;
+    
+    if(show)
+    {
+        [window makeKeyAndOrderFront:nil];
+        
+        if(activate)
+        {
+            [window makeKeyWindow];
+            [window makeMainWindow];
+        }
+    }
+    else
+    {
+        [window orderOut:nil];
+    }
+    
+    
+    return 0;
+}
+
 int ckit_Window_Activate( CocoaObject * _window )
 {
     TRACE;
@@ -717,4 +765,12 @@ int ckit_Window_Activate( CocoaObject * _window )
     return 0;
 }
 
+int ckit_Window_SetForeground( CocoaObject * _window )
+{
+    TRACE;
+    
+    [NSApp activateIgnoringOtherApps:YES];
+    
+    return 0;
+}
 

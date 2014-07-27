@@ -1453,11 +1453,7 @@ void WindowMac::show( bool show, bool activate )
 {
 	FUNC_TRACE;
 
-    WARN_NOT_IMPLEMENTED;
-
-    /*
-    ShowWindow( hwnd, show ? (activate?SW_SHOW:SW_SHOWNOACTIVATE) : SW_HIDE );
-     */
+    ckit_Window_Show( handle, show, activate );
 }
 
 void WindowMac::enable( bool enable )
@@ -1516,13 +1512,8 @@ void WindowMac::inactivate()
 void WindowMac::foreground()
 {
 	FUNC_TRACE;
-
-    WARN_NOT_IMPLEMENTED;
-
-    /*
-    HWND hwnd_last_active = GetLastActivePopup( hwnd );
-    SetForegroundWindow( hwnd_last_active );
-     */
+    
+    ckit_Window_SetForeground(handle);
 }
 
 void WindowMac::restore()
@@ -1592,12 +1583,10 @@ bool WindowMac::isVisible()
 {
 	FUNC_TRACE;
 
-    WARN_NOT_IMPLEMENTED;
-
-    /*
-	return ::IsWindowVisible( hwnd )!=FALSE;
-     */
-    return true;
+    int visible = 0;
+    ckit_Window_IsVisible(handle, &visible);
+    
+    return visible!=0;
 }
 
 bool WindowMac::isMaximized()
@@ -1624,12 +1613,10 @@ bool WindowMac::isActive()
 {
 	FUNC_TRACE;
 	
-    WARN_NOT_IMPLEMENTED;
-
-    /*
-	return active;
-     */
-    return true;
+    int active = 0;
+    ckit_Window_IsActive(handle, &active);
+    
+    return active!=0;
 }
 
 bool WindowMac::isForeground()
@@ -1702,30 +1689,42 @@ void WindowMac::clientToScreen(Point * _point)
 {
 	FUNC_TRACE;
 
-    // FIXME : 左下原点に変換
+    CGSize client_size;
+    ckit_Window_GetClientSize( handle, &client_size );
+
+    CGSize screen_size;
+    ckit_Window_GetScreenSize( handle, &screen_size );
     
-    CGPoint point = CGPointMake(_point->x, _point->y);
+    // 左下原点に変換
+    CGPoint point = CGPointMake(_point->x, client_size.height - _point->y);
+    
+    // スクリーン座標系に変換
     ckit_Window_ClientToScreen(handle, &point);
 
-    // FIXME : 左上原点に変換
-    
+    // 左上原点に変換
     _point->x = point.x;
-    _point->y = point.y;
+    _point->y = screen_size.height - point.y;
 }
 
 void WindowMac::screenToClient(Point * _point)
 {
 	FUNC_TRACE;
 
-    // FIXME : 左下原点に変換
+    CGSize client_size;
+    ckit_Window_GetClientSize( handle, &client_size );
+    
+    CGSize screen_size;
+    ckit_Window_GetScreenSize( handle, &screen_size );
+    
+    // 左下原点に変換
+    CGPoint point = CGPointMake(_point->x, screen_size.height - _point->y);
 
-    CGPoint point = CGPointMake(_point->x, _point->y);
+    // クライアント座標系に変換
     ckit_Window_ScreenToClient(handle, &point);
     
-    // FIXME : 左上原点に変換
-
+    // 左上原点に変換
     _point->x = point.x;
-    _point->y = point.y;
+    _point->y = client_size.height - point.y;
 }
 
 void WindowMac::setTimer( TimerInfo * timer_info )
