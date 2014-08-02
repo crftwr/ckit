@@ -65,6 +65,9 @@
     TRACE;
     
     CGRect rect = [self frame];
+
+    [self removeTrackingRect:mouse_tracking_tag];
+    mouse_tracking_tag = [self addTrackingRect:rect owner:self userData:NULL assumeInside:NO];
     
     callbacks->windowDidResize( owner, rect.size );
 }
@@ -480,6 +483,25 @@ static int translateVk(int src)
     callbacks->insertText( owner, L"\b", 0 );
 }
 
+- (void)viewDidMoveToWindow
+{
+    TRACE;
+    
+    NSRect rect = [self frame];
+    mouse_tracking_tag = [self addTrackingRect:rect owner:self userData:NULL assumeInside:NO];
+}
+
+- (void)mouseEntered:(NSEvent *)theEvent
+{
+    [[self window] setAcceptsMouseMovedEvents:YES];
+    [[self window] makeFirstResponder:self];
+}
+
+- (void)mouseExited:(NSEvent *)theEvent
+{
+    [[self window] setAcceptsMouseMovedEvents:NO];
+}
+
 - (void)mouseDown:(NSEvent *)theEvent
 {
     TRACE;
@@ -487,9 +509,20 @@ static int translateVk(int src)
     ckit_MouseEvent mouse_event;
     memset( &mouse_event, 0, sizeof(mouse_event) );
 
-    mouse_event.type = ckit_MouseEventType_LeftDown;
+    switch( theEvent.clickCount )
+    {
+    case 1:
+        mouse_event.type = ckit_MouseEventType_LeftDown;
+        break;
+    case 2:
+        mouse_event.type = ckit_MouseEventType_LeftDoubleClick;
+        break;
+    default:
+        return;
+    }
+    
     mouse_event.location = theEvent.locationInWindow;
-
+    
     callbacks->mouse( owner, &mouse_event );
 }
 
@@ -506,7 +539,120 @@ static int translateVk(int src)
     callbacks->mouse( owner, &mouse_event );
 }
 
+- (void)rightMouseDown:(NSEvent *)theEvent
+{
+    TRACE;
+    
+    ckit_MouseEvent mouse_event;
+    memset( &mouse_event, 0, sizeof(mouse_event) );
+    
+    switch( theEvent.clickCount )
+    {
+    case 1:
+        mouse_event.type = ckit_MouseEventType_RightDown;
+        break;
+    case 2:
+        mouse_event.type = ckit_MouseEventType_RightDoubleClick;
+        break;
+    default:
+        return;
+    }
+    
+    mouse_event.location = theEvent.locationInWindow;
+    
+    callbacks->mouse( owner, &mouse_event );
+}
+
+- (void)rightMouseUp:(NSEvent *)theEvent
+{
+    TRACE;
+    
+    ckit_MouseEvent mouse_event;
+    memset( &mouse_event, 0, sizeof(mouse_event) );
+    
+    mouse_event.type = ckit_MouseEventType_RightUp;
+    mouse_event.location = theEvent.locationInWindow;
+    
+    callbacks->mouse( owner, &mouse_event );
+}
+
+- (void)otherMouseDown:(NSEvent *)theEvent
+{
+    TRACE;
+    
+    ckit_MouseEvent mouse_event;
+    memset( &mouse_event, 0, sizeof(mouse_event) );
+    
+    switch( theEvent.clickCount )
+    {
+    case 1:
+        mouse_event.type = ckit_MouseEventType_MiddleDown;
+        break;
+    case 2:
+        mouse_event.type = ckit_MouseEventType_MiddleDoubleClick;
+        break;
+    default:
+        return;
+    }
+    
+    mouse_event.location = theEvent.locationInWindow;
+    
+    callbacks->mouse( owner, &mouse_event );
+}
+
+- (void)otherMouseUp:(NSEvent *)theEvent
+{
+    TRACE;
+    
+    ckit_MouseEvent mouse_event;
+    memset( &mouse_event, 0, sizeof(mouse_event) );
+    
+    mouse_event.type = ckit_MouseEventType_MiddleUp;
+    mouse_event.location = theEvent.locationInWindow;
+    
+    callbacks->mouse( owner, &mouse_event );
+}
+
 - (void)mouseMoved:(NSEvent *)theEvent
+{
+    TRACE;
+    
+    ckit_MouseEvent mouse_event;
+    memset( &mouse_event, 0, sizeof(mouse_event) );
+    
+    mouse_event.type = ckit_MouseEventType_Move;
+    mouse_event.location = theEvent.locationInWindow;
+    
+    callbacks->mouse( owner, &mouse_event );
+}
+
+- (void)mouseDragged:(NSEvent *)theEvent
+{
+    TRACE;
+    
+    ckit_MouseEvent mouse_event;
+    memset( &mouse_event, 0, sizeof(mouse_event) );
+    
+    mouse_event.type = ckit_MouseEventType_Move;
+    mouse_event.location = theEvent.locationInWindow;
+    
+    callbacks->mouse( owner, &mouse_event );
+}
+
+- (void)rightMouseDragged:(NSEvent *)theEvent
+{
+    TRACE;
+    
+    ckit_MouseEvent mouse_event;
+    memset( &mouse_event, 0, sizeof(mouse_event) );
+    
+    mouse_event.type = ckit_MouseEventType_Move;
+    mouse_event.location = theEvent.locationInWindow;
+    
+    callbacks->mouse( owner, &mouse_event );
+}
+
+- (void)otherMouseDragged:(NSEvent *)theEvent
 {
     TRACE;
     

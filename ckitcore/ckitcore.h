@@ -322,14 +322,14 @@ namespace ckit
 		    PyObject * char_handler;
 		    PyObject * lbuttondown_handler;
 		    PyObject * lbuttonup_handler;
-		    PyObject * mbuttondown_handler;         // FIXME : Mac対応
-		    PyObject * mbuttonup_handler;           // FIXME : Mac対応
-		    PyObject * rbuttondown_handler;         // FIXME : Mac対応
-		    PyObject * rbuttonup_handler;           // FIXME : Mac対応
-		    PyObject * lbuttondoubleclick_handler;  // FIXME : Mac対応
-		    PyObject * mbuttondoubleclick_handler;  // FIXME : Mac対応
-		    PyObject * rbuttondoubleclick_handler;  // FIXME : Mac対応
-		    PyObject * mousemove_handler;           // FIXME : Mac対応
+		    PyObject * mbuttondown_handler;
+		    PyObject * mbuttonup_handler;
+		    PyObject * rbuttondown_handler;
+		    PyObject * rbuttonup_handler;
+		    PyObject * lbuttondoubleclick_handler;
+		    PyObject * mbuttondoubleclick_handler;
+		    PyObject * rbuttondoubleclick_handler;
+		    PyObject * mousemove_handler;
 		    PyObject * mousewheel_handler;          // FIXME : Mac対応
 		    PyObject * nchittest_handler;           // FIXME : Mac対応
 	    };

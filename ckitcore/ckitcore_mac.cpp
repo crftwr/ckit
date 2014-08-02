@@ -1191,6 +1191,174 @@ int WindowMac::mouse( const ckit_MouseEvent * event )
         }
         break;
 
+    case ckit_MouseEventType_RightDown:
+        if(rbuttondown_handler)
+        {
+			//int mod = getModKey();
+            int mod = 0; // FIXME : モディファイアキー
+            
+            CGSize client_size;
+            ckit_Window_GetClientSize( handle, &client_size );
+            Point location( event->location.x, client_size.height - event->location.y );
+			
+			PyObject * pyarglist = Py_BuildValue("(iii)", location.x, location.y, mod );
+			PyObject * pyresult = PyEval_CallObject( rbuttondown_handler, pyarglist );
+			Py_DECREF(pyarglist);
+			if(pyresult)
+			{
+				Py_DECREF(pyresult);
+			}
+			else
+			{
+				PyErr_Print();
+			}
+        }
+            break;
+            
+    case ckit_MouseEventType_RightUp:
+        if(rbuttonup_handler)
+        {
+			//int mod = getModKey();
+            int mod = 0; // FIXME : モディファイアキー
+			
+            CGSize client_size;
+            ckit_Window_GetClientSize( handle, &client_size );
+            Point location( event->location.x, client_size.height - event->location.y );
+			
+			PyObject * pyarglist = Py_BuildValue("(iii)", location.x, location.y, mod );
+			PyObject * pyresult = PyEval_CallObject( rbuttonup_handler, pyarglist );
+			Py_DECREF(pyarglist);
+			if(pyresult)
+			{
+				Py_DECREF(pyresult);
+			}
+			else
+			{
+				PyErr_Print();
+			}
+        }
+        break;
+            
+    case ckit_MouseEventType_MiddleDown:
+        if(mbuttondown_handler)
+        {
+			//int mod = getModKey();
+            int mod = 0; // FIXME : モディファイアキー
+            
+            CGSize client_size;
+            ckit_Window_GetClientSize( handle, &client_size );
+            Point location( event->location.x, client_size.height - event->location.y );
+			
+			PyObject * pyarglist = Py_BuildValue("(iii)", location.x, location.y, mod );
+			PyObject * pyresult = PyEval_CallObject( mbuttondown_handler, pyarglist );
+			Py_DECREF(pyarglist);
+			if(pyresult)
+			{
+				Py_DECREF(pyresult);
+			}
+			else
+			{
+				PyErr_Print();
+			}
+        }
+        break;
+            
+    case ckit_MouseEventType_MiddleUp:
+        if(mbuttonup_handler)
+        {
+			//int mod = getModKey();
+            int mod = 0; // FIXME : モディファイアキー
+			
+            CGSize client_size;
+            ckit_Window_GetClientSize( handle, &client_size );
+            Point location( event->location.x, client_size.height - event->location.y );
+			
+			PyObject * pyarglist = Py_BuildValue("(iii)", location.x, location.y, mod );
+			PyObject * pyresult = PyEval_CallObject( mbuttonup_handler, pyarglist );
+			Py_DECREF(pyarglist);
+			if(pyresult)
+			{
+				Py_DECREF(pyresult);
+			}
+			else
+			{
+				PyErr_Print();
+			}
+        }
+        break;
+            
+    case ckit_MouseEventType_LeftDoubleClick:
+        if(lbuttondoubleclick_handler)
+        {
+			//int mod = getModKey();
+            int mod = 0; // FIXME : モディファイアキー
+            
+            CGSize client_size;
+            ckit_Window_GetClientSize( handle, &client_size );
+            Point location( event->location.x, client_size.height - event->location.y );
+			
+			PyObject * pyarglist = Py_BuildValue("(iii)", location.x, location.y, mod );
+			PyObject * pyresult = PyEval_CallObject( lbuttondoubleclick_handler, pyarglist );
+			Py_DECREF(pyarglist);
+			if(pyresult)
+			{
+				Py_DECREF(pyresult);
+			}
+			else
+			{
+				PyErr_Print();
+			}
+        }
+        break;
+            
+    case ckit_MouseEventType_RightDoubleClick:
+        if(rbuttondoubleclick_handler)
+        {
+			//int mod = getModKey();
+            int mod = 0; // FIXME : モディファイアキー
+            
+            CGSize client_size;
+            ckit_Window_GetClientSize( handle, &client_size );
+            Point location( event->location.x, client_size.height - event->location.y );
+			
+			PyObject * pyarglist = Py_BuildValue("(iii)", location.x, location.y, mod );
+			PyObject * pyresult = PyEval_CallObject( rbuttondoubleclick_handler, pyarglist );
+			Py_DECREF(pyarglist);
+			if(pyresult)
+			{
+				Py_DECREF(pyresult);
+			}
+			else
+			{
+				PyErr_Print();
+			}
+        }
+        break;
+            
+    case ckit_MouseEventType_MiddleDoubleClick:
+        if(mbuttondoubleclick_handler)
+        {
+			//int mod = getModKey();
+            int mod = 0; // FIXME : モディファイアキー
+            
+            CGSize client_size;
+            ckit_Window_GetClientSize( handle, &client_size );
+            Point location( event->location.x, client_size.height - event->location.y );
+			
+			PyObject * pyarglist = Py_BuildValue("(iii)", location.x, location.y, mod );
+			PyObject * pyresult = PyEval_CallObject( mbuttondoubleclick_handler, pyarglist );
+			Py_DECREF(pyarglist);
+			if(pyresult)
+			{
+				Py_DECREF(pyresult);
+			}
+			else
+			{
+				PyErr_Print();
+			}
+        }
+        break;
+            
     case ckit_MouseEventType_Move:
         if(mousemove_handler)
         {
@@ -1213,7 +1381,7 @@ int WindowMac::mouse( const ckit_MouseEvent * event )
 				PyErr_Print();
 			}
         }
-            break;
+        break;
     }
     
     return 0;

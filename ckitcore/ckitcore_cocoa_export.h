@@ -22,6 +22,13 @@ typedef enum ckit_MouseEventType_t
 {
     ckit_MouseEventType_LeftDown,
     ckit_MouseEventType_LeftUp,
+    ckit_MouseEventType_RightDown,
+    ckit_MouseEventType_RightUp,
+    ckit_MouseEventType_MiddleDown,
+    ckit_MouseEventType_MiddleUp,
+    ckit_MouseEventType_LeftDoubleClick,
+    ckit_MouseEventType_RightDoubleClick,
+    ckit_MouseEventType_MiddleDoubleClick,
     ckit_MouseEventType_Move,
     
 } ckit_MouseEventType;

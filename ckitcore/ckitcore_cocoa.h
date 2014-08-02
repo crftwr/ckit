@@ -14,6 +14,8 @@
 {
     ckit_Window_Callbacks * callbacks;
     void * owner;
+    
+    NSTrackingRectTag mouse_tracking_tag;
 }
 
 - (id)initWithFrame:(NSRect)frame callbacks:(ckit_Window_Callbacks*)_callbacks owner:(void*)_owner;
