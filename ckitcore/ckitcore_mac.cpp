@@ -1129,6 +1129,96 @@ int WindowMac::insertText( const wchar_t * text, int mod )
     return 0;
 }
 
+int _mouse( void * owner, const ckit_MouseEvent * event )
+{
+    WindowMac * window = (WindowMac*)owner;
+    return window->mouse(event);
+}
+
+int WindowMac::mouse( const ckit_MouseEvent * event )
+{
+    TRACE;
+    
+	PythonUtil::GIL_Ensure gil_ensure;
+    
+    switch(event->type)
+    {
+    case ckit_MouseEventType_LeftDown:
+        if(lbuttondown_handler)
+        {
+			//int mod = getModKey();
+            int mod = 0; // FIXME : モディファイアキー
+            
+            CGSize client_size;
+            ckit_Window_GetClientSize( handle, &client_size );
+            Point location( event->location.x, client_size.height - event->location.y );
+			
+			PyObject * pyarglist = Py_BuildValue("(iii)", location.x, location.y, mod );
+			PyObject * pyresult = PyEval_CallObject( lbuttondown_handler, pyarglist );
+			Py_DECREF(pyarglist);
+			if(pyresult)
+			{
+				Py_DECREF(pyresult);
+			}
+			else
+			{
+				PyErr_Print();
+			}
+        }
+        break;
+
+    case ckit_MouseEventType_LeftUp:
+        if(lbuttonup_handler)
+        {
+			//int mod = getModKey();
+            int mod = 0; // FIXME : モディファイアキー
+			
+            CGSize client_size;
+            ckit_Window_GetClientSize( handle, &client_size );
+            Point location( event->location.x, client_size.height - event->location.y );
+			
+			PyObject * pyarglist = Py_BuildValue("(iii)", location.x, location.y, mod );
+			PyObject * pyresult = PyEval_CallObject( lbuttonup_handler, pyarglist );
+			Py_DECREF(pyarglist);
+			if(pyresult)
+			{
+				Py_DECREF(pyresult);
+			}
+			else
+			{
+				PyErr_Print();
+			}
+        }
+        break;
+
+    case ckit_MouseEventType_Move:
+        if(mousemove_handler)
+        {
+			//int mod = getModKey();
+            int mod = 0; // FIXME : モディファイアキー
+			
+            CGSize client_size;
+            ckit_Window_GetClientSize( handle, &client_size );
+            Point location( event->location.x, client_size.height - event->location.y );
+			
+			PyObject * pyarglist = Py_BuildValue("(iii)", location.x, location.y, mod );
+			PyObject * pyresult = PyEval_CallObject( mousemove_handler, pyarglist );
+			Py_DECREF(pyarglist);
+			if(pyresult)
+			{
+				Py_DECREF(pyresult);
+			}
+			else
+			{
+				PyErr_Print();
+			}
+        }
+            break;
+    }
+    
+    return 0;
+}
+
 ckit_Window_Callbacks callbacks = {
     _drawRect,
     _windowShouldClose,
@@ -1139,7 +1229,8 @@ ckit_Window_Callbacks callbacks = {
     _timerHandler,
     _keyDown,
     _keyUp,
-    _insertText
+    _insertText,
+    _mouse,
 };
 
 WindowMac::WindowMac( Param & _params )

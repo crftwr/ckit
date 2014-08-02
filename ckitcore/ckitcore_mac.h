@@ -133,6 +133,7 @@ namespace ckit
         int keyDown( int vk, int mod );
         int keyUp( int vk, int mod );
         int insertText( const wchar_t * text, int mod );
+        int mouse( const ckit_MouseEvent * event );
         
         bool initialized;
 

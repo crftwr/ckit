@@ -309,8 +309,8 @@ namespace ckit
 	        bool tool;
 	        bool ncpaint;
 
-		    PyObject * activate_handler;            // FIXME : Mac対応
-		    PyObject * close_handler;               // FIXME : Mac対応
+		    PyObject * activate_handler;
+		    PyObject * close_handler;
 		    PyObject * endsession_handler;          // FIXME : Mac対応
 		    PyObject * move_handler;                // FIXME : Mac対応
 		    PyObject * sizing_handler;
@@ -320,8 +320,8 @@ namespace ckit
 		    PyObject * keydown_handler;
 		    PyObject * keyup_handler;
 		    PyObject * char_handler;
-		    PyObject * lbuttondown_handler;         // FIXME : Mac対応
-		    PyObject * lbuttonup_handler;           // FIXME : Mac対応
+		    PyObject * lbuttondown_handler;
+		    PyObject * lbuttonup_handler;
 		    PyObject * mbuttondown_handler;         // FIXME : Mac対応
 		    PyObject * mbuttonup_handler;           // FIXME : Mac対応
 		    PyObject * rbuttondown_handler;         // FIXME : Mac対応

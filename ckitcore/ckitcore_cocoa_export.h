@@ -18,6 +18,21 @@
 
 typedef struct CocoaObject_t CocoaObject;
 
+typedef enum ckit_MouseEventType_t
+{
+    ckit_MouseEventType_LeftDown,
+    ckit_MouseEventType_LeftUp,
+    ckit_MouseEventType_Move,
+    
+} ckit_MouseEventType;
+
+typedef struct ckit_MouseEvent_t
+{
+    ckit_MouseEventType type;
+    CGPoint location;
+    
+} ckit_MouseEvent;
+
 typedef struct ckit_Window_Callbacks_t
 {
     int (*drawRect)( void * owner, CGRect rect, CGContextRef gctx );
@@ -30,6 +45,7 @@ typedef struct ckit_Window_Callbacks_t
     int (*keyDown)( void * owner, int vk, int mod );
     int (*keyUp)( void * owner, int vk, int mod );
     int (*insertText)( void * owner, const wchar_t * text, int mod );
+    int (*mouse)( void * owner, const ckit_MouseEvent * event );
 
 } ckit_Window_Callbacks;
 

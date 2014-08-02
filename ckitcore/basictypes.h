@@ -34,6 +34,17 @@ namespace ckit
     {
         int x;
         int y;
+
+        Point()
+        {
+        }
+        
+        Point( int _x, int _y )
+        :
+        x(_x),
+        y(_y)
+        {
+        }
     };
     
     struct Size

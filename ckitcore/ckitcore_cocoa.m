@@ -480,6 +480,45 @@ static int translateVk(int src)
     callbacks->insertText( owner, L"\b", 0 );
 }
 
+- (void)mouseDown:(NSEvent *)theEvent
+{
+    TRACE;
+    
+    ckit_MouseEvent mouse_event;
+    memset( &mouse_event, 0, sizeof(mouse_event) );
+
+    mouse_event.type = ckit_MouseEventType_LeftDown;
+    mouse_event.location = theEvent.locationInWindow;
+
+    callbacks->mouse( owner, &mouse_event );
+}
+
+- (void)mouseUp:(NSEvent *)theEvent
+{
+    TRACE;
+    
+    ckit_MouseEvent mouse_event;
+    memset( &mouse_event, 0, sizeof(mouse_event) );
+    
+    mouse_event.type = ckit_MouseEventType_LeftUp;
+    mouse_event.location = theEvent.locationInWindow;
+    
+    callbacks->mouse( owner, &mouse_event );
+}
+
+- (void)mouseMoved:(NSEvent *)theEvent
+{
+    TRACE;
+    
+    ckit_MouseEvent mouse_event;
+    memset( &mouse_event, 0, sizeof(mouse_event) );
+    
+    mouse_event.type = ckit_MouseEventType_Move;
+    mouse_event.location = theEvent.locationInWindow;
+    
+    callbacks->mouse( owner, &mouse_event );
+}
+
 @end
 
 int ckit_Application_Create()
