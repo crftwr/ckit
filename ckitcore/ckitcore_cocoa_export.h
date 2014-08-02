@@ -37,7 +37,7 @@ typedef struct ckit_Window_Create_Parameters_t
 {
     ckit_Window_Callbacks * callbacks;
     void * owner;
-    
+    CocoaObject * parent_window;
     const wchar_t * title;
     bool titlebar;
     bool minimizable;

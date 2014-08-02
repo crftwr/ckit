@@ -1166,6 +1166,10 @@ WindowMac::WindowMac( Param & _params )
     memset(&params, 0, sizeof(params));
     params.callbacks = &callbacks;
     params.owner = this;
+    if(_params.parent_window)
+    {
+        params.parent_window = ((WindowMac*)_params.parent_window)->handle;
+    }
     params.title = _params.title.c_str();
     params.titlebar = _params.title_bar;
     params.minimizable = _params.minimizebox;

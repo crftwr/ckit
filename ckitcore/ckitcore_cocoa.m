@@ -518,6 +518,11 @@ int ckit_Window_Create( ckit_Window_Create_Parameters * params, CocoaObject ** _
     
     *_window = (__bridge_retained CocoaObject *)window;
     
+    if(params->parent_window)
+    {
+        // FIXME : 親ウインドウより手前に表示するよう設定する
+    }
+    
     return 0;
 }
 
