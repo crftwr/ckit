@@ -126,6 +126,7 @@ namespace ckit
         int windowDidResignKey();
         void callSizeHandler( Size size );
         void calculateFrameSize();
+        CGRect calculateWindowRectFromPositionSizeOrigin( int x, int y, int width, int height, int origin );
 
         int timerHandler( CocoaObject * timer );
         

@@ -1185,9 +1185,7 @@ WindowMac::WindowMac( Param & _params )
     calculateFrameSize();
     
     // ウインドウ初期位置
-    CGSize screen_size;
-    ckit_Window_GetScreenSize(handle, &screen_size);
-    initial_rect = CGRectMake( _params.winpos_x, screen_size.height - _params.winpos_y - _params.winsize_h - window_frame_size.cy, _params.winsize_w + window_frame_size.cx, _params.winsize_h + window_frame_size.cy );
+    initial_rect = calculateWindowRectFromPositionSizeOrigin(_params.winpos_x, _params.winpos_y, _params.winsize_w, _params.winsize_h, _params.origin);
     ckit_Window_SetWindowRect(handle, initial_rect);
     initial_rect_set = true;
     
@@ -1449,15 +1447,13 @@ void WindowMac::_refreshMenu()
 }
 */
 
-void WindowMac::setPositionAndSize( int x, int y, int width, int height, int origin )
+CGRect WindowMac::calculateWindowRectFromPositionSizeOrigin( int x, int y, int width, int height, int origin )
 {
-	FUNC_TRACE;
-    
     int client_w = width;
     int client_h = height;
     int window_w = client_w + window_frame_size.cx;
     int window_h = client_h + window_frame_size.cy;
-
+    
     if( origin & ORIGIN_X_CENTER )
     {
     	x -= window_w / 2;
@@ -1466,7 +1462,7 @@ void WindowMac::setPositionAndSize( int x, int y, int width, int height, int ori
     {
     	x -= window_w;
     }
-
+    
     if( origin & ORIGIN_Y_CENTER )
     {
     	y -= window_h / 2;
@@ -1481,18 +1477,27 @@ void WindowMac::setPositionAndSize( int x, int y, int width, int height, int ori
     ckit_Window_GetScreenSize(handle, &screen_size);
     y = screen_size.height-(y+window_h);
     
+    return CGRectMake( x, y, window_w, window_h );
+}
+
+void WindowMac::setPositionAndSize( int x, int y, int width, int height, int origin )
+{
+	FUNC_TRACE;
+    
+    CGRect rect = calculateWindowRectFromPositionSizeOrigin(x,y,width,height,origin);
+    
     if(initial_rect_set)
     {
         // 最初のdrawRectが呼ばれる前にsetPositionAndSizeが呼ばれたら遅延設定のために保存する
-        initial_rect = CGRectMake( x, y, window_w, window_h );
+        initial_rect = rect;
     }
 
-    ckit_Window_SetWindowRect( handle, CGRectMake( x, y, window_w, window_h ) );
+    ckit_Window_SetWindowRect( handle, rect );
     
     // size_handler を明示的に呼び出し
-    callSizeHandler( Size(client_w, client_h) );
+    callSizeHandler( Size(width, height) );
     
-	Rect dirty_rect = { 0, 0, client_w, client_h };
+	Rect dirty_rect = { 0, 0, width, height };
 	appendDirtyRect( dirty_rect );
 }
 
