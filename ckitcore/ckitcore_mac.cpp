@@ -1382,6 +1382,32 @@ int WindowMac::mouse( const ckit_MouseEvent * event )
 			}
         }
         break;
+
+    case ckit_MouseEventType_Wheel:
+        if(mousewheel_handler)
+        {
+			//int mod = getModKey();
+            int mod = 0; // FIXME : モディファイアキー
+			
+            CGSize client_size;
+            ckit_Window_GetClientSize( handle, &client_size );
+            Point location( event->location.x, client_size.height - event->location.y );
+            
+            printf( "ckit_MouseEventType_Wheel : %f, %f\n", event->delta_x, event->delta_y );
+			
+			PyObject * pyarglist = Py_BuildValue("(iiii)", location.x, location.y, (int)event->delta_y, mod );
+			PyObject * pyresult = PyEval_CallObject( mousewheel_handler, pyarglist );
+			Py_DECREF(pyarglist);
+			if(pyresult)
+			{
+				Py_DECREF(pyresult);
+			}
+			else
+			{
+				PyErr_Print();
+			}
+        }
+        break;
     }
     
     return 0;

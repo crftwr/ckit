@@ -30,6 +30,7 @@ typedef enum ckit_MouseEventType_t
     ckit_MouseEventType_RightDoubleClick,
     ckit_MouseEventType_MiddleDoubleClick,
     ckit_MouseEventType_Move,
+    ckit_MouseEventType_Wheel,
     
 } ckit_MouseEventType;
 
@@ -37,6 +38,8 @@ typedef struct ckit_MouseEvent_t
 {
     ckit_MouseEventType type;
     CGPoint location;
+    CGFloat delta_x;
+    CGFloat delta_y;
     
 } ckit_MouseEvent;
 

@@ -580,6 +580,8 @@ static int translateVk(int src)
 {
     TRACE;
     
+    if(theEvent.buttonNumber!=2){ return; }
+    
     ckit_MouseEvent mouse_event;
     memset( &mouse_event, 0, sizeof(mouse_event) );
     
@@ -603,6 +605,8 @@ static int translateVk(int src)
 - (void)otherMouseUp:(NSEvent *)theEvent
 {
     TRACE;
+    
+    if(theEvent.buttonNumber!=2){ return; }
     
     ckit_MouseEvent mouse_event;
     memset( &mouse_event, 0, sizeof(mouse_event) );
@@ -663,6 +667,41 @@ static int translateVk(int src)
     mouse_event.location = theEvent.locationInWindow;
     
     callbacks->mouse( owner, &mouse_event );
+}
+
+- (void)scrollWheel:(NSEvent *)theEvent
+{
+    TRACE;
+    
+    ckit_MouseEvent mouse_event;
+    memset( &mouse_event, 0, sizeof(mouse_event) );
+    
+    mouse_event.type = ckit_MouseEventType_Wheel;
+    mouse_event.location = theEvent.locationInWindow;
+    mouse_event.delta_x = theEvent.deltaX;
+    mouse_event.delta_y = theEvent.deltaY;
+    
+    callbacks->mouse( owner, &mouse_event );
+}
+
+- (void)touchesBeganWithEvent:(NSEvent *)event
+{
+    TRACE;
+}
+
+- (void)touchesMovedWithEvent:(NSEvent *)event
+{
+    TRACE;
+}
+
+- (void)touchesEndedWithEvent:(NSEvent *)event
+{
+    TRACE;
+}
+
+- (void)touchesCancelledWithEvent:(NSEvent *)event
+{
+    TRACE;
 }
 
 @end

@@ -330,7 +330,7 @@ namespace ckit
 		    PyObject * mbuttondoubleclick_handler;
 		    PyObject * rbuttondoubleclick_handler;
 		    PyObject * mousemove_handler;
-		    PyObject * mousewheel_handler;          // FIXME : Mac対応
+		    PyObject * mousewheel_handler;
 		    PyObject * nchittest_handler;           // FIXME : Mac対応
 	    };
 
