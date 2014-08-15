@@ -214,6 +214,7 @@ void ImagePlaneMac::Draw( const Rect & paint_rect )
    	if( image )
    	{
         // FIXME : halftone, transparent をちゃんと使う
+        //CGContextSetBlendMode( window->paint_gctx, kCGBlendModeNormal );
         
         CGContextDrawImage( window->paint_gctx, CGRectMake( x, window->paint_client_size.cy - y - height, width, height ), image->handle );
 
@@ -1562,8 +1563,14 @@ void WindowMac::paintCaret()
                 CGContextSetRGBFillColor( paint_gctx, caret_color0.r/255.0, caret_color0.g/255.0, caret_color0.b/255.0, 1 );
 			}
 
-            // FIXME : 文字と被って見えなくならないように、XOR的な処理をするべき
+            // 文字と被って見えなくならないように、XOR的な処理
+            CGContextSetBlendMode( paint_gctx, kCGBlendModeDifference );
+            //CGContextSetBlendMode( paint_gctx, kCGBlendModeExclusion );
+
             CGContextFillRect( paint_gctx, CGRectMake( caret_rect.left, paint_client_size.cy - caret_rect.bottom, caret_rect.right - caret_rect.left, caret_rect.bottom - caret_rect.top ) );
+
+            // BlendModeを戻す
+            CGContextSetBlendMode( paint_gctx, kCGBlendModeNormal );
 		}
     }
 }
