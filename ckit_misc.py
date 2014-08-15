@@ -514,6 +514,11 @@ ALIGN_RIGHT  = 2
 ## 文字列を指定した長さに調節する
 def adjustStringWidth( window, s, width, align=ALIGN_LEFT, ellipsis=ELLIPSIS_NONE ):
 
+    if os.name=="nt":
+        ellipsis_char = "\u22ef"
+    else:
+        ellipsis_char = "-" # FIXME : 半角で3点リーダを表示したい
+
     if ellipsis==ELLIPSIS_RIGHT:
         original_width = window.getStringWidth(s)
         if original_width>width:
@@ -523,9 +528,9 @@ def adjustStringWidth( window, s, width, align=ALIGN_LEFT, ellipsis=ELLIPSIS_NON
                 char_width = window.getStringWidth(s[pos])
                 if str_width + char_width >= width-1 :
                     if str_width + char_width == width-1:
-                        return "%s\u22ef" % (s[:pos+1])
+                        return "%s%s" % ( s[:pos+1], ellipsis_char )
                     else:
-                        return "%s\u22ef " % (s[:pos])
+                        return "%s%s " % ( s[:pos], ellipsis_char )
                 str_width += char_width
                 pos += 1
 
@@ -558,7 +563,7 @@ def adjustStringWidth( window, s, width, align=ALIGN_LEFT, ellipsis=ELLIPSIS_NON
                     break
                 str_width += char_width
             right_string = s[pos:]
-            return "%s\u22ef%s" % (left_string,right_string)
+            return "%s%s%s" % (left_string, ellipsis_char, right_string)
 
     elif ellipsis==ELLIPSIS_NONE:
         original_width = window.getStringWidth(s)
@@ -801,9 +806,10 @@ def splitExt( path, maxlen=5 ):
 #  @return         ルートディレクトリのパス
 #
 def rootPath(path):
-    unc = os.path.splitunc(path)
-    if not unc[1]:
-        return unc[0]
+    if os.name=="nt":
+        unc = os.path.splitunc(path)
+        if not unc[1]:
+            return unc[0]
     while True:
         new_path, name = os.path.split(path)
         if new_path == path : return path

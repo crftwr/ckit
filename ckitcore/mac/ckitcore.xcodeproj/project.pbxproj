@@ -22,6 +22,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		333B02A0199ECC8200F33188 /* _config.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = _config.py; path = ../../../cfiler/_config.py; sourceTree = "<group>"; };
+		333B02A1199ECC9C00F33188 /* config.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = config.py; path = ../../../cfiler/CraftFiler/config.py; sourceTree = "<group>"; };
 		335238E4196997A900AAEB73 /* test.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = test.py; path = ../../test/test.py; sourceTree = "<group>"; };
 		33E3AA3A19677B22004C7EDF /* ckitcore.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = ckitcore.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		33E3AA3E19677B22004C7EDF /* ckitcore-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ckitcore-Prefix.pch"; sourceTree = "<group>"; };
@@ -187,6 +189,8 @@
 		33F95561197A080900E57104 /* cfiler - python */ = {
 			isa = PBXGroup;
 			children = (
+				333B02A1199ECC9C00F33188 /* config.py */,
+				333B02A0199ECC8200F33188 /* _config.py */,
 				33F95562197A084C00E57104 /* cfiler_archiver.py */,
 				33F95563197A084C00E57104 /* cfiler_bookmark.py */,
 				33F95564197A084C00E57104 /* cfiler_checkdir.py */,
