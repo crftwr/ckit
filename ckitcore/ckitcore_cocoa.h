@@ -18,6 +18,8 @@
     NSTrackingRectTag mouse_tracking_tag;
 }
 
-- (id)initWithFrame:(NSRect)frame callbacks:(ckit_Window_Callbacks*)_callbacks owner:(void*)_owner;
+- (id)initWithFrame:(NSRect)frame callbacks:(ckit_Window_Callbacks*)_callbacks owner:(void*)_owner parent_window:(CocoaObject*)_parent_window;
+
+@property CocoaObject * parent_window;
 
 @end

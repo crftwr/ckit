@@ -25,7 +25,7 @@
 
 @implementation CkitView
 
-- (id)initWithFrame:(NSRect)frame callbacks:(ckit_Window_Callbacks*)_callbacks owner:(void*)_owner
+- (id)initWithFrame:(NSRect)frame callbacks:(ckit_Window_Callbacks*)_callbacks owner:(void*)_owner parent_window:(CocoaObject*)parent_window
 {
     TRACE;
 
@@ -34,6 +34,7 @@
     {
         self->callbacks = _callbacks;
         self->owner = _owner;
+        self.parent_window = parent_window;
     }
     return self;
 }
@@ -733,7 +734,7 @@ int ckit_Window_Create( ckit_Window_Create_Parameters * params, CocoaObject ** _
     // NSWindowオブジェクトの解放は Close 時ではなく ARC を使って制御する
     [window setReleasedWhenClosed:FALSE];
     
-    CkitView * view = [[CkitView alloc] initWithFrame:NSMakeRect(0,0,1,1) callbacks:params->callbacks owner:params->owner ];
+    CkitView * view = [[CkitView alloc] initWithFrame:NSMakeRect(0,0,1,1) callbacks:params->callbacks owner:params->owner parent_window:params->parent_window ];
     
     window.delegate = view;
     [window setContentView:view];
@@ -741,11 +742,6 @@ int ckit_Window_Create( ckit_Window_Create_Parameters * params, CocoaObject ** _
     ckit_Window_SetTitle( (__bridge CocoaObject*)window, params->title );
     
     *_window = (__bridge_retained CocoaObject *)window;
-    
-    if(params->parent_window)
-    {
-        // FIXME : 親ウインドウより手前に表示するよう設定する
-    }
     
     return 0;
 }
@@ -755,6 +751,17 @@ int ckit_Window_Destroy( CocoaObject * _window )
     TRACE;
     
     NSWindow * window = (__bridge_transfer NSWindow*)_window;
+
+    // ウインドウ削除前に親子関係を切る
+    {
+        CkitView * view = window.contentView;
+        NSWindow * parent_window = (__bridge NSWindow*)view.parent_window;
+        if(parent_window)
+        {
+            [parent_window removeChildWindow:window];
+        }
+    }
+    
     [window close];
     
     return 0;
@@ -983,9 +990,23 @@ int ckit_Window_Show( CocoaObject * _window, bool show, bool activate )
             [window makeKeyWindow];
             [window makeMainWindow];
         }
+
+        // Show/Hideのときに親子関係を切らないと、なぜか親ウインドウが巻き添えになってしまう
+        {
+            CkitView * view = window.contentView;
+            NSWindow * parent_window = (__bridge NSWindow*)view.parent_window;
+            [parent_window addChildWindow:window ordered:NSWindowAbove];
+        }
     }
     else
     {
+        // Show/Hideのときに親子関係を切らないと、なぜか親ウインドウが巻き添えになってしまう
+        {
+            CkitView * view = window.contentView;
+            NSWindow * parent_window = (__bridge NSWindow*)view.parent_window;
+            [parent_window removeChildWindow:window];
+        }
+
         [window orderOut:nil];
     }
     
