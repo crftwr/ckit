@@ -5,6 +5,8 @@ import shutil
 import ctypes
 import inspect
 
+from ckit import ckitcore
+
 ## @addtogroup misc その他雑多な機能
 ## @{
 
@@ -474,30 +476,36 @@ GHND = 66
 #  @return クリップボードから取得した文字列
 #
 def getClipboardText():
-    text = ""
-    if ctypes.windll.user32.OpenClipboard(ctypes.c_int(0)):
-        hClipMem = ctypes.windll.user32.GetClipboardData(ctypes.c_int(CF_UNICODETEXT))
-        ctypes.windll.kernel32.GlobalLock.restype = ctypes.c_wchar_p
-        text = ctypes.windll.kernel32.GlobalLock(ctypes.c_int(hClipMem))
-        ctypes.windll.kernel32.GlobalUnlock(ctypes.c_int(hClipMem))
-        ctypes.windll.user32.CloseClipboard()
-    return text
+    if platform()=="win":
+        text = ""
+        if ctypes.windll.user32.OpenClipboard(ctypes.c_int(0)):
+            hClipMem = ctypes.windll.user32.GetClipboardData(ctypes.c_int(CF_UNICODETEXT))
+            ctypes.windll.kernel32.GlobalLock.restype = ctypes.c_wchar_p
+            text = ctypes.windll.kernel32.GlobalLock(ctypes.c_int(hClipMem))
+            ctypes.windll.kernel32.GlobalUnlock(ctypes.c_int(hClipMem))
+            ctypes.windll.user32.CloseClipboard()
+        return text
+    else:
+        return ckitcore.getClipboardText()
 
 ## クリップボードにテキストを設定する
 #
 #  @param text  クリップボードに設定する文字列
 #
 def setClipboardText(text):
-    bufferSize = (len(text)+1)*2
-    hGlobalMem = ctypes.windll.kernel32.GlobalAlloc(ctypes.c_int(GHND), ctypes.c_int(bufferSize))
-    ctypes.windll.kernel32.GlobalLock.restype = ctypes.c_void_p
-    lpGlobalMem = ctypes.windll.kernel32.GlobalLock(ctypes.c_int(hGlobalMem))
-    ctypes.cdll.msvcrt.memcpy(lpGlobalMem, ctypes.c_wchar_p(text), ctypes.c_int(bufferSize))
-    ctypes.windll.kernel32.GlobalUnlock(ctypes.c_int(hGlobalMem))
-    if ctypes.windll.user32.OpenClipboard(0):
-        ctypes.windll.user32.EmptyClipboard()
-        ctypes.windll.user32.SetClipboardData(ctypes.c_int(CF_UNICODETEXT), ctypes.c_int(hGlobalMem))
-        ctypes.windll.user32.CloseClipboard()
+    if platform()=="win":
+        bufferSize = (len(text)+1)*2
+        hGlobalMem = ctypes.windll.kernel32.GlobalAlloc(ctypes.c_int(GHND), ctypes.c_int(bufferSize))
+        ctypes.windll.kernel32.GlobalLock.restype = ctypes.c_void_p
+        lpGlobalMem = ctypes.windll.kernel32.GlobalLock(ctypes.c_int(hGlobalMem))
+        ctypes.cdll.msvcrt.memcpy(lpGlobalMem, ctypes.c_wchar_p(text), ctypes.c_int(bufferSize))
+        ctypes.windll.kernel32.GlobalUnlock(ctypes.c_int(hGlobalMem))
+        if ctypes.windll.user32.OpenClipboard(0):
+            ctypes.windll.user32.EmptyClipboard()
+            ctypes.windll.user32.SetClipboardData(ctypes.c_int(CF_UNICODETEXT), ctypes.c_int(hGlobalMem))
+            ctypes.windll.user32.CloseClipboard()
+    else:
+        ckitcore.setClipboardText(text)
 
 ## クリップボードのシーケンスナンバーを取得する
 #

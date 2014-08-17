@@ -34,7 +34,7 @@ static std::wstring TASKTRAY_WINDOW_CLASS_NAME  = L"CkitTaskTrayWindowClass";
 
 namespace ckit
 {
-	Globals g;
+	GlobalBase * g = new Global();
 };
 
 #if defined(PLATFORM_WIN32)
@@ -5152,9 +5152,9 @@ static PyObject * Module_registerCommandInfoConstructor( PyObject * self, PyObje
 	if( ! PyArg_ParseTuple(args,"O", &_command_info_constructor ) )
 		return NULL;
 	
-	Py_XDECREF(g.command_info_constructor);
-	g.command_info_constructor = _command_info_constructor;
-	Py_INCREF(g.command_info_constructor);
+	Py_XDECREF(g->command_info_constructor);
+	g->command_info_constructor = _command_info_constructor;
+	Py_INCREF(g->command_info_constructor);
 
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -5248,6 +5248,40 @@ static PyObject * Module_setBlockDetector( PyObject * self, PyObject * args )
 	return Py_None;
 }
 
+static PyObject * Module_setClipboardText( PyObject * self, PyObject * args )
+{
+	FUNC_TRACE;
+    
+	PyObject * pystr;
+    
+    if( ! PyArg_ParseTuple(args, "O", &pystr ) )
+        return NULL;
+    
+    std::wstring str;
+    if( !PythonUtil::PyStringToWideString( pystr, &str ) )
+    {
+    	return NULL;
+    }
+    
+	g->setClipboard_Text( str.c_str() );
+    
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+static PyObject * Module_getClipboardText( PyObject * self, PyObject * args )
+{
+	FUNC_TRACE;
+    
+    if( ! PyArg_ParseTuple(args, "" ) )
+        return NULL;
+    
+    std::wstring str = g->getClipboard_Text();
+
+    PyObject * pyret = Py_BuildValue( "u", str.c_str() );
+    return pyret;
+}
+
 static PyMethodDef ckit_funcs[] =
 {
     { "registerWindowClass", Module_registerWindowClass, METH_VARARGS, "" },
@@ -5255,6 +5289,8 @@ static PyMethodDef ckit_funcs[] =
     { "setGlobalOption", Module_setGlobalOption, METH_VARARGS, "" },
     { "enableBlockDetector", Module_enableBlockDetector, METH_VARARGS, "" },
     { "setBlockDetector", Module_setBlockDetector, METH_VARARGS, "" },
+    { "setClipboardText", Module_setClipboardText, METH_VARARGS, "" },
+    { "getClipboardText", Module_getClipboardText, METH_VARARGS, "" },
     {NULL,NULL}
 };
 
@@ -5326,8 +5362,8 @@ PyMODINIT_FUNC PyInit_ckitcore(void)
 
     d = PyModule_GetDict(m);
 
-    g.Error = PyErr_NewException( MODULE_NAME".Error", NULL, NULL);
-    PyDict_SetItemString( d, "Error", g.Error );
+    g->Error = PyErr_NewException( MODULE_NAME".Error", NULL, NULL);
+    PyDict_SetItemString( d, "Error", g->Error );
 
     if( PyErr_Occurred() )
     {

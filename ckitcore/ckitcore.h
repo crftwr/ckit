@@ -493,13 +493,16 @@ namespace ckit
         #endif // PLATFORM
 	};
 
-	struct Globals
+	struct GlobalBase
 	{
 		PyObject * Error;
 		PyObject * command_info_constructor;
+        
+		virtual void setClipboard_Text( const wchar_t * text ) = 0;
+		virtual std::wstring getClipboard_Text() = 0;
 	};
 
-	extern Globals g;
+	extern GlobalBase * g;
 };
 
 //-------------------------------------------------------------------

@@ -157,11 +157,18 @@ namespace ckit
         Size paint_client_size;
 	};
 
+    struct GlobalMac : public GlobalBase
+    {
+		virtual void setClipboard_Text( const wchar_t * text );
+		virtual std::wstring getClipboard_Text();
+    };
+    
 	typedef ImageMac Image;
 	typedef FontMac Font;
 	typedef ImagePlaneMac ImagePlane;
 	typedef TextPlaneMac TextPlane;
 	typedef WindowMac Window;
+	typedef GlobalMac Global;
 };
 
 #endif //__CKITCORE_MAC_H__

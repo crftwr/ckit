@@ -440,12 +440,12 @@ static int translateVk(int src)
     if( theEvent.modifierFlags & NSAlternateKeyMask ){ mod |= MODKEY_ALT; }
     if( theEvent.modifierFlags & NSControlKeyMask ){ mod |= MODKEY_WIN; }
     
-    int keyevent_removal_tag = self->keyevent_removal_tag;
+    int tag = self->keyevent_removal_tag;
     
     callbacks->keyDown( owner, vk, mod );
     
     // messageLoopやremoveKeyMessageが呼ばれたら、それ以前の keyDown については interpretKeyEvents を呼ばない
-    if( keyevent_removal_tag != self->keyevent_removal_tag )
+    if( tag != self->keyevent_removal_tag )
     {
         return;
     }
@@ -1064,4 +1064,47 @@ int ckit_Window_SetForeground( CocoaObject * _window )
     
     return 0;
 }
+
+int ckit_Global_SetClipboard_Text( const wchar_t * _text )
+{
+    NSPasteboard * pb = [NSPasteboard generalPasteboard];
+
+    NSString * text = [[NSString alloc] initWithBytes:_text length:wcslen(_text)*sizeof(wchar_t) encoding:NSUTF32LittleEndianStringEncoding];
+    
+    [pb clearContents];
+    [pb writeObjects:[NSArray arrayWithObject:text]];
+
+    return 0;
+}
+
+int ckit_Global_GetClipboard_Text( wchar_t ** text )
+{
+    NSPasteboard * pb = [NSPasteboard generalPasteboard];
+    
+    NSArray * classes = [NSArray arrayWithObject:[NSString class]];
+    NSArray * objects = [pb readObjectsForClasses:classes options:nil];
+    
+    if([objects count]>0)
+    {
+        NSString * value = [objects objectAtIndex:0];
+        
+        const wchar_t * _text = (const wchar_t*)[value cStringUsingEncoding:NSUTF32LittleEndianStringEncoding];
+        
+        *text = (wchar_t*)malloc( (wcslen(_text)+1) * sizeof(wchar_t) );
+        
+        wcscpy( *text, _text );
+    }
+
+    return 0;
+}
+
+
+
+
+
+
+
+
+
+
 

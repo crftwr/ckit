@@ -96,4 +96,7 @@ EXTERN int ckit_Window_Show( CocoaObject * window, bool show, bool activate );
 EXTERN int ckit_Window_Activate( CocoaObject * window );
 EXTERN int ckit_Window_SetForeground( CocoaObject * window );
 
+EXTERN int ckit_Global_SetClipboard_Text( const wchar_t * text );
+EXTERN int ckit_Global_GetClipboard_Text( wchar_t ** text );
+
 #endif//__CKITCORE_COCOA_EXPORT_H__

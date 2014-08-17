@@ -2395,3 +2395,25 @@ void WindowMac::removeKeyMessage()
     ckit_Window_RemoveKeyMessage(handle);
 }
 
+void GlobalMac::setClipboard_Text( const wchar_t * text )
+{
+	FUNC_TRACE;
+    
+    ckit_Global_SetClipboard_Text(text);
+}
+
+std::wstring GlobalMac::getClipboard_Text()
+{
+	FUNC_TRACE;
+    
+    wchar_t * _text;
+
+    // mallocで確保された文字列が格納される
+    ckit_Global_GetClipboard_Text(&_text);
+    
+    std::wstring text = _text;
+    
+    free(_text);
+    
+    return text;
+}
