@@ -25,6 +25,30 @@
 		333B02A0199ECC8200F33188 /* _config.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = _config.py; path = ../../../cfiler/_config.py; sourceTree = "<group>"; };
 		333B02A1199ECC9C00F33188 /* config.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = config.py; path = ../../../cfiler/CraftFiler/config.py; sourceTree = "<group>"; };
 		335238E4196997A900AAEB73 /* test.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = test.py; path = ../../test/test.py; sourceTree = "<group>"; };
+		3378E8F819A04F8D00B5CE40 /* _config.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = _config.py; path = ../../../lredit/_config.py; sourceTree = "<group>"; };
+		3378E8F919A04F8D00B5CE40 /* lredit_bookmark.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = lredit_bookmark.py; path = ../../../lredit/lredit_bookmark.py; sourceTree = "<group>"; };
+		3378E8FA19A04F8D00B5CE40 /* lredit_commandline.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = lredit_commandline.py; path = ../../../lredit/lredit_commandline.py; sourceTree = "<group>"; };
+		3378E8FB19A04F8D00B5CE40 /* lredit_configmenu.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = lredit_configmenu.py; path = ../../../lredit/lredit_configmenu.py; sourceTree = "<group>"; };
+		3378E8FC19A04F8D00B5CE40 /* lredit_debug.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = lredit_debug.py; path = ../../../lredit/lredit_debug.py; sourceTree = "<group>"; };
+		3378E8FD19A04F8D00B5CE40 /* lredit_grep.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = lredit_grep.py; path = ../../../lredit/lredit_grep.py; sourceTree = "<group>"; };
+		3378E8FE19A04F8D00B5CE40 /* lredit_history.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = lredit_history.py; path = ../../../lredit/lredit_history.py; sourceTree = "<group>"; };
+		3378E8FF19A04F8D00B5CE40 /* lredit_isearch.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = lredit_isearch.py; path = ../../../lredit/lredit_isearch.py; sourceTree = "<group>"; };
+		3378E90019A04F8D00B5CE40 /* lredit_lexer.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = lredit_lexer.py; path = ../../../lredit/lredit_lexer.py; sourceTree = "<group>"; };
+		3378E90119A04F8D00B5CE40 /* lredit_listwindow.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = lredit_listwindow.py; path = ../../../lredit/lredit_listwindow.py; sourceTree = "<group>"; };
+		3378E90219A04F8D00B5CE40 /* lredit_main.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = lredit_main.py; path = ../../../lredit/lredit_main.py; sourceTree = "<group>"; };
+		3378E90319A04F8D00B5CE40 /* lredit_mainwindow.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = lredit_mainwindow.py; path = ../../../lredit/lredit_mainwindow.py; sourceTree = "<group>"; };
+		3378E90419A04F8D00B5CE40 /* lredit_minormode.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = lredit_minormode.py; path = ../../../lredit/lredit_minormode.py; sourceTree = "<group>"; };
+		3378E90519A04F8D00B5CE40 /* lredit_misc.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = lredit_misc.py; path = ../../../lredit/lredit_misc.py; sourceTree = "<group>"; };
+		3378E90619A04F8D00B5CE40 /* lredit_mode.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = lredit_mode.py; path = ../../../lredit/lredit_mode.py; sourceTree = "<group>"; };
+		3378E90719A04F8D00B5CE40 /* lredit_msgbox.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = lredit_msgbox.py; path = ../../../lredit/lredit_msgbox.py; sourceTree = "<group>"; };
+		3378E91319A04F8D00B5CE40 /* lredit_project.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = lredit_project.py; path = ../../../lredit/lredit_project.py; sourceTree = "<group>"; };
+		3378E91419A04F8D00B5CE40 /* lredit_resource.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = lredit_resource.py; path = ../../../lredit/lredit_resource.py; sourceTree = "<group>"; };
+		3378E91519A04F8D00B5CE40 /* lredit_statusbar.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = lredit_statusbar.py; path = ../../../lredit/lredit_statusbar.py; sourceTree = "<group>"; };
+		3378E91619A04F8D00B5CE40 /* lredit_tabbar.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = lredit_tabbar.py; path = ../../../lredit/lredit_tabbar.py; sourceTree = "<group>"; };
+		3378E91719A04F8D00B5CE40 /* lredit_tags.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = lredit_tags.py; path = ../../../lredit/lredit_tags.py; sourceTree = "<group>"; };
+		3378E91819A04F8D00B5CE40 /* lredit_zenhan.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = lredit_zenhan.py; path = ../../../lredit/lredit_zenhan.py; sourceTree = "<group>"; };
+		3378E91919A04F8D00B5CE40 /* lredit.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = lredit.py; path = ../../../lredit/lredit.py; sourceTree = "<group>"; };
+		3378E92019A04FCF00B5CE40 /* config.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = config.py; path = ../../../lredit/LREdit/config.py; sourceTree = "<group>"; };
 		33E3AA3A19677B22004C7EDF /* ckitcore.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = ckitcore.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		33E3AA3E19677B22004C7EDF /* ckitcore-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ckitcore-Prefix.pch"; sourceTree = "<group>"; };
 		33E3AA3F19677B22004C7EDF /* ckitcoreProj.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = ckitcoreProj.xcconfig; sourceTree = "<group>"; };
@@ -112,11 +136,43 @@
 			name = test;
 			sourceTree = "<group>";
 		};
+		3378E8F719A04F5700B5CE40 /* lredit - python */ = {
+			isa = PBXGroup;
+			children = (
+				3378E92019A04FCF00B5CE40 /* config.py */,
+				3378E8F819A04F8D00B5CE40 /* _config.py */,
+				3378E8F919A04F8D00B5CE40 /* lredit_bookmark.py */,
+				3378E8FA19A04F8D00B5CE40 /* lredit_commandline.py */,
+				3378E8FB19A04F8D00B5CE40 /* lredit_configmenu.py */,
+				3378E8FC19A04F8D00B5CE40 /* lredit_debug.py */,
+				3378E8FD19A04F8D00B5CE40 /* lredit_grep.py */,
+				3378E8FE19A04F8D00B5CE40 /* lredit_history.py */,
+				3378E8FF19A04F8D00B5CE40 /* lredit_isearch.py */,
+				3378E90019A04F8D00B5CE40 /* lredit_lexer.py */,
+				3378E90119A04F8D00B5CE40 /* lredit_listwindow.py */,
+				3378E90219A04F8D00B5CE40 /* lredit_main.py */,
+				3378E90319A04F8D00B5CE40 /* lredit_mainwindow.py */,
+				3378E90419A04F8D00B5CE40 /* lredit_minormode.py */,
+				3378E90519A04F8D00B5CE40 /* lredit_misc.py */,
+				3378E90619A04F8D00B5CE40 /* lredit_mode.py */,
+				3378E90719A04F8D00B5CE40 /* lredit_msgbox.py */,
+				3378E91319A04F8D00B5CE40 /* lredit_project.py */,
+				3378E91419A04F8D00B5CE40 /* lredit_resource.py */,
+				3378E91519A04F8D00B5CE40 /* lredit_statusbar.py */,
+				3378E91619A04F8D00B5CE40 /* lredit_tabbar.py */,
+				3378E91719A04F8D00B5CE40 /* lredit_tags.py */,
+				3378E91819A04F8D00B5CE40 /* lredit_zenhan.py */,
+				3378E91919A04F8D00B5CE40 /* lredit.py */,
+			);
+			name = "lredit - python";
+			sourceTree = "<group>";
+		};
 		33E3AA3119677B22004C7EDF = {
 			isa = PBXGroup;
 			children = (
 				33E3AA3C19677B22004C7EDF /* ckitcore */,
 				33E3AA5C1967CBB2004C7EDF /* ckit - python */,
+				3378E8F719A04F5700B5CE40 /* lredit - python */,
 				33F95561197A080900E57104 /* cfiler - python */,
 				33E3AA3D19677B22004C7EDF /* Supporting Files */,
 				33E3AA3B19677B22004C7EDF /* Products */,
