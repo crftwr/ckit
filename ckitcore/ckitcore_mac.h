@@ -111,6 +111,7 @@ namespace ckit
         virtual void enableIme( bool enable );
 		virtual void setImeFont( FontBase * font );
 		virtual void messageLoop( PyObject * continue_cond_func );
+		virtual void removeKeyMessage();
         
         int drawRect( CGRect rect, CGContextRef gctx );
         void beginPaint( CGContextRef gtxt );

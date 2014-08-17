@@ -3673,11 +3673,15 @@ static PyObject * Window_removeKeyMessage(PyObject* self, PyObject* args)
 		return NULL;
 	}
 
+    WindowBase * window = ((Window_Object*)self)->p;
+    
     #if defined(PLATFORM_WIN32)
     MSG msg;
     while( PeekMessage( &msg, NULL, WM_KEYFIRST, WM_KEYLAST, PM_REMOVE ) )
     {
     }
+    #else
+    window->removeKeyMessage();
     #endif // PLATFORM
 
     Py_INCREF(Py_None);

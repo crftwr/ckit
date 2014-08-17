@@ -384,6 +384,7 @@ namespace ckit
 		virtual void enableIme( bool enable ) = 0;
 		virtual void setImeFont( FontBase * font ) = 0;
 		virtual void messageLoop( PyObject * continue_cond_func ) = 0;
+		virtual void removeKeyMessage() = 0;
 
         void clear();
         void clearPlanes();

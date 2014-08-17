@@ -34,6 +34,9 @@
     {
         self->callbacks = _callbacks;
         self->owner = _owner;
+        self->mouse_tracking_tag = 0;
+        self->keyevent_removal_tag = 0;
+        
         self.parent_window = parent_window;
     }
     return self;
@@ -437,12 +440,18 @@ static int translateVk(int src)
     if( theEvent.modifierFlags & NSAlternateKeyMask ){ mod |= MODKEY_ALT; }
     if( theEvent.modifierFlags & NSControlKeyMask ){ mod |= MODKEY_WIN; }
     
-    int consumed = callbacks->keyDown( owner, vk, mod );
+    int keyevent_removal_tag = self->keyevent_removal_tag;
     
-    if(!consumed)
+    callbacks->keyDown( owner, vk, mod );
+    
+    // messageLoopやremoveKeyMessageが呼ばれたら、それ以前の keyDown については interpretKeyEvents を呼ばない
+    if( keyevent_removal_tag != self->keyevent_removal_tag )
     {
-        [self interpretKeyEvents: [NSArray arrayWithObject: theEvent]];
+        return;
     }
+
+    // 文字入力イベントに変換
+    [self interpretKeyEvents: [NSArray arrayWithObject: theEvent]];
 }
 
 - (void)keyUp:(NSEvent *)theEvent
@@ -775,6 +784,12 @@ int ckit_Window_MessageLoop( CocoaObject * _window )
     
     TRACE;
 
+    // キーイベントのタグを更新し、文字入力イベントをキャンセル
+    {
+        CkitView * view = window.contentView;
+        view->keyevent_removal_tag ++;
+    }
+    
     [NSApp runModalForWindow:window];
     
     TRACE;
@@ -790,6 +805,21 @@ int ckit_Window_Quit( CocoaObject * _window )
     (void)window;
     
     [NSApp stopModal];
+    
+    return 0;
+}
+
+int ckit_Window_RemoveKeyMessage( CocoaObject * _window )
+{
+    TRACE;
+    
+    NSWindow * window = (__bridge NSWindow*)_window;
+    
+    // キーイベントのタグを更新し、文字入力イベントをキャンセル
+    {
+        CkitView * view = window.contentView;
+        view->keyevent_removal_tag ++;
+    }
     
     return 0;
 }

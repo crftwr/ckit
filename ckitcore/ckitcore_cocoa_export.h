@@ -77,6 +77,7 @@ EXTERN int ckit_Window_Create( ckit_Window_Create_Parameters * params, CocoaObje
 EXTERN int ckit_Window_Destroy( CocoaObject * window );
 EXTERN int ckit_Window_MessageLoop( CocoaObject * window );
 EXTERN int ckit_Window_Quit( CocoaObject * window );
+EXTERN int ckit_Window_RemoveKeyMessage( CocoaObject * window );
 EXTERN int ckit_Window_SetWindowRect( CocoaObject * window, CGRect rect );
 EXTERN int ckit_Window_GetWindowRect( CocoaObject * window, CGRect * rect );
 EXTERN int ckit_Window_GetClientSize( CocoaObject * window, CGSize * size );

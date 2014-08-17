@@ -2380,3 +2380,10 @@ void WindowMac::messageLoop( PyObject * continue_cond_func )
     Py_END_ALLOW_THREADS
 }
 
+void WindowMac::removeKeyMessage()
+{
+	FUNC_TRACE;
+
+    ckit_Window_RemoveKeyMessage(handle);
+}
+
