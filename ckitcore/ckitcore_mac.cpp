@@ -116,6 +116,8 @@ FontMac::FontMac( const wchar_t * name, int height )
         descent = CTFontGetDescent(_handle);
 
         PRINTF("font size adjust : step2 : %f,%f,%d\n", ascent, descent, size_in_point );
+        
+        int retry_count = 0;
 
         // 微調整する
         while(true)
@@ -129,6 +131,12 @@ FontMac::FontMac( const wchar_t * name, int height )
             
             if( ascent + descent <= height && fabs(advance-int(advance))<0.0001f )
             {
+                break;
+            }
+            
+            if( retry_count++>=10 )
+            {
+                printf("font size adjust : retry count > 10\n");
                 break;
             }
             

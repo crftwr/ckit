@@ -68,12 +68,12 @@ const int GLOBAL_OPTION_XXXX = 0x101;
 			funcname = _funcname;
 			lineno   = _lineno;
 
-			printf( "FuncTrace : Enter : %s(%)\n", funcname, lineno );
+			printf( "FuncTrace : Enter : %s(%d)\n", funcname, lineno );
 		}
 
 		~FuncTrace()
 		{
-			printf( "FuncTrace : Leave : %s(%)\n", funcname, lineno );
+			printf( "FuncTrace : Leave : %s(%d)\n", funcname, lineno );
 		}
 
 		const char * funcname;
