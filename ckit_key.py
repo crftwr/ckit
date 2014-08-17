@@ -355,7 +355,7 @@ class KeyEvent:
     @staticmethod
     def initTables():
         
-        if os.name=="nt":
+        if ckit.platform()=="win":
             keyboard_type = ctypes.windll.user32.GetKeyboardType(0)
         else:
             # FIXME : 実装

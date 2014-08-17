@@ -5,9 +5,6 @@ import shutil
 import ctypes
 import inspect
 
-if os.name=="nt":
-    import pyauto
-
 ## @addtogroup misc その他雑多な機能
 ## @{
 
@@ -15,6 +12,23 @@ if os.name=="nt":
 
 _use_slash = False
 _drive_case_upper = None
+
+#--------------------------------------------------------------------
+
+_platform = None
+
+## プラットフォームを取得する
+def platform():
+    
+    global _platform
+    
+    if not _platform:
+        if os.name=="nt":
+            _platform = "win"
+        else:
+            _platform = "mac"
+    
+    return _platform
 
 #--------------------------------------------------------------------
 
@@ -167,7 +181,7 @@ def getArgv():
     
         _argv = []
 
-        if os.name=="nt":
+        if platform()=="win":
             
             from ctypes import POINTER, byref, cdll, c_int, windll
             from ctypes.wintypes import LPCWSTR, LPWSTR
@@ -211,7 +225,7 @@ def getAppExePath():
 ## アプリケーションのデータディレクトリのパスを取得する
 def getAppDataPath():
 
-    if os.name=="nt":
+    if platform()=="win":
 
         MAX_PATH = 260
         CSIDL_APPDATA = 26
@@ -273,7 +287,7 @@ def setDataPath( data_path ):
 ## 利用可能なドライブ文字を連結した文字列を取得する
 def getDrives():
     drives = ""
-    if os.name=="nt":
+    if platform()=="win":
         drive_bits = ctypes.windll.kernel32.GetLogicalDrives()
         for i in range(26):
             if drive_bits & (1<<i):
@@ -367,7 +381,7 @@ FILE_ATTRIBUTE_NORMAL	 = 0x00000080
 
 ## ファイルの属性を取得する
 def getFileAttribute(filename):
-    if os.name=="nt":
+    if platform()=="win":
         return ctypes.windll.kernel32.GetFileAttributesW(filename)
     else:
         return 0
@@ -435,7 +449,7 @@ def deleteFilesUsingRecycleBin( hwnd, filename_list ):
 ## ディスクの空き容量と全体の容量を取得する
 def getDiskSize(drive):
     # FIXME : 実装
-    if os.name=="nt":
+    if platform()=="win":
         free_size_for_user = ctypes.c_longlong()
         total_size = ctypes.c_longlong()
         free_size = ctypes.c_longlong()
@@ -487,6 +501,9 @@ def getClipboardSequenceNumber():
 
 #--------------------------------------------------------------------
 
+if platform()=="win":
+    import pyauto
+
 WM_CLOSE = 16
 
 ## 指定したプロセスIDのプロセスを終了する
@@ -514,7 +531,7 @@ ALIGN_RIGHT  = 2
 ## 文字列を指定した長さに調節する
 def adjustStringWidth( window, s, width, align=ALIGN_LEFT, ellipsis=ELLIPSIS_NONE ):
 
-    if os.name=="nt":
+    if platform()=="win":
         ellipsis_char = "\u22ef"
     else:
         ellipsis_char = "-" # FIXME : 半角で3点リーダを表示したい
@@ -759,7 +776,7 @@ def pathDriveUpper():
 #
 def joinPath(*args):
     left = 0
-    if os.name=="nt":
+    if platform()=="win":
         for i in range(len(args)):
             if os.path.splitunc(args[i])[0]:
                 left = i
@@ -776,7 +793,7 @@ def joinPath(*args):
 #  os.path.split() とは違い、UNC形式 ( //machine/share/ で始まるもの ) のパスを扱うことが出来ます。
 #
 def splitPath(path):
-    if os.name=="nt":
+    if platform()=="win":
         unc = os.path.splitunc(path)
         if not unc[1]:
             return unc
@@ -806,7 +823,7 @@ def splitExt( path, maxlen=5 ):
 #  @return         ルートディレクトリのパス
 #
 def rootPath(path):
-    if os.name=="nt":
+    if platform()=="win":
         unc = os.path.splitunc(path)
         if not unc[1]:
             return unc[0]
@@ -856,7 +873,7 @@ def replacePath(path):
 
 #--------------------------------------------------------------------
 
-if os.name=="nt":
+if platform()=="win":
     import winsound
 
 beep_enabled = True

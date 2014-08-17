@@ -4,9 +4,6 @@ import math
 import bisect
 import cProfile
 
-if os.name=="nt":
-    import pyauto
-
 from ckit import ckitcore
 from ckit import ckit_textwindow
 from ckit import ckit_widget
@@ -18,6 +15,8 @@ from ckit import ckit_userconfig
 from ckit import ckit_resource
 from ckit.ckit_const import *
 
+if ckit_misc.platform()=="win":
+    import pyauto
 
 ## @addtogroup textwidget テキスト編集ウィジェット機能
 ## @{

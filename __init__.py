@@ -18,7 +18,7 @@ from ckit.ckit_key import *
 from ckit.ckit_command import *
 from ckit.ckit_userconfig import *
 
-if os.name=="nt":
+if platform()=="win":
     del pyauto
 
 del sys

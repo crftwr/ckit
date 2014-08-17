@@ -5,15 +5,15 @@ import struct
 
 from PIL import Image
 
-if os.name=="nt":
-    import pyauto
-
 from ckit.ckit_const import *
 
 from ckit import ckit_textwindow
 from ckit import ckit_theme
 from ckit import ckit_misc
 from ckit import ckitcore
+
+if ckit_misc.platform()=="win":
+    import pyauto
 
 ## @addtogroup widget ウィジェット機能
 ## @{
@@ -1515,7 +1515,7 @@ class CandidateWindow( ckit_textwindow.TextWindow ):
         
         # 画面に収まらない場合は上方向に配置する
         y = y2
-        if os.name=="nt":
+        if ckit_misc.platform()=="win":
             monitor_info_list = pyauto.Window.getMonitorInfo()
             for monitor_info in monitor_info_list:
                 if monitor_info[0][0] <= x < monitor_info[0][2] and monitor_info[0][1] <= y1 < monitor_info[0][3]:
