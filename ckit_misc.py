@@ -263,13 +263,18 @@ def getProfilePath():
 
 ## テンポラリファイル用ディレクトリのパスを取得する
 def getTempPath():
+    
+    if platform()=="win":
 
-    MAX_PATH = 260
+        MAX_PATH = 260
 
-    buf = ctypes.create_unicode_buffer(MAX_PATH)
-    ctypes.windll.kernel32.GetTempPathW( MAX_PATH, buf )
+        buf = ctypes.create_unicode_buffer(MAX_PATH)
+        ctypes.windll.kernel32.GetTempPathW( MAX_PATH, buf )
 
-    return buf.value
+        return buf.value
+    
+    else:
+        return "/tmp"
 
 _data_path = None
 
