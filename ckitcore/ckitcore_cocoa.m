@@ -21,8 +21,8 @@
 //#define TRACE printf("%s(%d) : %s\n",__FILE__,__LINE__,__FUNCTION__)
 #define TRACE
 
-#define TRACE_IM printf("%s(%d) : %s\n",__FILE__,__LINE__,__FUNCTION__)
-//#define TRACE_IM
+//#define TRACE_IM printf("%s(%d) : %s\n",__FILE__,__LINE__,__FUNCTION__)
+#define TRACE_IM
 
 //-----------------------------------------------------------------------------
 
@@ -751,15 +751,11 @@ static int translateVk(int src)
     {
         printf( "insertText: NSAttributedString\n" );
     }
-    else
-    {
-        printf( "insertText: NSString\n" );
-    }
-    
+
     // FIXME : insertString が　AttributedStringである可能性もある
     NSString * s = aString;
 
-    printf( "insertText: [%s], replace=(%d,%d)\n", [s cStringUsingEncoding:NSUTF8StringEncoding], (int)replacementRange.location, (int)replacementRange.length );
+    PRINTF( "insertText: [%s], replace=(%d,%d)\n", [s cStringUsingEncoding:NSUTF8StringEncoding], (int)replacementRange.location, (int)replacementRange.length );
     
     [self->marked_text replaceCharactersInRange:replacementRange withString:@""];
 
@@ -781,7 +777,7 @@ static int translateVk(int src)
         NSAttributedString * attributed_string = aString;
         NSString * s = attributed_string.string;
         
-        printf( "setMarkedText: [%s], selected=(%d,%d) replace=(%d,%d)\n", [s cStringUsingEncoding:NSUTF8StringEncoding], (int)selectedRange.location, (int)selectedRange.length, (int)replacementRange.location, (int)replacementRange.length );
+        PRINTF( "setMarkedText: [%s], selected=(%d,%d) replace=(%d,%d)\n", [s cStringUsingEncoding:NSUTF8StringEncoding], (int)selectedRange.location, (int)selectedRange.length, (int)replacementRange.location, (int)replacementRange.length );
         
         [self->marked_text replaceCharactersInRange:replacementRange withAttributedString:aString];
         
@@ -791,7 +787,7 @@ static int translateVk(int src)
     {
         NSString * s = aString;
         
-        printf( "setMarkedText: [%s], selected=(%d,%d) replace=(%d,%d)\n", [s cStringUsingEncoding:NSUTF8StringEncoding], (int)selectedRange.location, (int)selectedRange.length, (int)replacementRange.location, (int)replacementRange.length );
+        PRINTF( "setMarkedText: [%s], selected=(%d,%d) replace=(%d,%d)\n", [s cStringUsingEncoding:NSUTF8StringEncoding], (int)selectedRange.location, (int)selectedRange.length, (int)replacementRange.location, (int)replacementRange.length );
 
         [self->marked_text replaceCharactersInRange:replacementRange withString:aString];
 
@@ -851,7 +847,7 @@ static int translateVk(int src)
 {
     TRACE_IM;
 
-    printf( "firstRectForCharacterRange: range=(%d,%d)\n", (int)aRange.location, (int)aRange.length );
+    PRINTF( "firstRectForCharacterRange: range=(%d,%d)\n", (int)aRange.location, (int)aRange.length );
 
     CGRect caret_rect;
     callbacks->imePosition( owner, &caret_rect );
