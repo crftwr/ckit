@@ -1619,7 +1619,7 @@ void WindowMac::paintMarkedText()
     // 背景を塗る
     {
         CGContextSetRGBFillColor( paint_gctx, 1, 1, 1, 1 );
-        CGContextFillRect( paint_gctx, CGRectMake( 0, 0, width * ime_font->char_width, ime_font->char_height) );
+        CGContextFillRect( paint_gctx, CGRectMake( caret_rect.left, paint_client_size.cy - caret_rect.bottom, width * ime_font->char_width, ime_font->char_height) );
         
         perf_fillrect_count ++;
     }
@@ -1630,7 +1630,7 @@ void WindowMac::paintMarkedText()
     // １行描画
     CTLineRef line = CTLineCreateWithAttributedString(attrString);
     CGContextSetTextMatrix( paint_gctx, CGAffineTransformIdentity);
-    CGContextSetTextPosition( paint_gctx, 20, 20 );
+    CGContextSetTextPosition( paint_gctx, caret_rect.left, paint_client_size.cy - caret_rect.top - ime_font->ascent );
     CTLineDraw(line,paint_gctx);
     
     perf_drawtext_count ++;
@@ -1671,8 +1671,8 @@ void WindowMac::flushPaint()
     
     paintBackground();
     paintPlanes();
-    paintMarkedText();
     paintCaret();
+    paintMarkedText();
 
 	clearDirtyRect();
 }

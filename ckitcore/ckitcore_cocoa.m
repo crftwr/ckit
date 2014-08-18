@@ -774,24 +774,24 @@ static int translateVk(int src)
 
     if( [aString isKindOfClass:[NSAttributedString class]] )
     {
+        /*
         NSAttributedString * attributed_string = aString;
         NSString * s = attributed_string.string;
         
         PRINTF( "setMarkedText: [%s], selected=(%d,%d) replace=(%d,%d)\n", [s cStringUsingEncoding:NSUTF8StringEncoding], (int)selectedRange.location, (int)selectedRange.length, (int)replacementRange.location, (int)replacementRange.length );
+        */
         
         [self->marked_text replaceCharactersInRange:replacementRange withAttributedString:aString];
-        
-        //callbacks->insertText( owner, (const wchar_t*)[s cStringUsingEncoding:NSUTF32LittleEndianStringEncoding], 0 );
     }
     else
     {
+        /*
         NSString * s = aString;
         
         PRINTF( "setMarkedText: [%s], selected=(%d,%d) replace=(%d,%d)\n", [s cStringUsingEncoding:NSUTF8StringEncoding], (int)selectedRange.location, (int)selectedRange.length, (int)replacementRange.location, (int)replacementRange.length );
-
+        */
+        
         [self->marked_text replaceCharactersInRange:replacementRange withString:aString];
-
-        //callbacks->insertText( owner, (const wchar_t*)[s cStringUsingEncoding:NSUTF32LittleEndianStringEncoding], 0 );
     }
 
     [self setNeedsDisplay:TRUE];
