@@ -56,6 +56,7 @@ typedef struct ckit_Window_Callbacks_t
     int (*keyUp)( void * owner, int vk, int mod );
     int (*insertText)( void * owner, const wchar_t * text, int mod );
     int (*mouse)( void * owner, const ckit_MouseEvent * event );
+    int (*imePosition)( void * owner, CGRect * caret_rect );
 
 } ckit_Window_Callbacks;
 

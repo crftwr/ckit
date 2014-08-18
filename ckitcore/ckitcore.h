@@ -404,7 +404,7 @@ namespace ckit
 
         bool caret;
         int caret_blink;
-        bool ime_on;
+        bool ime_on; // FIXME : プラットフォーム依存コード
         std::list<PlaneBase*> plane_list;
         Rect caret_rect;
         Rect ime_rect;

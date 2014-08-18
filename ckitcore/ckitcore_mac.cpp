@@ -1422,6 +1422,22 @@ int WindowMac::mouse( const ckit_MouseEvent * event )
     return 0;
 }
 
+int _imePosition( void * owner, CGRect * caret_rect )
+{
+    WindowMac * window = (WindowMac*)owner;
+    return window->imePosition(caret_rect);
+}
+
+int WindowMac::imePosition( CGRect * _caret_rect )
+{
+    CGSize client_size;
+    ckit_Window_GetClientSize( handle, &client_size );
+    
+    *_caret_rect = CGRectMake( caret_rect.left, client_size.height - caret_rect.bottom, caret_rect.right - caret_rect.left, caret_rect.bottom - caret_rect.top );
+    
+    return 0;
+}
+
 ckit_Window_Callbacks callbacks = {
     _drawRect,
     _windowShouldClose,
@@ -1434,6 +1450,7 @@ ckit_Window_Callbacks callbacks = {
     _keyUp,
     _insertText,
     _mouse,
+    _imePosition,
 };
 
 WindowMac::WindowMac( Param & _params )
@@ -1595,10 +1612,12 @@ void WindowMac::flushPaint()
 
 	clearDirtyRect();
 
+    /*
 	if(ime_on)
     {
-        //_setImePosition();
+        _setImePosition();
     }
+    */
 }
 
 void WindowMac::enumFonts( std::vector<std::wstring> * font_list )

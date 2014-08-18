@@ -816,24 +816,11 @@ static int translateVk(int src)
     TRACE_IM;
 
     return NSMakeRange( 0, [self->marked_text length] );
-
-    /*
-    if( [self->marked_text length] > 0 )
-    {
-        return NSMakeRange( 0, [self->marked_text length] );
-    }
-    else
-    {
-        return NSMakeRange( NSNotFound, 0 );
-    }
-    */
 }
 
 - (BOOL)hasMarkedText
 {
     TRACE_IM;
-    
-    printf( "hasMarkedText : %d\n", (int)[self->marked_text length] );
     
     return [self->marked_text length] > 0;
 }
@@ -861,8 +848,18 @@ static int translateVk(int src)
 - (NSRect)firstRectForCharacterRange:(NSRange)aRange actualRange:(NSRangePointer)actualRange
 {
     TRACE_IM;
+
+    printf( "firstRectForCharacterRange: range=(%d,%d)\n", (int)aRange.location, (int)aRange.length );
+
+    CGRect caret_rect;
+    callbacks->imePosition( owner, &caret_rect );
     
-    return NSMakeRect(0,0,100,100);
+    NSWindow * window = [self window];
+    
+    caret_rect.origin = [self convertPoint:caret_rect.origin toView:nil];
+    caret_rect.origin = [window convertBaseToScreen:caret_rect.origin];
+
+    return caret_rect;
 }
 
 - (NSUInteger)characterIndexForPoint:(NSPoint)aPoint

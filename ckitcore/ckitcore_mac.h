@@ -136,6 +136,8 @@ namespace ckit
         int insertText( const wchar_t * text, int mod );
         int mouse( const ckit_MouseEvent * event );
         
+        int imePosition( CGRect * caret_rect );
+        
         bool initialized;
 
         CocoaObject * handle;
