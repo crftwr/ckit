@@ -22,6 +22,8 @@
 
 - (id)initWithFrame:(NSRect)frame callbacks:(ckit_Window_Callbacks*)_callbacks owner:(void*)_owner parent_window:(CocoaObject*)_parent_window;
 
+- (void)dealloc;
+
 @property CocoaObject * parent_window;
 
 @end

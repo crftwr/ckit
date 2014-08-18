@@ -43,6 +43,7 @@ Globals g;
     TRACE;
 
     self = [super initWithFrame:frame];
+    
     if(self)
     {
         self->callbacks = _callbacks;
@@ -52,7 +53,19 @@ Globals g;
         
         self.parent_window = parent_window;
     }
+
+    // IME状態変化の通知を受ける
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(keyboardInputSourceChanged:)
+                                                 name:NSTextInputContextKeyboardSelectionDidChangeNotification
+                                               object:nil];
+    
     return self;
+}
+
+- (void)dealloc
+{
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 - (BOOL)windowShouldClose:(id)sender
@@ -438,7 +451,7 @@ static int translateVk(int src)
 - (void)keyDown:(NSEvent *)theEvent
 {
     TRACE;
-    
+
     int tag = g.keyevent_removal_tag;
     
     if( ! [self hasMarkedText] )
@@ -867,6 +880,11 @@ static int translateVk(int src)
     return 0;
 }
 
+- (void)keyboardInputSourceChanged:(NSNotification *)notification
+{
+    [self setNeedsDisplay:TRUE];
+}
+
 @end
 
 int ckit_Application_Create()
@@ -1219,6 +1237,28 @@ int ckit_Window_GetMarkedText( CocoaObject * _window, CFMutableAttributedStringR
     
     *_marked_text = (__bridge CFMutableAttributedStringRef)view->marked_text;
 
+    return 0;
+}
+
+int ckit_Window_IsImeOpened( CocoaObject * _window, int * ime_opened )
+{
+    NSWindow * window = (__bridge NSWindow*)_window;
+    CkitView * view = window.contentView;
+
+    NSString * input_source = [view inputContext].selectedKeyboardInputSource;
+    
+    const char * s = [input_source cStringUsingEncoding:NSUTF8StringEncoding];
+    size_t len = strlen(s);
+
+    if( strcmp( s + len - 6, ".Roman" )==0 )
+    {
+        *ime_opened = 0;
+    }
+    else
+    {
+        *ime_opened = 1;
+    }
+    
     return 0;
 }
 

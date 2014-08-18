@@ -1642,7 +1642,10 @@ void WindowMac::paintCaret()
     {
 		if(caret_rect.right>0 || caret_rect.bottom>0)
 		{
-			if(ime_on)
+            int ime_opened = 0;
+            ckit_Window_IsImeOpened( handle, &ime_opened );
+            
+			if(ime_opened)
 			{
                 CGContextSetRGBFillColor( paint_gctx, caret_color1.r/255.0, caret_color1.g/255.0, caret_color1.b/255.0, 1 );
 			}
