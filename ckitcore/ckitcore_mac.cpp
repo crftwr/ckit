@@ -2419,27 +2419,7 @@ void WindowMac::enableIme( bool enable )
 {
 	FUNC_TRACE;
 
-    WARN_NOT_IMPLEMENTED;
-
-    /*
-	if(enable)
-	{
-		if(ime_context)
-		{
-			ImmSetOpenStatus( ime_context, FALSE );
-            ImmSetCompositionFontW( ime_context, &ime_logfont );
-			ImmAssociateContext( hwnd, ime_context );
-			ime_context = NULL;
-		}
-	}
-	else
-	{
-		if(!ime_context)
-		{
-			ime_context = ImmAssociateContext( hwnd, NULL );
-		}
-	}
-    */
+    ckit_Window_EnableIme( handle, enable );
 }
 
 void WindowMac::setImeFont( FontBase * _font )

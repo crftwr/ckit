@@ -21,9 +21,6 @@
 //#define TRACE printf("%s(%d) : %s\n",__FILE__,__LINE__,__FUNCTION__)
 #define TRACE
 
-//#define TRACE_IM printf("%s(%d) : %s\n",__FILE__,__LINE__,__FUNCTION__)
-#define TRACE_IM
-
 //-----------------------------------------------------------------------------
 
 typedef struct Globals_t
@@ -49,6 +46,7 @@ Globals g;
         self->callbacks = _callbacks;
         self->owner = _owner;
         self->mouse_tracking_tag = 0;
+        self->ime_enabled = NO;
         self->marked_text = [[NSMutableAttributedString alloc] init];
         
         self.parent_window = parent_window;
@@ -479,16 +477,27 @@ static int translateVk(int src)
         return;
     }
     
-    BOOL consumed = [[self inputContext] handleEvent:theEvent];
-    if(consumed)
+    if( self->ime_enabled )
     {
-        return;
+        [[self inputContext] handleEvent:theEvent];
     }
+    else
+    {
+        NSString * s = nil;
+        
+        if(theEvent.keyCode==51)
+        {
+            s = @"\b";
+        }
+        else
+        {
+            s = theEvent.characters;
+        }
 
-    /*
-    // 文字入力イベントに変換
-    [self interpretKeyEvents: [NSArray arrayWithObject: theEvent]];
-    */
+        PRINTF( "keyDown: [%s]\n", [theEvent.characters cStringUsingEncoding:NSUTF8StringEncoding] );
+        
+        callbacks->insertText( owner, (const wchar_t*)[s cStringUsingEncoding:NSUTF32LittleEndianStringEncoding], 0 );
+    }
 }
 
 - (void)keyUp:(NSEvent *)theEvent
@@ -753,7 +762,7 @@ static int translateVk(int src)
 
 - (void)insertText:(id)aString replacementRange:(NSRange)replacementRange
 {
-    TRACE_IM;
+    TRACE;
     
     if( replacementRange.location == NSNotFound )
     {
@@ -778,7 +787,7 @@ static int translateVk(int src)
 
 - (void)setMarkedText:(id)aString selectedRange:(NSRange)selectedRange replacementRange:(NSRange)replacementRange
 {
-    TRACE_IM;
+    TRACE;
     
     if( replacementRange.location == NSNotFound )
     {
@@ -812,33 +821,33 @@ static int translateVk(int src)
 
 - (void)unmarkText
 {
-    TRACE_IM;
+    TRACE;
 }
 
 - (NSRange)selectedRange
 {
-    TRACE_IM;
+    TRACE;
     
     return NSMakeRange(0,0);
 }
 
 - (NSRange)markedRange
 {
-    TRACE_IM;
+    TRACE;
 
     return NSMakeRange( 0, [self->marked_text length] );
 }
 
 - (BOOL)hasMarkedText
 {
-    TRACE_IM;
+    TRACE;
     
     return [self->marked_text length] > 0;
 }
 
 - (NSAttributedString *)attributedSubstringForProposedRange:(NSRange)aRange actualRange:(NSRangePointer)actualRange
 {
-    TRACE_IM;
+    TRACE;
 
     // We choose not to adjust the range, though we have the option
     if (actualRange)
@@ -851,14 +860,14 @@ static int translateVk(int src)
 
 - (NSArray *)validAttributesForMarkedText
 {
-    TRACE_IM;
+    TRACE;
     
     return [NSArray arrayWithObjects:NSMarkedClauseSegmentAttributeName, NSGlyphInfoAttributeName, nil];
 }
 
 - (NSRect)firstRectForCharacterRange:(NSRange)aRange actualRange:(NSRangePointer)actualRange
 {
-    TRACE_IM;
+    TRACE;
 
     PRINTF( "firstRectForCharacterRange: range=(%d,%d)\n", (int)aRange.location, (int)aRange.length );
 
@@ -875,7 +884,7 @@ static int translateVk(int src)
 
 - (NSUInteger)characterIndexForPoint:(NSPoint)aPoint
 {
-    TRACE_IM;
+    TRACE;
     
     return 0;
 }
@@ -1237,6 +1246,23 @@ int ckit_Window_GetMarkedText( CocoaObject * _window, CFMutableAttributedStringR
     
     *_marked_text = (__bridge CFMutableAttributedStringRef)view->marked_text;
 
+    return 0;
+}
+
+int ckit_Window_EnableIme( CocoaObject * _window, int enable )
+{
+    NSWindow * window = (__bridge NSWindow*)_window;
+    CkitView * view = window.contentView;
+
+    if(enable)
+    {
+        view->ime_enabled = YES;
+    }
+    else
+    {
+        view->ime_enabled = NO;
+    }
+    
     return 0;
 }
 

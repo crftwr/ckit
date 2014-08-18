@@ -17,6 +17,7 @@
     
     NSTrackingRectTag mouse_tracking_tag;
 
+    @public BOOL ime_enabled;
     @public NSMutableAttributedString * marked_text;
 }
 
