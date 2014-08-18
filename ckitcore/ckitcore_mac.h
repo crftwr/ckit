@@ -118,6 +118,7 @@ namespace ckit
         void endPaint();
         void paintBackground();
         void paintPlanes();
+        void paintMarkedText();
         void paintCaret();
         
         int windowShouldClose();
@@ -154,6 +155,7 @@ namespace ckit
         Color bg_color;
         Color caret_color0;
         Color caret_color1;
+    	FontMac * ime_font;
         
         CGContextRef paint_gctx;
         Size paint_client_size;

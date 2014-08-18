@@ -689,7 +689,13 @@ int WindowMac::drawRect( CGRect rect, CGContextRef gctx )
         ckit_Window_SetWindowRect(handle, initial_rect);
         initial_rect_set=false;
     }
+
+    // ウインドウシステムの要請なのでdirtyにマーク
+    CGSize client_size;
+    ckit_Window_GetClientSize( handle, &client_size );
+	appendDirtyRect( Rect(0,0,client_size.width,client_size.height) );
     
+    // 描画する
     beginPaint( gctx );
     flushPaint();
     endPaint();
@@ -1464,6 +1470,7 @@ WindowMac::WindowMac( Param & _params )
     bg_color(_params.bg_color),
     caret_color0(_params.caret0_color),
     caret_color1(_params.caret1_color),
+    ime_font(0),
     paint_gctx(0)
 {
 	FUNC_TRACE;
@@ -1518,6 +1525,7 @@ WindowMac::~WindowMac()
     ckit_Window_KillTimer( handle, timer_check_quit );
     
     // terminate graphics system
+    if(ime_font){ ime_font->Release(); }
     
     // destroy window
     if( ckit_Window_Destroy(handle)!=0 )
@@ -1554,7 +1562,6 @@ void WindowMac::endPaint()
 
 void WindowMac::paintBackground()
 {
-    // FIXME : 設定された背景色をちゃんと使う
     CGContextSetRGBFillColor( paint_gctx, bg_color.r/255.0, bg_color.g/255.0, bg_color.b/255.0, 1 );
     CGContextFillRect( paint_gctx, CGRectMake(0,0,paint_client_size.cx, paint_client_size.cy) );
 }
@@ -1571,6 +1578,62 @@ void WindowMac::paintPlanes()
     	PlaneBase * plane = *i;
 		plane->Draw( paint_rect );
     }
+}
+
+void WindowMac::paintMarkedText()
+{
+	FUNC_TRACE;
+
+    CFMutableAttributedStringRef attrString;
+    ckit_Window_GetMarkedText( handle, &attrString );
+    
+    if(!attrString)
+    {
+        return;
+    }
+    
+    if(!ime_font)
+    {
+        return;
+    }
+
+    CFStringRef str = CFAttributedStringGetString(attrString);
+    size_t len = CFStringGetLength(str);
+    
+    // 幅を取得
+    int width = 0;
+    for( int i=0 ; i<len ; ++i )
+    {
+        UniChar c = CFStringGetCharacterAtIndex(str, i);
+        
+        if( ime_font->zenkaku_table[c] )
+        {
+            width += 2;
+        }
+        else
+        {
+            width += 1;
+        }
+    }
+
+    // 背景を塗る
+    {
+        CGContextSetRGBFillColor( paint_gctx, 1, 1, 1, 1 );
+        CGContextFillRect( paint_gctx, CGRectMake( 0, 0, width * ime_font->char_width, ime_font->char_height) );
+        
+        perf_fillrect_count ++;
+    }
+    
+    // フォント
+    CFAttributedStringSetAttribute(attrString, CFRangeMake(0,len), kCTFontAttributeName, ime_font->handle);
+
+    // １行描画
+    CTLineRef line = CTLineCreateWithAttributedString(attrString);
+    CGContextSetTextMatrix( paint_gctx, CGAffineTransformIdentity);
+    CGContextSetTextPosition( paint_gctx, 20, 20 );
+    CTLineDraw(line,paint_gctx);
+    
+    perf_drawtext_count ++;
 }
 
 void WindowMac::paintCaret()
@@ -1608,16 +1671,10 @@ void WindowMac::flushPaint()
     
     paintBackground();
     paintPlanes();
+    paintMarkedText();
     paintCaret();
 
 	clearDirtyRect();
-
-    /*
-	if(ime_on)
-    {
-        _setImePosition();
-    }
-    */
 }
 
 void WindowMac::enumFonts( std::vector<std::wstring> * font_list )
@@ -2386,12 +2443,11 @@ void WindowMac::setImeFont( FontBase * _font )
 {
 	FUNC_TRACE;
 
-    WARN_NOT_IMPLEMENTED;
+    if( ime_font == _font ){ return; }
 
-    /*
-	FontMac * font = (FontMac*)_font;
-	ime_logfont = font->logfont;
-    */
+    if(ime_font){ ime_font->Release(); }
+    ime_font = (FontMac*)_font;
+    if(ime_font){ ime_font->AddRef(); }
 }
 
 void WindowMac::messageLoop( PyObject * continue_cond_func )

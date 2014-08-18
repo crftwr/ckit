@@ -797,6 +797,8 @@ static int translateVk(int src)
 
         //callbacks->insertText( owner, (const wchar_t*)[s cStringUsingEncoding:NSUTF32LittleEndianStringEncoding], 0 );
     }
+
+    [self setNeedsDisplay:TRUE];
 }
 
 - (void)unmarkText
@@ -1209,6 +1211,18 @@ int ckit_Window_SetForeground( CocoaObject * _window )
     
     [NSApp activateIgnoringOtherApps:YES];
     
+    return 0;
+}
+
+int ckit_Window_GetMarkedText( CocoaObject * _window, CFMutableAttributedStringRef * _marked_text )
+{
+    TRACE;
+
+    NSWindow * window = (__bridge NSWindow*)_window;
+    CkitView * view = window.contentView;
+    
+    *_marked_text = (__bridge CFMutableAttributedStringRef)view->marked_text;
+
     return 0;
 }
 

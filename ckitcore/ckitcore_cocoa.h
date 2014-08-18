@@ -17,7 +17,7 @@
     
     NSTrackingRectTag mouse_tracking_tag;
 
-    NSMutableAttributedString * marked_text;
+    @public NSMutableAttributedString * marked_text;
 }
 
 - (id)initWithFrame:(NSRect)frame callbacks:(ckit_Window_Callbacks*)_callbacks owner:(void*)_owner parent_window:(CocoaObject*)_parent_window;
