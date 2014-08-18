@@ -10,13 +10,14 @@
 
 #import "ckitcore_cocoa_export.h"
 
-@interface CkitView : NSView <NSWindowDelegate>
+@interface CkitView : NSView <NSWindowDelegate,NSTextInputClient>
 {
     ckit_Window_Callbacks * callbacks;
     void * owner;
     
     NSTrackingRectTag mouse_tracking_tag;
-    @public int keyevent_removal_tag;
+
+    NSMutableAttributedString * marked_text;
 }
 
 - (id)initWithFrame:(NSRect)frame callbacks:(ckit_Window_Callbacks*)_callbacks owner:(void*)_owner parent_window:(CocoaObject*)_parent_window;

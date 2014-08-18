@@ -21,6 +21,19 @@
 //#define TRACE printf("%s(%d) : %s\n",__FILE__,__LINE__,__FUNCTION__)
 #define TRACE
 
+#define TRACE_IM printf("%s(%d) : %s\n",__FILE__,__LINE__,__FUNCTION__)
+//#define TRACE_IM
+
+//-----------------------------------------------------------------------------
+
+typedef struct Globals_t
+{
+    int keyevent_removal_tag;
+
+} Globals;
+
+Globals g;
+
 //-----------------------------------------------------------------------------
 
 @implementation CkitView
@@ -35,7 +48,7 @@
         self->callbacks = _callbacks;
         self->owner = _owner;
         self->mouse_tracking_tag = 0;
-        self->keyevent_removal_tag = 0;
+        self->marked_text = [[NSMutableAttributedString alloc] init];
         
         self.parent_window = parent_window;
     }
@@ -425,33 +438,44 @@ static int translateVk(int src)
 - (void)keyDown:(NSEvent *)theEvent
 {
     TRACE;
+    
+    int tag = g.keyevent_removal_tag;
+    
+    if( ! [self hasMarkedText] )
+    {
+        int keyCode = [theEvent keyCode];
+        int vk = translateVk(keyCode);
+        
+        //printf("keyCode: %d\n", keyCode);
+        //printf("vk: %d\n", vk);
+        
+        if(vk<0){return;}
+        
+        int mod = 0;
+        if( theEvent.modifierFlags & NSShiftKeyMask ){ mod |= MODKEY_SHIFT; }
+        if( theEvent.modifierFlags & NSCommandKeyMask ){ mod |= MODKEY_CTRL; }
+        if( theEvent.modifierFlags & NSAlternateKeyMask ){ mod |= MODKEY_ALT; }
+        if( theEvent.modifierFlags & NSControlKeyMask ){ mod |= MODKEY_WIN; }
+        
+        callbacks->keyDown( owner, vk, mod );
+    }
 
-    int keyCode = [theEvent keyCode];
-    int vk = translateVk(keyCode);
-    
-    //printf("keyCode: %d\n", keyCode);
-    //printf("vk: %d\n", vk);
-    
-    if(vk<0){return;}
-
-    int mod = 0;
-    if( theEvent.modifierFlags & NSShiftKeyMask ){ mod |= MODKEY_SHIFT; }
-    if( theEvent.modifierFlags & NSCommandKeyMask ){ mod |= MODKEY_CTRL; }
-    if( theEvent.modifierFlags & NSAlternateKeyMask ){ mod |= MODKEY_ALT; }
-    if( theEvent.modifierFlags & NSControlKeyMask ){ mod |= MODKEY_WIN; }
-    
-    int tag = self->keyevent_removal_tag;
-    
-    callbacks->keyDown( owner, vk, mod );
-    
     // messageLoopやremoveKeyMessageが呼ばれたら、それ以前の keyDown については interpretKeyEvents を呼ばない
-    if( tag != self->keyevent_removal_tag )
+    if( tag != g.keyevent_removal_tag )
+    {
+        return;
+    }
+    
+    BOOL consumed = [[self inputContext] handleEvent:theEvent];
+    if(consumed)
     {
         return;
     }
 
+    /*
     // 文字入力イベントに変換
     [self interpretKeyEvents: [NSArray arrayWithObject: theEvent]];
+    */
 }
 
 - (void)keyUp:(NSEvent *)theEvent
@@ -714,6 +738,140 @@ static int translateVk(int src)
     TRACE;
 }
 
+- (void)insertText:(id)aString replacementRange:(NSRange)replacementRange
+{
+    TRACE_IM;
+    
+    if( replacementRange.location == NSNotFound )
+    {
+        replacementRange = NSMakeRange( 0, [self->marked_text length] );
+    }
+    
+    if( [aString isKindOfClass:[NSAttributedString class]] )
+    {
+        printf( "insertText: NSAttributedString\n" );
+    }
+    else
+    {
+        printf( "insertText: NSString\n" );
+    }
+    
+    // FIXME : insertString が　AttributedStringである可能性もある
+    NSString * s = aString;
+
+    printf( "insertText: [%s], replace=(%d,%d)\n", [s cStringUsingEncoding:NSUTF8StringEncoding], (int)replacementRange.location, (int)replacementRange.length );
+    
+    [self->marked_text replaceCharactersInRange:replacementRange withString:@""];
+
+    // FIXME : modifierをちゃんとする
+    callbacks->insertText( owner, (const wchar_t*)[s cStringUsingEncoding:NSUTF32LittleEndianStringEncoding], 0 );
+}
+
+- (void)setMarkedText:(id)aString selectedRange:(NSRange)selectedRange replacementRange:(NSRange)replacementRange
+{
+    TRACE_IM;
+    
+    if( replacementRange.location == NSNotFound )
+    {
+        replacementRange = NSMakeRange( 0, [self->marked_text length] );
+    }
+
+    if( [aString isKindOfClass:[NSAttributedString class]] )
+    {
+        NSAttributedString * attributed_string = aString;
+        NSString * s = attributed_string.string;
+        
+        printf( "setMarkedText: [%s], selected=(%d,%d) replace=(%d,%d)\n", [s cStringUsingEncoding:NSUTF8StringEncoding], (int)selectedRange.location, (int)selectedRange.length, (int)replacementRange.location, (int)replacementRange.length );
+        
+        [self->marked_text replaceCharactersInRange:replacementRange withAttributedString:aString];
+        
+        //callbacks->insertText( owner, (const wchar_t*)[s cStringUsingEncoding:NSUTF32LittleEndianStringEncoding], 0 );
+    }
+    else
+    {
+        NSString * s = aString;
+        
+        printf( "setMarkedText: [%s], selected=(%d,%d) replace=(%d,%d)\n", [s cStringUsingEncoding:NSUTF8StringEncoding], (int)selectedRange.location, (int)selectedRange.length, (int)replacementRange.location, (int)replacementRange.length );
+
+        [self->marked_text replaceCharactersInRange:replacementRange withString:aString];
+
+        //callbacks->insertText( owner, (const wchar_t*)[s cStringUsingEncoding:NSUTF32LittleEndianStringEncoding], 0 );
+    }
+}
+
+- (void)unmarkText
+{
+    TRACE_IM;
+}
+
+- (NSRange)selectedRange
+{
+    TRACE_IM;
+    
+    return NSMakeRange(0,0);
+}
+
+- (NSRange)markedRange
+{
+    TRACE_IM;
+
+    return NSMakeRange( 0, [self->marked_text length] );
+
+    /*
+    if( [self->marked_text length] > 0 )
+    {
+        return NSMakeRange( 0, [self->marked_text length] );
+    }
+    else
+    {
+        return NSMakeRange( NSNotFound, 0 );
+    }
+    */
+}
+
+- (BOOL)hasMarkedText
+{
+    TRACE_IM;
+    
+    printf( "hasMarkedText : %d\n", (int)[self->marked_text length] );
+    
+    return [self->marked_text length] > 0;
+}
+
+- (NSAttributedString *)attributedSubstringForProposedRange:(NSRange)aRange actualRange:(NSRangePointer)actualRange
+{
+    TRACE_IM;
+
+    // We choose not to adjust the range, though we have the option
+    if (actualRange)
+    {
+        *actualRange = aRange;
+    }
+
+    return [self->marked_text attributedSubstringFromRange:aRange];
+}
+
+- (NSArray *)validAttributesForMarkedText
+{
+    TRACE_IM;
+    
+    return [NSArray arrayWithObjects:NSMarkedClauseSegmentAttributeName, NSGlyphInfoAttributeName, nil];
+}
+
+- (NSRect)firstRectForCharacterRange:(NSRange)aRange actualRange:(NSRangePointer)actualRange
+{
+    TRACE_IM;
+    
+    return NSMakeRect(0,0,100,100);
+}
+
+- (NSUInteger)characterIndexForPoint:(NSPoint)aPoint
+{
+    TRACE_IM;
+    
+    return 0;
+}
+
 @end
 
 int ckit_Application_Create()
@@ -785,10 +943,7 @@ int ckit_Window_MessageLoop( CocoaObject * _window )
     TRACE;
 
     // キーイベントのタグを更新し、文字入力イベントをキャンセル
-    {
-        CkitView * view = window.contentView;
-        view->keyevent_removal_tag ++;
-    }
+    g.keyevent_removal_tag ++;
     
     [NSApp runModalForWindow:window];
     
@@ -813,13 +968,8 @@ int ckit_Window_RemoveKeyMessage( CocoaObject * _window )
 {
     TRACE;
     
-    NSWindow * window = (__bridge NSWindow*)_window;
-    
     // キーイベントのタグを更新し、文字入力イベントをキャンセル
-    {
-        CkitView * view = window.contentView;
-        view->keyevent_removal_tag ++;
-    }
+    g.keyevent_removal_tag ++;
     
     return 0;
 }
