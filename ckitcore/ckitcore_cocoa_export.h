@@ -103,5 +103,6 @@ EXTERN int ckit_Window_IsImeOpened( CocoaObject * window, int * ime_opened );
 EXTERN int ckit_Global_SetClipboardText( const wchar_t * text );
 EXTERN int ckit_Global_GetClipboardText( wchar_t ** text );
 EXTERN int ckit_Global_GetClipboardChangeCount( int * change_count );
+EXTERN int ckit_Global_Beep();
 
 #endif//__CKITCORE_COCOA_EXPORT_H__

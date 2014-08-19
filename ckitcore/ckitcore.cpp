@@ -5295,6 +5295,19 @@ static PyObject * Module_getClipboardChangeCount( PyObject * self, PyObject * ar
     return pyret;
 }
 
+static PyObject * Module_beep( PyObject * self, PyObject * args )
+{
+	FUNC_TRACE;
+    
+    if( ! PyArg_ParseTuple(args, "" ) )
+    return NULL;
+    
+    g->beep();
+    
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
 static PyMethodDef ckit_funcs[] =
 {
     { "registerWindowClass", Module_registerWindowClass, METH_VARARGS, "" },
@@ -5305,6 +5318,7 @@ static PyMethodDef ckit_funcs[] =
     { "setClipboardText", Module_setClipboardText, METH_VARARGS, "" },
     { "getClipboardText", Module_getClipboardText, METH_VARARGS, "" },
     { "getClipboardChangeCount", Module_getClipboardChangeCount, METH_VARARGS, "" },
+    { "beep", Module_beep, METH_VARARGS, "" },
     {NULL,NULL}
 };
 

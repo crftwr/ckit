@@ -2487,3 +2487,10 @@ int GlobalMac::getClipboardChangeCount()
     return change_count;
 }
 
+void GlobalMac::beep()
+{
+	FUNC_TRACE;
+    
+    ckit_Global_Beep();
+}
+

@@ -1330,6 +1330,13 @@ int ckit_Global_GetClipboardChangeCount( int * change_count )
     return 0;
 }
 
+int ckit_Global_Beep()
+{
+    NSBeep();
+    
+    return 0;
+}
+
 
 
 

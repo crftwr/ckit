@@ -902,7 +902,10 @@ def enableBeep(enable):
 ## 警告音を再生する
 def messageBeep():
     if beep_enabled:
-        winsound.MessageBeep()
+        if platform()=="win":
+            winsound.MessageBeep()
+        else:
+            ckitcore.beep()
 
 #--------------------------------------------------------------------
 
