@@ -889,6 +889,12 @@ static int translateVk(int src)
     return 0;
 }
 
+- (void)doCommandBySelector:(SEL)aSelector
+{
+    // 親クラスの doCommandBySelector を呼ばない。
+    // 呼ぶと Beep が鳴ってしまう。
+}
+
 - (void)keyboardInputSourceChanged:(NSNotification *)notification
 {
     [self setNeedsDisplay:TRUE];
