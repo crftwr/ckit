@@ -909,10 +909,12 @@ int ckit_Window_Create( ckit_Window_Create_Parameters * params, CocoaObject ** _
 {
     TRACE;
 
-    int style = NSClosableWindowMask;
-    if(params->titlebar){ style |= NSTitledWindowMask; }
+    int style = 0;
+    
+    if(params->titlebar) { style |= NSTitledWindowMask; }
     if(params->minimizable){ style |= NSMiniaturizableWindowMask; }
     if(params->resizable){ style |= NSResizableWindowMask; }
+    if( params->minimizable || params->resizable ){ style |= NSClosableWindowMask; }
     
     NSWindow * window = [[NSWindow alloc]
                          initWithContentRect:NSMakeRect(0,0,100,100)
@@ -1189,6 +1191,8 @@ int ckit_Window_Show( CocoaObject * _window, bool show, bool activate )
         
         if(activate)
         {
+            // FIXME : タイトルバーがないと、makeMainWindow がエラーになる
+
             [window makeKeyWindow];
             [window makeMainWindow];
         }
