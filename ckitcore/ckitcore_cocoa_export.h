@@ -100,7 +100,8 @@ EXTERN int ckit_Window_GetMarkedText( CocoaObject * window, CFMutableAttributedS
 EXTERN int ckit_Window_EnableIme( CocoaObject * window, int enable );
 EXTERN int ckit_Window_IsImeOpened( CocoaObject * window, int * ime_opened );
 
-EXTERN int ckit_Global_SetClipboard_Text( const wchar_t * text );
-EXTERN int ckit_Global_GetClipboard_Text( wchar_t ** text );
+EXTERN int ckit_Global_SetClipboardText( const wchar_t * text );
+EXTERN int ckit_Global_GetClipboardText( wchar_t ** text );
+EXTERN int ckit_Global_GetClipboardChangeCount( int * change_count );
 
 #endif//__CKITCORE_COCOA_EXPORT_H__

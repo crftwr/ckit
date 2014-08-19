@@ -510,7 +510,10 @@ def setClipboardText(text):
 ## クリップボードのシーケンスナンバーを取得する
 #
 def getClipboardSequenceNumber():
-    return ctypes.windll.user32.GetClipboardSequenceNumber()
+    if platform()=="win":
+        return ctypes.windll.user32.GetClipboardSequenceNumber()
+    else:
+        return ckitcore.getClipboardChangeCount()
 
 #--------------------------------------------------------------------
 

@@ -163,8 +163,9 @@ namespace ckit
 
     struct GlobalMac : public GlobalBase
     {
-		virtual void setClipboard_Text( const wchar_t * text );
-		virtual std::wstring getClipboard_Text();
+		virtual void setClipboardText( const wchar_t * text );
+		virtual std::wstring getClipboardText();
+		virtual int getClipboardChangeCount();
     };
     
 	typedef ImageMac Image;

@@ -1288,7 +1288,7 @@ int ckit_Window_IsImeOpened( CocoaObject * _window, int * ime_opened )
     return 0;
 }
 
-int ckit_Global_SetClipboard_Text( const wchar_t * _text )
+int ckit_Global_SetClipboardText( const wchar_t * _text )
 {
     NSPasteboard * pb = [NSPasteboard generalPasteboard];
 
@@ -1300,7 +1300,7 @@ int ckit_Global_SetClipboard_Text( const wchar_t * _text )
     return 0;
 }
 
-int ckit_Global_GetClipboard_Text( wchar_t ** text )
+int ckit_Global_GetClipboardText( wchar_t ** text )
 {
     NSPasteboard * pb = [NSPasteboard generalPasteboard];
     
@@ -1317,6 +1317,15 @@ int ckit_Global_GetClipboard_Text( wchar_t ** text )
         
         wcscpy( *text, _text );
     }
+
+    return 0;
+}
+
+int ckit_Global_GetClipboardChangeCount( int * change_count )
+{
+    NSPasteboard * pb = [NSPasteboard generalPasteboard];
+    
+    *change_count = (int)pb.changeCount;
 
     return 0;
 }

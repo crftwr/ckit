@@ -498,8 +498,9 @@ namespace ckit
 		PyObject * Error;
 		PyObject * command_info_constructor;
         
-		virtual void setClipboard_Text( const wchar_t * text ) = 0;
-		virtual std::wstring getClipboard_Text() = 0;
+		virtual void setClipboardText( const wchar_t * text ) = 0;
+		virtual std::wstring getClipboardText() = 0;
+		virtual int getClipboardChangeCount() = 0;
 	};
 
 	extern GlobalBase * g;

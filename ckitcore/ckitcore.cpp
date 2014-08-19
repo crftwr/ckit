@@ -5263,7 +5263,7 @@ static PyObject * Module_setClipboardText( PyObject * self, PyObject * args )
     	return NULL;
     }
     
-	g->setClipboard_Text( str.c_str() );
+	g->setClipboardText( str.c_str() );
     
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -5276,9 +5276,22 @@ static PyObject * Module_getClipboardText( PyObject * self, PyObject * args )
     if( ! PyArg_ParseTuple(args, "" ) )
         return NULL;
     
-    std::wstring str = g->getClipboard_Text();
+    std::wstring str = g->getClipboardText();
 
     PyObject * pyret = Py_BuildValue( "u", str.c_str() );
+    return pyret;
+}
+
+static PyObject * Module_getClipboardChangeCount( PyObject * self, PyObject * args )
+{
+	FUNC_TRACE;
+    
+    if( ! PyArg_ParseTuple(args, "" ) )
+    return NULL;
+    
+    int count = g->getClipboardChangeCount();
+    
+    PyObject * pyret = Py_BuildValue( "i", count );
     return pyret;
 }
 
@@ -5291,6 +5304,7 @@ static PyMethodDef ckit_funcs[] =
     { "setBlockDetector", Module_setBlockDetector, METH_VARARGS, "" },
     { "setClipboardText", Module_setClipboardText, METH_VARARGS, "" },
     { "getClipboardText", Module_getClipboardText, METH_VARARGS, "" },
+    { "getClipboardChangeCount", Module_getClipboardChangeCount, METH_VARARGS, "" },
     {NULL,NULL}
 };
 

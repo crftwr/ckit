@@ -2453,21 +2453,21 @@ void WindowMac::removeKeyMessage()
     ckit_Window_RemoveKeyMessage(handle);
 }
 
-void GlobalMac::setClipboard_Text( const wchar_t * text )
+void GlobalMac::setClipboardText( const wchar_t * text )
 {
 	FUNC_TRACE;
     
-    ckit_Global_SetClipboard_Text(text);
+    ckit_Global_SetClipboardText(text);
 }
 
-std::wstring GlobalMac::getClipboard_Text()
+std::wstring GlobalMac::getClipboardText()
 {
 	FUNC_TRACE;
     
     wchar_t * _text;
 
     // mallocで確保された文字列が格納される
-    ckit_Global_GetClipboard_Text(&_text);
+    ckit_Global_GetClipboardText(&_text);
     
     std::wstring text = _text;
     
@@ -2475,3 +2475,15 @@ std::wstring GlobalMac::getClipboard_Text()
     
     return text;
 }
+
+int GlobalMac::getClipboardChangeCount()
+{
+	FUNC_TRACE;
+
+    int change_count;
+    
+    ckit_Global_GetClipboardChangeCount(&change_count);
+    
+    return change_count;
+}
+
