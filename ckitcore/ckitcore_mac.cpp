@@ -1510,6 +1510,11 @@ WindowMac::WindowMac( Param & _params )
     ckit_Window_SetTimer( handle, TIMER_PAINT_INTERVAL, &timer_paint );
     ckit_Window_SetTimer( handle, TIMER_CHECK_QUIT_INTERVAL, &timer_check_quit );
     
+    if( _params.show )
+    {
+        ckit_Window_Show( handle, true, false );
+    }
+    
     initialized = true;
 }
 
