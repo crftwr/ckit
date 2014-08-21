@@ -1452,6 +1452,9 @@ class CandidateWindow( ckit_textwindow.TextWindow ):
             (bg[2] + fg[2])//2,
         )  
         
+        # FIXME : ウインドウの境界が見えないので、とりあえず背景色を変える
+        bg = ( (bg[0]*3+127)//4, (bg[1]*3+127)//4, (bg[2]*3+127)//4 )
+
         ckit_textwindow.TextWindow.__init__(
             self,
             x=x,
@@ -1460,7 +1463,7 @@ class CandidateWindow( ckit_textwindow.TextWindow ):
             height=5,
             origin= ORIGIN_X_LEFT | ORIGIN_Y_TOP,
             parent_window=parent_window,
-            bg_color = ckit_theme.getColor("bg"),
+            bg_color = bg,
             caret0_color = ckit_theme.getColor("caret0"),
             caret1_color = ckit_theme.getColor("caret1"),
             frame_color = frame_color,
@@ -1513,9 +1516,9 @@ class CandidateWindow( ckit_textwindow.TextWindow ):
         window_width = min(window_width,self.max_width)
         window_height = min(window_height,self.max_height)
         
-        # 画面に収まらない場合は上方向に配置する
         y = y2
         if ckit_misc.platform()=="win":
+            # 画面に収まらない場合は上方向に配置する
             monitor_info_list = pyauto.Window.getMonitorInfo()
             for monitor_info in monitor_info_list:
                 if monitor_info[0][0] <= x < monitor_info[0][2] and monitor_info[0][1] <= y1 < monitor_info[0][3]:
@@ -1524,6 +1527,15 @@ class CandidateWindow( ckit_textwindow.TextWindow ):
                     if y2 + (window_rect[3]-window_rect[1]) + (self.max_height-self.height())*char_h >= monitor_info[1][3]:
                         y = y1 - ((window_rect[3]-window_rect[1]) + (window_height-self.height())*char_h)
                     break
+        else:
+            # 親ウインドウに収まらない場合は上方向に配置する
+            parent_window_rect = self.parent_window.getWindowRect()
+            window_rect = self.getWindowRect()
+            char_w, char_h = self.getCharSize()
+            frame_height = (window_rect[3]-window_rect[1]) - char_h * self.height()
+            if y2 + self.max_height*char_h + frame_height > parent_window_rect[3]:
+                if y1 - self.max_height*char_h - frame_height >= parent_window_rect[1]:
+                    y = y1 - window_height*char_h - frame_height
         
         if not len(items):
             self.show( False, False )
@@ -1675,8 +1687,7 @@ class CandidateWindow( ckit_textwindow.TextWindow ):
         height=self.height()
 
         attribute_normal = ckitcore.Attribute( fg=ckit_theme.getColor("fg") )
-        attribute_candidate = ckitcore.Attribute( fg=ckit_theme.getColor("fg"), bg=ckit_theme.getColor("bg"))
-        attribute_candidate_selected = ckitcore.Attribute( fg=ckit_theme.getColor("select_fg"), bg=ckit_theme.getColor("select_bg"))
+        attribute_selected = ckitcore.Attribute( fg=ckit_theme.getColor("select_fg"), bg=ckit_theme.getColor("select_bg"))
 
         active = self.parent_window.isActive()
         
@@ -1689,9 +1700,9 @@ class CandidateWindow( ckit_textwindow.TextWindow ):
                     item = item[0]
 
                 if active and self.select==index:
-                    attr=attribute_candidate_selected
+                    attr=attribute_selected
                 else:
-                    attr=attribute_candidate
+                    attr=attribute_normal
                 self.putString( x, y+i, width, 1, attr, " " * width )
                 self.putString( x, y+i, width, 1, attr, item )
             else:
