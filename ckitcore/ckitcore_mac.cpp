@@ -235,8 +235,7 @@ void ImagePlaneMac::Draw( const Rect & paint_rect )
 TextPlaneMac::TextPlaneMac( WindowBase * _window, int _x, int _y, int _width, int _height, float _priority )
 	:
 	TextPlaneBase(_window,_x,_y,_width,_height,_priority),
-	offscreen_handle(0),
-    offscreen_context(0)
+	offscreen_handle(0)
 {
 	FUNC_TRACE;
 
@@ -352,9 +351,8 @@ void TextPlaneMac::DrawOffscreen()
 	bool offscreen_rebuilt = false;
 
     // 必要だったらオフスクリーンバッファを生成
-	if( offscreen_handle==NULL || offscreen_context==NULL || offscreen_size.cx!=width || offscreen_size.cy!=height )
+	if( offscreen_handle==NULL || offscreen_size.cx!=width || offscreen_size.cy!=height )
 	{
-		if(offscreen_context){ CGContextRelease(offscreen_context); }
 		if(offscreen_handle){ CGLayerRelease(offscreen_handle); }
 
 		offscreen_size.cx = width;
@@ -364,11 +362,12 @@ void TextPlaneMac::DrawOffscreen()
 		if(offscreen_size.cy<1){ offscreen_size.cy=1; }
 
         offscreen_handle = CGLayerCreateWithContext( window->paint_gctx, CGSizeMake(offscreen_size.cx,offscreen_size.cy), NULL );
-        offscreen_context = CGLayerGetContext(offscreen_handle);
         
 		offscreen_rebuilt = true;
 	}
 
+    CGContextRef offscreen_context = CGLayerGetContext(offscreen_handle);
+    
 	int text_width = width / font->char_width;
 	int text_height = height / font->char_height;
 

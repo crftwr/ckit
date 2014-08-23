@@ -57,7 +57,6 @@ namespace ckit
 		virtual void Draw( const Rect & paint_rect );
 
         CGLayerRef offscreen_handle;
-        CGContextRef offscreen_context;
 		Size offscreen_size;
 	};
 
