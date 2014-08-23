@@ -523,6 +523,10 @@ void TextPlaneMac::DrawOffscreen()
                     CGColorRelease(color);
                     CGColorSpaceRelease(colorSpace);
                     
+                    // CALayer で透明な背景に文字を描画するとき、
+                    // CGContextSetShouldSmoothFonts を OFFにしないと品質が悪くなる
+                    CGContextSetShouldSmoothFonts(offscreen_context, false);
+                    
                     // 行の描画
                     CTLineRef line = CTLineCreateWithAttributedString(attrString);
                     CGContextSetTextMatrix( offscreen_context, CGAffineTransformIdentity);
@@ -663,9 +667,30 @@ void TextPlaneMac::Draw( const Rect & paint_rect )
 
 //-----------------------------------------------------------------------------
 
+static int _hotKey( int id )
+{
+    TRACE;
+    
+    std::list<WindowBase*>::iterator window;
+    for( window=g->window_list.begin() ; window!=g->window_list.end() ; ++window )
+    {
+        bool consumed = ((WindowMac*)(*window))->hotKeyHandler(id);
+        if(consumed){break;}
+    }
+    
+    return 0;
+}
+
+ckit_Application_Callbacks application_callbacks = {
+    _hotKey,
+};
+
 void WindowMac::initializeSystem( const wchar_t * prefix )
 {
-    ckit_Application_Create();
+    ckit_Application_Create_Parameters params;
+    params.callbacks = &application_callbacks;
+    
+    ckit_Application_Create( &params );
 }
 
 void WindowMac::terminateSystem()
@@ -1049,6 +1074,64 @@ int WindowMac::timerHandler( CocoaObject * timer )
     }
     
     return 0;
+}
+
+bool WindowMac::hotKeyHandler( int id )
+{
+    TRACE;
+    
+	PythonUtil::GIL_Ensure gil_ensure;
+    
+    bool consumed = false;
+    
+    hotkey_list_ref_count ++;
+
+    for( std::list<HotKeyInfo>::iterator i=hotkey_list.begin(); i!=hotkey_list.end() ; i++ )
+    {
+        if( id == i->id )
+        {
+            if(i->calling) continue;
+            
+            i->calling = true;
+            
+            PyObject * pyarglist = Py_BuildValue("()" );
+            PyObject * pyresult = PyEval_CallObject( (i->pyobj), pyarglist );
+            Py_DECREF(pyarglist);
+            if(pyresult)
+            {
+                Py_DECREF(pyresult);
+            }
+            else
+            {
+                PyErr_Print();
+            }
+            
+            i->calling = false;
+            
+            consumed = true;
+            
+            break;
+        }
+    }
+    
+    hotkey_list_ref_count --;
+    
+    if(hotkey_list_ref_count==0)
+    {
+        for( std::list<HotKeyInfo>::iterator i=hotkey_list.begin(); i!=hotkey_list.end() ; )
+        {
+            if( (i->pyobj)==0 )
+            {
+                i = hotkey_list.erase(i);
+            }
+            else
+            {
+                i++;
+            }
+        }
+    }
+    
+    return consumed;
 }
 
 static int _keyDown( void * owner, int vk, int mod )
@@ -1444,7 +1527,7 @@ int WindowMac::imePosition( CGRect * _caret_rect )
     return 0;
 }
 
-ckit_Window_Callbacks callbacks = {
+ckit_Window_Callbacks window_callbacks = {
     _drawRect,
     _windowShouldClose,
     _windowDidResize,
@@ -1482,7 +1565,7 @@ WindowMac::WindowMac( Param & _params )
     
     ckit_Window_Create_Parameters params;
     memset(&params, 0, sizeof(params));
-    params.callbacks = &callbacks;
+    params.callbacks = &window_callbacks;
     params.owner = this;
     if(_params.parent_window)
     {
@@ -1687,21 +1770,12 @@ void WindowMac::flushPaint()
 
 void WindowMac::enumFonts( std::vector<std::wstring> * font_list )
 {
-    WARN_NOT_IMPLEMENTED;
+	FUNC_TRACE;
+    
+    // FIXME : 実際に列挙するべき
 
-    /*
-	HDC hdc = GetDC(NULL);
-
-	EnumFontFamiliesEx(
-		hdc,
-		NULL,
-		(FONTENUMPROC)cbEnumFont,
-		(LPARAM)font_list,
-		0
-	);
-
-	ReleaseDC( NULL, hdc );
-    */
+    font_list->push_back(L"Osaka-Mono");
+    //font_list->push_back(L"Menlo-Regular");
 }
 
 void WindowMac::setBGColor( Color color )
@@ -2265,63 +2339,14 @@ void WindowMac::killTimer( TimerInfo * timer_info )
     ckit_Window_KillTimer( handle, (CocoaObject*)timer_info->handle );
 }
 
-void WindowMac::setHotKey( int vk, int mod, PyObject * func )
+void WindowMac::setHotKey( HotKeyInfo * hotkey_info )
 {
-    WARN_NOT_IMPLEMENTED;
-
-    /*
-	// 0x0000 - 0xBFFF ÇÃîÕàÕÇ≈ÅAégÇÌÇÍÇƒÇ¢Ç»Ç¢IDÇåüçıÇ∑ÇÈ
-	int id;
-	for( id=0 ; id<0xc000 ; ++id )
-	{
-		bool dup = false;
-		for( std::list<HotKeyInfo>::const_iterator i=hotkey_list.begin(); i!=hotkey_list.end() ; ++i )
-		{
-			if( i->id==id )
-			{
-				dup = true;
-				break;
-			}
-		}
-		
-		if(!dup)
-		{
-			break;
-		}
-	}
-	
-	if(id<0xc000)
-	{
-		Py_XINCREF(func);
-		hotkey_list.push_back( HotKeyInfo(func,id) );
-
-		RegisterHotKey( hwnd, id, mod, vk );
-	}
-    */
+    ckit_Application_SetHotKey( hotkey_info->vk, hotkey_info->mod, (CocoaObject**)&hotkey_info->handle, &hotkey_info->id );
 }
 
-void WindowMac::killHotKey( PyObject * func )
+void WindowMac::killHotKey( HotKeyInfo * hotkey_info )
 {
-    WARN_NOT_IMPLEMENTED;
-
-    /*
-	for( std::list<HotKeyInfo>::iterator i=hotkey_list.begin(); i!=hotkey_list.end() ; i++ )
-	{
-		if( i->pyobj==NULL ) continue;
-
-		if( PyObject_RichCompareBool( func, (i->pyobj), Py_EQ )==1 )
-		{
-			UnregisterHotKey( hwnd, i->id );
-
-			Py_XDECREF( i->pyobj );
-			i->pyobj = NULL;
-
-			// Note : ÉäÉXÉgÇ©ÇÁÇÃçÌèúÇÕÅAÇ±Ç±Ç≈ÇÕÇ»Ç≠åƒÇ—èoÇµÇÃå„ÅAhotkey_list_ref_count Ç™ 0 Ç≈Ç†ÇÈÇ±Ç∆ÇämîFÇµÇ»Ç™ÇÁçsÇ§
-
-			break;
-		}
-	}
-    */
+    ckit_Application_KillHotKey( (CocoaObject*)hotkey_info->handle );
 }
 
 void WindowMac::setText( const wchar_t * text )

@@ -633,12 +633,16 @@ WindowBase::WindowBase( Param & param )
 	hotkey_list_ref_count = 0;
 
 	menu = NULL;
+    
+    g->window_list.push_back(this);
 }
 
 WindowBase::~WindowBase()
 {
 	FUNC_TRACE;
 
+    g->window_list.remove(this);
+    
 	clearPlanes();
     clearCallables();
 
@@ -3967,7 +3971,16 @@ static PyObject * Window_setHotKey( PyObject * self, PyObject * args )
 
 	WindowBase * window = ((Window_Object*)self)->p;
 
-	window->setHotKey(vk,mod,func);
+	Py_XINCREF(func);
+    
+    HotKeyInfo hotkey_info;
+    hotkey_info.pyobj = func;
+    hotkey_info.vk = vk;
+    hotkey_info.mod = mod;
+    
+	window->setHotKey( &hotkey_info );
+    
+	window->hotkey_list.push_back(hotkey_info);
 	
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -3990,7 +4003,22 @@ static PyObject * Window_killHotKey( PyObject * self, PyObject * args )
 
 	WindowBase * window = ((Window_Object*)self)->p;
 
-	window->killHotKey(func);
+	for( std::list<HotKeyInfo>::iterator i=window->hotkey_list.begin(); i!=window->hotkey_list.end() ; i++ )
+	{
+		if( (i->pyobj)==NULL ) continue;
+        
+		if( PyObject_RichCompareBool( func, (i->pyobj), Py_EQ )==1 )
+		{
+			window->killHotKey(&*i);
+            
+			Py_XDECREF( i->pyobj );
+			i->pyobj = NULL;
+            
+			// Note : リストからの削除は、ここではなく呼び出しの後、hotkey_list_ref_count が 0 であることを確認しながら行う
+            
+			break;
+		}
+	}
 
 	Py_INCREF(Py_None);
 	return Py_None;

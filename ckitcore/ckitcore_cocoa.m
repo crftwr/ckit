@@ -9,6 +9,7 @@
 #import <wchar.h>
 
 #import <Cocoa/Cocoa.h>
+#import <Carbon/Carbon.h>
 
 #import "ckitcore_cocoa.h"
 #import "ckitcore_cocoa_export.h"
@@ -26,10 +27,16 @@
 typedef struct Globals_t
 {
     int keyevent_removal_tag;
+    int hotkey_next_id;
+    ckit_Application_Callbacks * application_callbacks;
 
 } Globals;
 
 Globals g;
+
+//-----------------------------------------------------------------------------
+
+static OSStatus hotKeyHandler(EventHandlerCallRef nextHandler, EventRef theEvent, void *userData);
 
 //-----------------------------------------------------------------------------
 
@@ -321,7 +328,7 @@ enum
     VK_OEM_CLEAR      = 0xFE,
 };
 
-static int translateVk(int src)
+static int translateVk_MacToWin(int src)
 {
     switch(src)
     {
@@ -446,6 +453,131 @@ static int translateVk(int src)
     return -1;
 }
 
+static int translateVk_WinToMac(int src)
+{
+    switch(src)
+    {
+        case VK_ESCAPE:
+            return 53;
+        case VK_BACK:
+            return 51;
+        case VK_RETURN:
+            return 36;
+        case VK_TAB:
+            return 48;
+        case VK_SPACE:
+            return 49;
+        case VK_LEFT:
+            return 123;
+        case VK_RIGHT:
+            return 124;
+        case VK_DOWN:
+            return 125;
+        case VK_UP:
+            return 126;
+            
+        case VK_A:
+            return 0;
+        case VK_S:
+            return 1;
+        case VK_D:
+            return 2;
+        case VK_F:
+            return 3;
+        case VK_G:
+            return 5;
+        case VK_H:
+            return 4;
+        case VK_J:
+            return 38;
+        case VK_K:
+            return 40;
+        case VK_L:
+            return 37;
+        case VK_Q:
+            return 12;
+        case VK_W:
+            return 13;
+        case VK_E:
+            return 14;
+        case VK_R:
+            return 15;
+        case VK_T:
+            return 17;
+        case VK_Y:
+            return 16;
+        case VK_U:
+            return 32;
+        case VK_I:
+            return 34;
+        case VK_O:
+            return 31;
+        case VK_P:
+            return 35;
+        case VK_Z:
+            return 6;
+        case VK_X:
+            return 7;
+        case VK_C:
+            return 8;
+        case VK_V:
+            return 9;
+        case VK_B:
+            return 11;
+        case VK_N:
+            return 45;
+        case VK_M:
+            return 46;
+        case VK_1:
+            return 18;
+        case VK_2:
+            return 19;
+        case VK_3:
+            return 20;
+        case VK_4:
+            return 21;
+        case VK_5:
+            return 23;
+        case VK_6:
+            return 22;
+        case VK_7:
+            return 26;
+        case VK_8:
+            return 28;
+        case VK_9:
+            return 25;
+        case VK_0:
+            return 29;
+            
+        case VK_OEM_MINUS:
+            return 27;
+        case VK_OEM_PLUS:
+            return 24;
+        case VK_OEM_COMMA:
+            return 43;
+        case VK_OEM_PERIOD:
+            return 47;
+            
+            // FIXME : 日本語キーボードサポート
+        case VK_OEM_2:
+            return 44; // slash
+        case VK_OEM_1:
+            return 41; // ;
+        case VK_OEM_7:
+            return 39; // '
+        case VK_OEM_4:
+            return 33; // [
+        case VK_OEM_6:
+            return 30; // ]
+        case VK_OEM_5:
+            return 42; // back-slash
+        case VK_OEM_3:
+            return 50; // `
+    }
+    
+    return -1;
+}
+
 - (void)keyDown:(NSEvent *)theEvent
 {
     TRACE;
@@ -455,7 +587,7 @@ static int translateVk(int src)
     if( ! [self hasMarkedText] )
     {
         int keyCode = [theEvent keyCode];
-        int vk = translateVk(keyCode);
+        int vk = translateVk_MacToWin(keyCode);
         
         //printf("keyCode: %d\n", keyCode);
         //printf("vk: %d\n", vk);
@@ -505,7 +637,7 @@ static int translateVk(int src)
     TRACE;
 
     int keyCode = [theEvent keyCode];
-    int vk = translateVk(keyCode);
+    int vk = translateVk_MacToWin(keyCode);
     
     if(vk<0){return;}
 
@@ -902,12 +1034,61 @@ static int translateVk(int src)
 
 @end
 
-int ckit_Application_Create()
+int ckit_Application_Create( ckit_Application_Create_Parameters * params )
 {
     TRACE;
     
     [NSApplication sharedApplication];
+    
+    g.application_callbacks = params->callbacks;
 
+    // ホットキー
+    {
+        EventTypeSpec eventTypeSpecList[] =
+        {
+            { kEventClassKeyboard, kEventHotKeyPressed }
+        };
+        
+        InstallApplicationEventHandler(&hotKeyHandler, GetEventTypeCount(eventTypeSpecList), eventTypeSpecList, NULL, NULL);
+    }
+    
+    return 0;
+}
+
+int ckit_Application_SetHotKey( int vk, int mod, CocoaObject ** _handle, int * _id )
+{
+    EventHotKeyRef hotKeyRef;
+    
+    EventHotKeyID hotKeyID;
+    hotKeyID.id = g.hotkey_next_id;
+    hotKeyID.signature = 'htky';
+    
+    UInt32 hotKeyCode = translateVk_WinToMac(vk);
+    
+    UInt32 hotKeyModifier = 0;
+    if(mod & MODKEY_SHIFT){ hotKeyModifier |= shiftKey; }
+    if(mod & MODKEY_CTRL){ hotKeyModifier |= cmdKey; }
+    if(mod & MODKEY_ALT){ hotKeyModifier |= optionKey; }
+    if(mod & MODKEY_WIN){ hotKeyModifier |= controlKey; }
+
+    OSStatus status = RegisterEventHotKey(hotKeyCode, hotKeyModifier, hotKeyID, GetApplicationEventTarget(), 0, &hotKeyRef);
+    (void)status;
+    
+    *_handle = (CocoaObject*)hotKeyRef;
+    *_id = g.hotkey_next_id;
+    
+    g.hotkey_next_id++;
+    
+    return 0;
+}
+
+int ckit_Application_KillHotKey( CocoaObject * _handle )
+{
+    EventHotKeyRef hotKeyRef = (EventHotKeyRef)_handle;
+    
+    OSStatus status = UnregisterEventHotKey(hotKeyRef);
+    (void)status;
+    
     return 0;
 }
 
@@ -1140,6 +1321,21 @@ int ckit_Window_KillTimer( CocoaObject * _window, CocoaObject * _timer )
     [timer invalidate];
     
     return 0;
+}
+
+static OSStatus hotKeyHandler(EventHandlerCallRef nextHandler, EventRef theEvent, void *userData)
+{
+    TRACE;
+    
+    EventHotKeyID hotKeyID;
+    GetEventParameter(theEvent, kEventParamDirectObject, typeEventHotKeyID, NULL, sizeof(hotKeyID), NULL, &hotKeyID);
+    
+    if (hotKeyID.signature == 'htky')
+    {
+        g.application_callbacks->hotKey( hotKeyID.id );
+    }
+    
+    return noErr;
 }
 
 int ckit_Window_ClientToScreen( CocoaObject * _window, CGPoint * point )

@@ -232,10 +232,13 @@ namespace ckit
 
     struct HotKeyInfo
     {
-    	HotKeyInfo( PyObject * _pyobj, int _id ) : pyobj(_pyobj), id(_id), calling(false) {}
+    	HotKeyInfo() : pyobj(NULL), vk(0), mod(0), id(0), handle(NULL), calling(false) {}
 
     	PyObject * pyobj;
-    	int id;
+        int vk;
+        int mod;
+        int id;
+        void * handle;
     	bool calling;
     };
 
@@ -377,8 +380,8 @@ namespace ckit
 		virtual void screenToClient(Point * point) = 0;
 		virtual void setTimer( TimerInfo * timer_info ) = 0;
 		virtual void killTimer( TimerInfo * timer_info ) = 0;
-		virtual void setHotKey( int vk, int mod, PyObject * func ) = 0;
-		virtual void killHotKey( PyObject * func ) = 0;
+		virtual void setHotKey( HotKeyInfo * hotkey_info ) = 0;
+		virtual void killHotKey( HotKeyInfo * hotkey_info ) = 0;
 		virtual void setText( const wchar_t * text ) = 0;
 		virtual bool popupMenu( int x, int y, PyObject * items ) = 0;
 		virtual void enableIme( bool enable ) = 0;
@@ -495,14 +498,15 @@ namespace ckit
 
 	struct GlobalBase
 	{
-		PyObject * Error;
-		PyObject * command_info_constructor;
-        
 		virtual void setClipboardText( const wchar_t * text ) = 0;
 		virtual std::wstring getClipboardText() = 0;
 		virtual int getClipboardChangeCount() = 0;
-        
         virtual void beep() = 0;
+
+		PyObject * Error;
+		PyObject * command_info_constructor;
+        
+	    std::list<WindowBase*> window_list;
 	};
 
 	extern GlobalBase * g;

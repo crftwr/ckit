@@ -104,8 +104,8 @@ namespace ckit
 		virtual void screenToClient(Point * point);
 		virtual void setTimer( TimerInfo * timer_info );
 		virtual void killTimer( TimerInfo * timer_info );
-		virtual void setHotKey( int vk, int mod, PyObject * func );
-		virtual void killHotKey( PyObject * func );
+		virtual void setHotKey( HotKeyInfo * hotkey_info );
+		virtual void killHotKey( HotKeyInfo * hotkey_info );
 		virtual void setText( const wchar_t * text );
 		virtual bool popupMenu( int x, int y, PyObject * items );
         virtual void enableIme( bool enable );
@@ -131,6 +131,7 @@ namespace ckit
         CGRect calculateWindowRectFromPositionSizeOrigin( int x, int y, int width, int height, int origin );
 
         int timerHandler( CocoaObject * timer );
+        bool hotKeyHandler( int id );
         
         int keyDown( int vk, int mod );
         int keyUp( int vk, int mod );

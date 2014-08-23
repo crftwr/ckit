@@ -18,6 +18,18 @@
 
 typedef struct CocoaObject_t CocoaObject;
 
+typedef struct ckit_Application_Callbacks_t
+{
+    int (*hotKey)( int id );
+    
+} ckit_Application_Callbacks;
+
+typedef struct ckit_Application_Create_Parameters_t
+{
+    ckit_Application_Callbacks * callbacks;
+    
+} ckit_Application_Create_Parameters;
+
 typedef enum ckit_MouseEventType_t
 {
     ckit_MouseEventType_LeftDown,
@@ -72,7 +84,9 @@ typedef struct ckit_Window_Create_Parameters_t
     
 } ckit_Window_Create_Parameters;
 
-EXTERN int ckit_Application_Create();
+EXTERN int ckit_Application_Create( ckit_Application_Create_Parameters * params );
+EXTERN int ckit_Application_SetHotKey( int vk, int mod, CocoaObject ** handle, int * id );
+EXTERN int ckit_Application_KillHotKey( CocoaObject * handle );
 
 EXTERN int ckit_Window_Create( ckit_Window_Create_Parameters * params, CocoaObject ** window );
 EXTERN int ckit_Window_Destroy( CocoaObject * window );
