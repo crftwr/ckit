@@ -1486,13 +1486,16 @@ int WindowMac::mouse( const ckit_MouseEvent * event )
         {
 			//int mod = getModKey();
             int mod = 0; // FIXME : モディファイアキー
-			
-            CGSize client_size;
-            ckit_Window_GetClientSize( handle, &client_size );
-            Point location( event->location.x, client_size.height - event->location.y );
+
+            // Windowsに合わせて、Wheelに関しては、スクリーン座標系にする
+            CGPoint point = event->location;
+            ckit_Window_ClientToScreen(handle, &point);
             
-            printf( "ckit_MouseEventType_Wheel : %f, %f\n", event->delta_x, event->delta_y );
-			
+            // 左上原点に変換
+            CGSize screen_size;
+            ckit_Window_GetScreenSize( handle, &screen_size );
+            Point location( point.x, screen_size.height - point.y );
+            
 			PyObject * pyarglist = Py_BuildValue("(iiii)", location.x, location.y, (int)event->delta_y, mod );
 			PyObject * pyresult = PyEval_CallObject( mousewheel_handler, pyarglist );
 			Py_DECREF(pyarglist);
