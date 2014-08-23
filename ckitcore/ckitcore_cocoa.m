@@ -1038,7 +1038,11 @@ int ckit_Application_Create( ckit_Application_Create_Parameters * params )
 {
     TRACE;
     
+    // シングルトンを初期化
     [NSApplication sharedApplication];
+
+    // アプリを前面に
+    [NSApp activateIgnoringOtherApps:YES];
     
     g.application_callbacks = params->callbacks;
 
