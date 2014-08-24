@@ -238,8 +238,8 @@ def getAppDataPath():
         return buf.value
 
     else:
-        # FIXME : 実装
-        return "."
+        # FIXME : MACのAPIを使って取得できないか
+        return os.path.expanduser("~/Library/Application Support")
 
 ## ドキュメントディレクトリのパスを取得する
 def getDocumentsPath():
