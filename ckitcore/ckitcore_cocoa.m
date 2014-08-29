@@ -10,6 +10,7 @@
 
 #import <Cocoa/Cocoa.h>
 #import <Carbon/Carbon.h>
+#import <Events.h>
 
 #import "ckitcore_cocoa.h"
 #import "ckitcore_cocoa_export.h"
@@ -332,121 +333,121 @@ static int translateVk_MacToWin(int src)
 {
     switch(src)
     {
-        case 53:
+        case kVK_Escape:
             return VK_ESCAPE;
-        case 51:
+        case kVK_Delete:
             return VK_BACK;
-        case 36:
+        case kVK_Return:
             return VK_RETURN;
-        case 48:
+        case kVK_Tab:
             return VK_TAB;
-        case 49:
+        case kVK_Space:
             return VK_SPACE;
-        case 123:
+        case kVK_LeftArrow:
             return VK_LEFT;
-        case 124:
+        case kVK_RightArrow:
             return VK_RIGHT;
-        case 125:
+        case kVK_DownArrow:
             return VK_DOWN;
-        case 126:
+        case kVK_UpArrow:
             return VK_UP;
 
-        case 0:
+        case kVK_ANSI_A:
             return VK_A;
-        case 1:
+        case kVK_ANSI_S:
             return VK_S;
-        case 2:
+        case kVK_ANSI_D:
             return VK_D;
-        case 3:
+        case kVK_ANSI_F:
             return VK_F;
-        case 5:
+        case kVK_ANSI_G:
             return VK_G;
-        case 4:
+        case kVK_ANSI_H:
             return VK_H;
-        case 38:
+        case kVK_ANSI_J:
             return VK_J;
-        case 40:
+        case kVK_ANSI_K:
             return VK_K;
-        case 37:
+        case kVK_ANSI_L:
             return VK_L;
-        case 12:
+        case kVK_ANSI_Q:
             return VK_Q;
-        case 13:
+        case kVK_ANSI_W:
             return VK_W;
-        case 14:
+        case kVK_ANSI_E:
             return VK_E;
-        case 15:
+        case kVK_ANSI_R:
             return VK_R;
-        case 17:
+        case kVK_ANSI_T:
             return VK_T;
-        case 16:
+        case kVK_ANSI_Y:
             return VK_Y;
-        case 32:
+        case kVK_ANSI_U:
             return VK_U;
-        case 34:
+        case kVK_ANSI_I:
             return VK_I;
-        case 31:
+        case kVK_ANSI_O:
             return VK_O;
-        case 35:
+        case kVK_ANSI_P:
             return VK_P;
-        case 6:
+        case kVK_ANSI_Z:
             return VK_Z;
-        case 7:
+        case kVK_ANSI_X:
             return VK_X;
-        case 8:
+        case kVK_ANSI_C:
             return VK_C;
-        case 9:
+        case kVK_ANSI_V:
             return VK_V;
-        case 11:
+        case kVK_ANSI_B:
             return VK_B;
-        case 45:
+        case kVK_ANSI_N:
             return VK_N;
-        case 46:
+        case kVK_ANSI_M:
             return VK_M;
-        case 18:
+        case kVK_ANSI_1:
             return VK_1;
-        case 19:
+        case kVK_ANSI_2:
             return VK_2;
-        case 20:
+        case kVK_ANSI_3:
             return VK_3;
-        case 21:
+        case kVK_ANSI_4:
             return VK_4;
-        case 23:
+        case kVK_ANSI_5:
             return VK_5;
-        case 22:
+        case kVK_ANSI_6:
             return VK_6;
-        case 26:
+        case kVK_ANSI_7:
             return VK_7;
-        case 28:
+        case kVK_ANSI_8:
             return VK_8;
-        case 25:
+        case kVK_ANSI_9:
             return VK_9;
-        case 29:
+        case kVK_ANSI_0:
             return VK_0;
 
-        case 27:
+        case kVK_ANSI_Minus:
             return VK_OEM_MINUS;
-        case 24:
+        case kVK_ANSI_Equal:
             return VK_OEM_PLUS;
-        case 43:
+        case kVK_ANSI_Comma:
             return VK_OEM_COMMA;
-        case 47:
+        case kVK_ANSI_Period:
             return VK_OEM_PERIOD;
         
         // FIXME : 日本語キーボードサポート
-        case 44:
+        case kVK_ANSI_Slash:
             return VK_OEM_2; // slash
-        case 41:
+        case kVK_ANSI_Semicolon:
             return VK_OEM_1; // ;
-        case 39:
+        case kVK_ANSI_Quote:
             return VK_OEM_7; // '
-        case 33:
+        case kVK_ANSI_LeftBracket:
             return VK_OEM_4; // [
-        case 30:
+        case kVK_ANSI_RightBracket:
             return VK_OEM_6; // ]
-        case 42:
+        case kVK_ANSI_Backslash:
             return VK_OEM_5; // back-slash
-        case 50:
+        case kVK_ANSI_Grave:
             return VK_OEM_3; // `
     }
     
@@ -458,121 +459,121 @@ static int translateVk_WinToMac(int src)
     switch(src)
     {
         case VK_ESCAPE:
-            return 53;
+            return kVK_Escape;
         case VK_BACK:
-            return 51;
+            return kVK_Delete;
         case VK_RETURN:
-            return 36;
+            return kVK_Return;
         case VK_TAB:
-            return 48;
+            return kVK_Tab;
         case VK_SPACE:
-            return 49;
+            return kVK_Space;
         case VK_LEFT:
-            return 123;
+            return kVK_LeftArrow;
         case VK_RIGHT:
-            return 124;
+            return kVK_RightArrow;
         case VK_DOWN:
-            return 125;
+            return kVK_DownArrow;
         case VK_UP:
-            return 126;
+            return kVK_UpArrow;
             
         case VK_A:
-            return 0;
+            return kVK_ANSI_A;
         case VK_S:
-            return 1;
+            return kVK_ANSI_S;
         case VK_D:
-            return 2;
+            return kVK_ANSI_D;
         case VK_F:
-            return 3;
+            return kVK_ANSI_F;
         case VK_G:
-            return 5;
+            return kVK_ANSI_G;
         case VK_H:
-            return 4;
+            return kVK_ANSI_H;
         case VK_J:
-            return 38;
+            return kVK_ANSI_J;
         case VK_K:
-            return 40;
+            return kVK_ANSI_K;
         case VK_L:
-            return 37;
+            return kVK_ANSI_L;
         case VK_Q:
-            return 12;
+            return kVK_ANSI_Q;
         case VK_W:
-            return 13;
+            return kVK_ANSI_W;
         case VK_E:
-            return 14;
+            return kVK_ANSI_E;
         case VK_R:
-            return 15;
+            return kVK_ANSI_R;
         case VK_T:
-            return 17;
+            return kVK_ANSI_T;
         case VK_Y:
-            return 16;
+            return kVK_ANSI_Y;
         case VK_U:
-            return 32;
+            return kVK_ANSI_U;
         case VK_I:
-            return 34;
+            return kVK_ANSI_I;
         case VK_O:
-            return 31;
+            return kVK_ANSI_O;
         case VK_P:
-            return 35;
+            return kVK_ANSI_P;
         case VK_Z:
-            return 6;
+            return kVK_ANSI_Z;
         case VK_X:
-            return 7;
+            return kVK_ANSI_X;
         case VK_C:
-            return 8;
+            return kVK_ANSI_C;
         case VK_V:
-            return 9;
+            return kVK_ANSI_V;
         case VK_B:
-            return 11;
+            return kVK_ANSI_B;
         case VK_N:
-            return 45;
+            return kVK_ANSI_N;
         case VK_M:
-            return 46;
+            return kVK_ANSI_M;
         case VK_1:
-            return 18;
+            return kVK_ANSI_1;
         case VK_2:
-            return 19;
+            return kVK_ANSI_2;
         case VK_3:
-            return 20;
+            return kVK_ANSI_3;
         case VK_4:
-            return 21;
+            return kVK_ANSI_4;
         case VK_5:
-            return 23;
+            return kVK_ANSI_5;
         case VK_6:
-            return 22;
+            return kVK_ANSI_6;
         case VK_7:
-            return 26;
+            return kVK_ANSI_7;
         case VK_8:
-            return 28;
+            return kVK_ANSI_8;
         case VK_9:
-            return 25;
+            return kVK_ANSI_9;
         case VK_0:
-            return 29;
+            return kVK_ANSI_0;
             
         case VK_OEM_MINUS:
-            return 27;
+            return kVK_ANSI_Minus;
         case VK_OEM_PLUS:
-            return 24;
+            return kVK_ANSI_Equal;
         case VK_OEM_COMMA:
-            return 43;
+            return kVK_ANSI_Comma;
         case VK_OEM_PERIOD:
-            return 47;
+            return kVK_ANSI_Period;
             
             // FIXME : 日本語キーボードサポート
         case VK_OEM_2:
-            return 44; // slash
+            return kVK_ANSI_Slash; // slash
         case VK_OEM_1:
-            return 41; // ;
+            return kVK_ANSI_Semicolon; // ;
         case VK_OEM_7:
-            return 39; // '
+            return kVK_ANSI_Quote; // '
         case VK_OEM_4:
-            return 33; // [
+            return kVK_ANSI_LeftBracket; // [
         case VK_OEM_6:
-            return 30; // ]
+            return kVK_ANSI_RightBracket; // ]
         case VK_OEM_5:
-            return 42; // back-slash
+            return kVK_ANSI_Backslash; // back-slash
         case VK_OEM_3:
-            return 50; // `
+            return kVK_ANSI_Grave; // `
     }
     
     return -1;
