@@ -123,13 +123,17 @@ class Test1( ckit.TextWindow ):
 
     def onGlobalHook_KeyDown( self, vk, scan ):
         print( "onGlobalHook_KeyDown", vk )
-        if vk==56:
+        if vk==49:
+            input_list = [
+                ckit.Key(0),
+                ckit.Key(11),
+                ckit.Key(8),
+            ]
+            ckit.Input.send(input_list)
             return True
 
     def onGlobalHook_KeyUp( self, vk, scan ):
         print( "onGlobalHook_KeyUp", vk )
-        if vk==56:
-            return True
 
 class Test2( ckit.Window ):
 

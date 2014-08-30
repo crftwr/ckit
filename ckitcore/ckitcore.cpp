@@ -21,8 +21,10 @@
 
 #if defined(PLATFORM_WIN32)
 # include "ckitcore_win.h"
+# include "ckitcore_hook_win.h"
 #elif defined(PLATFORM_MAC)
 # include "ckitcore_mac.h"
+# include "ckitcore_hook_mac.h"
 #endif // PLATFORM_XXX
 
 using namespace ckit;
@@ -5382,6 +5384,7 @@ PyMODINIT_FUNC PyInit_ckitcore(void)
     if( PyType_Ready(&TaskTrayIcon_Type)<0 ) return NULL;
     #endif
     if( PyType_Ready(&Hook_Type)<0 ) return NULL;
+    if( PyType_Ready(&Input_Type)<0 ) return NULL;
     
     PyObject *m, *d;
 
@@ -5421,6 +5424,10 @@ PyMODINIT_FUNC PyInit_ckitcore(void)
     Py_INCREF(&Hook_Type);
     PyModule_AddObject( m, "Hook", (PyObject*)&Hook_Type );
 
+    Py_INCREF(&Input_Type);
+    PyModule_AddObject( m, "Input", (PyObject*)&Input_Type );
+    Input::Initialize();
+    
     d = PyModule_GetDict(m);
 
     g->Error = PyErr_NewException( MODULE_NAME".Error", NULL, NULL);

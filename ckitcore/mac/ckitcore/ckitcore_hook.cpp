@@ -44,7 +44,7 @@ struct FuncTrace
 #define WARN_NOT_IMPLEMENTED printf("Warning: %s is not implemented.\n", __FUNCTION__)
 
 
-// ------------ PyObject_Hook -----------------------------------------
+//-----------------------------------------------------------------------------
 
 /*
 // フックのフラグを、擬似入力のフラグに変換する
@@ -482,3 +482,181 @@ PyTypeObject Hook_Type = {
 	PyType_GenericNew,	/* tp_new */
 	0,					/* tp_free */
 };
+
+
+//-----------------------------------------------------------------------------
+
+InputBase::InputBase()
+{
+}
+
+InputBase::~InputBase()
+{
+}
+
+static int Input_init( PyObject * self, PyObject * args, PyObject * kwds)
+{
+	if( ! PyArg_ParseTuple( args, "" ) )
+    {
+        return -1;
+    }
+    
+    Input * input = new Input();
+    
+	((Input_Object*)self)->p = input;
+    
+	return 0;
+}
+
+#if !defined(_MSC_VER)
+# define _snprintf_s( a, b, c, ... ) snprintf( a, b, __VA_ARGS__ )
+#endif
+
+static PyObject * Input_repr( PyObject * self )
+{
+	if( ! ((Input_Object*)self)->p )
+	{
+		PyErr_SetString( PyExc_ValueError, "already destroyed." );
+		return NULL;
+	}
+    
+    std::wstring s = ((Input_Object*)self)->p->ToString();
+    
+	PyObject * pyret = Py_BuildValue( "u", s.c_str() );
+	return pyret;
+}
+
+static PyObject * Input_setKeyDown(PyObject* self, PyObject* args)
+{
+	int vk;
+    
+	if( ! PyArg_ParseTuple(args, "i", &vk ) )
+    {
+        return NULL;
+    }
+
+	if( ! ((Input_Object*)self)->p )
+	{
+		PyErr_SetString( PyExc_ValueError, "already destroyed." );
+		return NULL;
+	}
+    
+    ((Input_Object*)self)->p->setKeyDown(vk);
+    
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+static PyObject * Input_setKeyUp(PyObject* self, PyObject* args)
+{
+	int vk;
+    
+	if( ! PyArg_ParseTuple(args, "i", &vk ) )
+    {
+        return NULL;
+    }
+    
+	if( ! ((Input_Object*)self)->p )
+	{
+		PyErr_SetString( PyExc_ValueError, "already destroyed." );
+		return NULL;
+	}
+    
+    ((Input_Object*)self)->p->setKeyUp(vk);
+    
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+static PyObject * Input_setKey(PyObject* self, PyObject* args)
+{
+	int vk;
+    
+	if( ! PyArg_ParseTuple(args, "i", &vk ) )
+    {
+        return NULL;
+    }
+    
+	if( ! ((Input_Object*)self)->p )
+	{
+		PyErr_SetString( PyExc_ValueError, "already destroyed." );
+		return NULL;
+	}
+    
+    ((Input_Object*)self)->p->setKey(vk);
+    
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+static PyObject * Input_send( PyObject * self, PyObject * args )
+{
+	PyObject * py_input_list;
+    
+	if( ! PyArg_ParseTuple(args,"O", &py_input_list ) )
+		return NULL;
+    
+	if( !PyTuple_Check(py_input_list) && !PyList_Check(py_input_list) )
+	{
+		PyErr_SetString( PyExc_TypeError, "argument must be a tuple or list." );
+		return NULL;
+	}
+
+    Input::Send( py_input_list );
+
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+static PyMethodDef Input_methods[] = {
+    { "setKeyDown", Input_setKeyDown, METH_VARARGS, "" },
+    { "setKeyUp", Input_setKeyUp, METH_VARARGS, "" },
+    { "setKey", Input_setKey, METH_VARARGS, "" },
+    { "send", Input_send, METH_STATIC|METH_VARARGS, "" },
+	{NULL,NULL}
+};
+
+PyTypeObject Input_Type = {
+	PyVarObject_HEAD_INIT(NULL, 0)
+	"Input",			/* tp_name */
+	sizeof(Input_Type), /* tp_basicsize */
+	0,					/* tp_itemsize */
+	0,					/* tp_dealloc */
+	0,					/* tp_print */
+	0,					/* tp_getattr */
+	0,					/* tp_setattr */
+	0,					/* tp_compare */
+	Input_repr,			/* tp_repr */
+	0,					/* tp_as_number */
+	0,					/* tp_as_sequence */
+	0,					/* tp_as_mapping */
+	0,					/* tp_hash */
+	0,					/* tp_call */
+	0,					/* tp_str */
+	PyObject_GenericGetAttr,/* tp_getattro */
+	PyObject_GenericSetAttr,/* tp_setattro */
+	0,					/* tp_as_buffer */
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,/* tp_flags */
+	"",					/* tp_doc */
+	0,					/* tp_traverse */
+	0,					/* tp_clear */
+	0,					/* tp_richcompare */
+	0,					/* tp_weaklistoffset */
+	0,					/* tp_iter */
+	0,					/* tp_iternext */
+	Input_methods,		/* tp_methods */
+	0,					/* tp_members */
+	0,					/* tp_getset */
+	0,					/* tp_base */
+	0,					/* tp_dict */
+	0,					/* tp_descr_get */
+	0,					/* tp_descr_set */
+	0,					/* tp_dictoffset */
+	Input_init,			/* tp_init */
+	0,					/* tp_alloc */
+	PyType_GenericNew,	/* tp_new */
+	0,					/* tp_free */
+};
+
+
+

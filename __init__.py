@@ -17,6 +17,7 @@ from ckit.ckit_dialog import *
 from ckit.ckit_key import *
 from ckit.ckit_command import *
 from ckit.ckit_userconfig import *
+from ckit.ckit_hook import *
 
 if platform()=="win":
     del pyauto

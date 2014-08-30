@@ -41,12 +41,15 @@ struct FuncTrace
 
 //-----------------------------------------------------------------------------
 
+CGEventSourceRef InputMac::eventSource = NULL;
+
+//-----------------------------------------------------------------------------
+
 HookMac::HookMac()
     :
     HookBase(),
     eventTap(NULL),
-    runLoopSource(NULL),
-    eventSource(NULL)
+    runLoopSource(NULL)
 {
     FUNC_TRACE;
 }
@@ -84,7 +87,7 @@ CGEventRef HookMac::KeyHookCallback(CGEventTapProxy proxy, CGEventType type, CGE
     //PRINTF("KeyHookCallback : mysrc = %u\n", CGEventSourceGetSourceStateID(eventSource) );
     
     // 自分で挿入したイベントは処理しない
-    if( CGEventGetIntegerValueField(event, kCGEventSourceStateID)==CGEventSourceGetSourceStateID(eventSource) )
+    if( CGEventGetIntegerValueField(event, kCGEventSourceStateID)==CGEventSourceGetSourceStateID(Input::eventSource) )
     {
         return event;
     }
@@ -260,7 +263,6 @@ int HookMac::InstallKeyHook()
     
     eventTap = CGEventTapCreate(kCGSessionEventTap, kCGHeadInsertEventTap, kCGEventTapOptionDefault, eventMask, _KeyHookCallback, this );
     runLoopSource = CFMachPortCreateRunLoopSource( kCFAllocatorDefault, eventTap, 0);
-    eventSource = CGEventSourceCreate(kCGEventSourceStatePrivate);
     CFRunLoopAddSource( CFRunLoopGetCurrent(), runLoopSource, kCFRunLoopCommonModes );
     CGEventTapEnable(eventTap, true);
  
@@ -271,9 +273,251 @@ int HookMac::UninstallKeyHook()
 {
     FUNC_TRACE;
 
-    if(eventSource){ CFRelease(eventSource); eventSource=NULL; }
     if(runLoopSource){ CFRelease(runLoopSource); runLoopSource=NULL; }
     if(eventTap){ CFRelease(eventTap); eventTap=NULL; }
+    
+    return 0;
+}
+
+//-----------------------------------------------------------------------------
+
+int InputMac::Initialize()
+{
+    eventSource = CGEventSourceCreate(kCGEventSourceStatePrivate);
+    return 0;
+}
+
+int InputMac::Terminate()
+{
+    if(eventSource){ CFRelease(eventSource); eventSource=NULL; }
+    return 0;
+}
+
+InputMac::InputMac()
+    :
+    InputBase(),
+    type(InputType_None),
+    vk(0)
+{
+    
+}
+
+InputMac::~InputMac()
+{
+}
+
+int InputMac::setKeyDown(int _vk)
+{
+    type = InputType_KeyDown;
+    vk = _vk;
+    
+    return 0;
+}
+
+int InputMac::setKeyUp(int _vk)
+{
+    type = InputType_KeyUp;
+    vk = _vk;
+    
+    return 0;
+}
+
+int InputMac::setKey(int _vk)
+{
+    type = InputType_Key;
+    vk = _vk;
+    
+    return 0;
+}
+
+
+std::wstring InputMac::ToString()
+{
+    /*
+	char buf[64];
+	buf[0] = 0;
+    
+	switch( ((Input_Object*)self)->num )
+	{
+        case 0:
+            break;
+            
+        case 1:
+		{
+			INPUT & input = ((Input_Object*)self)->input[0];
+			
+			switch(input.type)
+			{
+                case INPUT_KEYBOARD:
+				{
+					if( input.ki.dwFlags & KEYEVENTF_UNICODE )
+					{
+						_snprintf_s( buf, sizeof(buf), _TRUNCATE, "Char(%d)", input.ki.wScan );
+					}
+					else if( input.ki.dwFlags & KEYEVENTF_KEYUP )
+					{
+						_snprintf_s( buf, sizeof(buf), _TRUNCATE, "KeyUp(%d)", input.ki.wVk );
+					}
+					else
+					{
+						_snprintf_s( buf, sizeof(buf), _TRUNCATE, "KeyDown(%d)", input.ki.wVk );
+					}
+				}
+                    break;
+                    
+                case INPUT_MOUSE:
+				{
+					if( input.mi.dwFlags & MOUSEEVENTF_LEFTDOWN )
+					{
+						_snprintf_s( buf, sizeof(buf), _TRUNCATE, "MouseLeftDown(%d,%d)", input.mi.dx, input.mi.dy );
+					}
+					else if( input.mi.dwFlags & MOUSEEVENTF_LEFTUP )
+					{
+						_snprintf_s( buf, sizeof(buf), _TRUNCATE, "MouseLeftUp(%d,%d)", input.mi.dx, input.mi.dy );
+					}
+					else if( input.mi.dwFlags & MOUSEEVENTF_RIGHTDOWN )
+					{
+						_snprintf_s( buf, sizeof(buf), _TRUNCATE, "MouseRightDown(%d,%d)", input.mi.dx, input.mi.dy );
+					}
+					else if( input.mi.dwFlags & MOUSEEVENTF_RIGHTUP )
+					{
+						_snprintf_s( buf, sizeof(buf), _TRUNCATE, "MouseRightUp(%d,%d)", input.mi.dx, input.mi.dy );
+					}
+					else if( input.mi.dwFlags & MOUSEEVENTF_MIDDLEDOWN )
+					{
+						_snprintf_s( buf, sizeof(buf), _TRUNCATE, "MouseMiddleDown(%d,%d)", input.mi.dx, input.mi.dy );
+					}
+					else if( input.mi.dwFlags & MOUSEEVENTF_MIDDLEUP )
+					{
+						_snprintf_s( buf, sizeof(buf), _TRUNCATE, "MouseMiddleUp(%d,%d)", input.mi.dx, input.mi.dy );
+					}
+					else if( input.mi.dwFlags & MOUSEEVENTF_WHEEL )
+					{
+						_snprintf_s( buf, sizeof(buf), _TRUNCATE, "MouseWheel(%d,%d,%d)", input.mi.dx, input.mi.dy, input.mi.mouseData );
+					}
+					else if( input.mi.dwFlags & MOUSEEVENTF_HWHEEL )
+					{
+						_snprintf_s( buf, sizeof(buf), _TRUNCATE, "MouseHorizontalWheel(%d,%d,%d)", input.mi.dx, input.mi.dy, input.mi.mouseData );
+					}
+					else
+					{
+						_snprintf_s( buf, sizeof(buf), _TRUNCATE, "MouseMove(%d,%d)", input.mi.dx, input.mi.dy );
+					}
+				}
+                    break;
+			}
+		}
+            break;
+            
+        case 2:
+		{
+			INPUT & input = ((Input_Object*)self)->input[0];
+            
+			switch(input.type)
+			{
+                case INPUT_KEYBOARD:
+				{
+					_snprintf_s( buf, sizeof(buf), _TRUNCATE, "Key(%d)", input.ki.wVk );
+				}
+                    break;
+                    
+                case INPUT_MOUSE:
+				{
+					if( input.mi.dwFlags & MOUSEEVENTF_LEFTDOWN )
+					{
+						_snprintf_s( buf, sizeof(buf), _TRUNCATE, "MouseLeftClick(%d,%d)", input.mi.dx, input.mi.dy );
+					}
+					else if( input.mi.dwFlags & MOUSEEVENTF_RIGHTDOWN )
+					{
+						_snprintf_s( buf, sizeof(buf), _TRUNCATE, "MouseRightClick(%d,%d)", input.mi.dx, input.mi.dy );
+					}
+					else if( input.mi.dwFlags & MOUSEEVENTF_MIDDLEDOWN )
+					{
+						_snprintf_s( buf, sizeof(buf), _TRUNCATE, "MouseMiddleClick(%d,%d)", input.mi.dx, input.mi.dy );
+					}
+				}
+                    break;
+			}
+		}
+            break;
+	}
+	
+	if(buf[0]==0)
+	{
+		_snprintf_s( buf, sizeof(buf), _TRUNCATE, "<unknown Input object>" );
+	}
+    return buf;
+    */
+    
+    return L"<Input>";
+}
+
+int InputMac::Send( PyObject * py_input_list )
+{
+	long item_num = PySequence_Length(py_input_list);
+    
+	for( int i=0 ; i<item_num ; i++ )
+	{
+		PyObject * pyitem = PySequence_GetItem( py_input_list, i );
+        
+		if( !Input_Check(pyitem) )
+		{
+			PyErr_SetString( PyExc_TypeError, "argument must be a sequence of Input object." );
+			return -1;
+		}
+        
+        InputMac * input = (InputMac*)((Input_Object*)pyitem)->p;
+        
+        switch(input->type)
+        {
+        case InputType_None:
+            break;
+                
+        case InputType_KeyDown:
+            {
+                CGEventRef event = CGEventCreateKeyboardEvent( eventSource, input->vk, true );
+                
+                // FIXME : CGEventSetFlags を使って、モディファイアの状態も設定する
+                //CGEventSetFlags(spcd, kCGEventFlagMaskCommand);
+
+                CGEventPost(kCGHIDEventTap, event);
+
+                CFRelease(event);
+            }
+            break;
+
+        case InputType_KeyUp:
+            {
+                CGEventRef event = CGEventCreateKeyboardEvent( eventSource, input->vk, false );
+                
+                // FIXME : CGEventSetFlags を使って、モディファイアの状態も設定する
+                //CGEventSetFlags(spcd, kCGEventFlagMaskCommand);
+                
+                CGEventPost(kCGHIDEventTap, event);
+                
+                CFRelease(event);
+            }
+            break;
+
+        case InputType_Key:
+            {
+                CGEventRef event_down = CGEventCreateKeyboardEvent( eventSource, input->vk, true );
+                CGEventRef event_up = CGEventCreateKeyboardEvent( eventSource, input->vk, false );
+                
+                // FIXME : CGEventSetFlags を使って、モディファイアの状態も設定する
+                //CGEventSetFlags(spcd, kCGEventFlagMaskCommand);
+                
+                CGEventPost(kCGHIDEventTap, event_down);
+                CGEventPost(kCGHIDEventTap, event_up);
+                
+                CFRelease(event_down);
+                CFRelease(event_up);
+            }
+            break;
+        }
+        
+		Py_XDECREF(pyitem);
+	}
     
     return 0;
 }

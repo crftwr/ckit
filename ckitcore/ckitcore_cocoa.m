@@ -33,7 +33,7 @@ typedef struct Globals_t
 
 } Globals;
 
-Globals g;
+static Globals g;
 
 //-----------------------------------------------------------------------------
 
