@@ -154,6 +154,7 @@ enum
     MODKEY_WIN   = 0x00000008,
 };
 
+/*
 enum
 {
     VK_LBUTTON        = 0x01,
@@ -578,6 +579,7 @@ static int translateVk_WinToMac(int src)
     
     return -1;
 }
+*/
 
 - (void)keyDown:(NSEvent *)theEvent
 {
@@ -588,12 +590,6 @@ static int translateVk_WinToMac(int src)
     if( ! [self hasMarkedText] )
     {
         int keyCode = [theEvent keyCode];
-        int vk = translateVk_MacToWin(keyCode);
-        
-        //printf("keyCode: %d\n", keyCode);
-        //printf("vk: %d\n", vk);
-        
-        if(vk<0){return;}
         
         int mod = 0;
         if( theEvent.modifierFlags & NSShiftKeyMask ){ mod |= MODKEY_SHIFT; }
@@ -601,7 +597,7 @@ static int translateVk_WinToMac(int src)
         if( theEvent.modifierFlags & NSAlternateKeyMask ){ mod |= MODKEY_ALT; }
         if( theEvent.modifierFlags & NSControlKeyMask ){ mod |= MODKEY_WIN; }
         
-        callbacks->keyDown( owner, vk, mod );
+        callbacks->keyDown( owner, keyCode, mod );
     }
 
     // messageLoopやremoveKeyMessageが呼ばれたら、それ以前の keyDown については interpretKeyEvents を呼ばない
@@ -638,9 +634,6 @@ static int translateVk_WinToMac(int src)
     TRACE;
 
     int keyCode = [theEvent keyCode];
-    int vk = translateVk_MacToWin(keyCode);
-    
-    if(vk<0){return;}
 
     int mod = 0;
     if( theEvent.modifierFlags & NSShiftKeyMask ){ mod |= MODKEY_SHIFT; }
@@ -648,7 +641,7 @@ static int translateVk_WinToMac(int src)
     if( theEvent.modifierFlags & NSAlternateKeyMask ){ mod |= MODKEY_ALT; }
     if( theEvent.modifierFlags & NSControlKeyMask ){ mod |= MODKEY_WIN; }
     
-    callbacks->keyUp( owner, vk, mod );
+    callbacks->keyUp( owner, keyCode, mod );
 }
 
 - (void)insertText:(id)insertString
@@ -1068,15 +1061,13 @@ int ckit_Application_SetHotKey( int vk, int mod, CocoaObject ** _handle, int * _
     hotKeyID.id = g.hotkey_next_id;
     hotKeyID.signature = 'htky';
     
-    UInt32 hotKeyCode = translateVk_WinToMac(vk);
-    
     UInt32 hotKeyModifier = 0;
     if(mod & MODKEY_SHIFT){ hotKeyModifier |= shiftKey; }
     if(mod & MODKEY_CTRL){ hotKeyModifier |= cmdKey; }
     if(mod & MODKEY_ALT){ hotKeyModifier |= optionKey; }
     if(mod & MODKEY_WIN){ hotKeyModifier |= controlKey; }
 
-    OSStatus status = RegisterEventHotKey(hotKeyCode, hotKeyModifier, hotKeyID, GetApplicationEventTarget(), 0, &hotKeyRef);
+    OSStatus status = RegisterEventHotKey(vk, hotKeyModifier, hotKeyID, GetApplicationEventTarget(), 0, &hotKeyRef);
     (void)status;
     
     *_handle = (CocoaObject*)hotKeyRef;

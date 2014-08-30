@@ -50,12 +50,12 @@ class KeyEvent:
         VK_8 : "8",
         VK_9 : "9",
 
-        VK_OEM_MINUS  : "Minus",
-        VK_OEM_PLUS   : "Plus",
-        VK_OEM_COMMA  : "Comma",
-        VK_OEM_PERIOD : "Period",
+        VK_MINUS  : "Minus",
+        VK_PLUS   : "Plus",
+        VK_COMMA  : "Comma",
+        VK_PERIOD : "Period",
 
-        VK_NUMLOCK  : "NumLock",
+        #VK_NUMLOCK  : "NumLock", # FIXME : Mac対応
         VK_DIVIDE   : "Divide",
         VK_MULTIPLY : "Multiply",
         VK_SUBTRACT : "Subtract",
@@ -96,52 +96,77 @@ class KeyEvent:
         VK_RETURN   : "Return",
         VK_ESCAPE   : "Escape",
         VK_CAPITAL  : "CapsLock",
-        VK_APPS     : "Apps",
+        #VK_APPS     : "Apps", # FIXME : Mac対応
 
-        VK_INSERT   : "Insert",
+        #VK_INSERT   : "Insert", # FIXME : Mac対応
         VK_DELETE   : "Delete",
         VK_HOME     : "Home",
         VK_END      : "End",
         VK_NEXT     : "PageDown",
         VK_PRIOR    : "PageUp",
 
-        VK_MENU     : "Alt",
+        #VK_MENU     : "Alt", # FIXME : Mac対応
         VK_LMENU    : "LAlt",
         VK_RMENU    : "RAlt",
-        VK_CONTROL  : "Ctrl",
+        #VK_CONTROL  : "Ctrl", # FIXME : Mac対応
         VK_LCONTROL : "LCtrl",
         VK_RCONTROL : "RCtrl",
-        VK_SHIFT    : "Shift",
+        #VK_SHIFT    : "Shift", # FIXME : Mac対応
         VK_LSHIFT   : "LShift",
         VK_RSHIFT   : "RShift",
-        VK_LWIN     : "LWin",
-        VK_RWIN     : "RWin",
+        #VK_LWIN     : "LWin", # FIXME : Mac対応
+        #VK_RWIN     : "RWin", # FIXME : Mac対応
 
-        VK_SNAPSHOT : "PrintScreen",
-        VK_SCROLL   : "ScrollLock",
-        VK_PAUSE    : "Pause",
+        #VK_SNAPSHOT : "PrintScreen", # FIXME : Mac対応
+        #VK_SCROLL   : "ScrollLock", # FIXME : Mac対応
+        #VK_PAUSE    : "Pause", # FIXME : Mac対応
     }
 
-    vk_str_table_std = {
-        VK_OEM_1 : "Semicolon",
-        VK_OEM_2 : "Slash",
-        VK_OEM_3 : "BackQuote",
-        VK_OEM_4 : "OpenBracket",
-        VK_OEM_5 : "BackSlash",
-        VK_OEM_6 : "CloseBracket",
-        VK_OEM_7 : "Quote",
-    }
+    if ckit_misc.platform()=="win":
+    
+        vk_str_table_std = {
+            VK_OEM_1 : "Semicolon",
+            VK_OEM_2 : "Slash",
+            VK_OEM_3 : "BackQuote",
+            VK_OEM_4 : "OpenBracket",
+            VK_OEM_5 : "BackSlash",
+            VK_OEM_6 : "CloseBracket",
+            VK_OEM_7 : "Quote",
+        }
 
-    vk_str_table_jpn = {
-        VK_OEM_1    : "Colon",
-        VK_OEM_2    : "Slash",
-        VK_OEM_3    : "Atmark",
-        VK_OEM_4    : "OpenBracket",
-        VK_OEM_5    : "Yen",
-        VK_OEM_6    : "CloseBracket",
-        VK_OEM_7    : "Caret",
-        VK_OEM_102  : "BackSlash",
-    }
+        vk_str_table_jpn = {
+            VK_OEM_1    : "Colon",
+            VK_OEM_2    : "Slash",
+            VK_OEM_3    : "Atmark",
+            VK_OEM_4    : "OpenBracket",
+            VK_OEM_5    : "Yen",
+            VK_OEM_6    : "CloseBracket",
+            VK_OEM_7    : "Caret",
+            VK_OEM_102  : "BackSlash",
+        }
+
+    else:
+
+        vk_str_table_std = {
+            VK_SEMICOLON    : "Semicolon",
+            VK_SLASH        : "Slash",
+            VK_GRAVE        : "BackQuote",
+            VK_OPENBRACKET  : "OpenBracket",
+            VK_BACKSLASH    : "BackSlash",
+            VK_CLOSEBRACKET : "CloseBracket",
+            VK_QUOTE        : "Quote",
+        }
+
+        vk_str_table_jpn = {
+            #VK_OEM_1        : "Colon", # FIXME : Mac対応
+            VK_SLASH        : "Slash",
+            #VK_OEM_3        : "Atmark", # FIXME : Mac対応
+            VK_OPENBRACKET  : "OpenBracket",
+            #VK_OEM_5        : "Yen", # FIXME : Mac対応
+            VK_CLOSEBRACKET : "CloseBracket",
+            #VK_OEM_7        : "Caret", # FIXME : Mac対応
+            VK_BACKSLASH    : "BackSlash",
+        }
 
     str_vk_table_common = {
 
@@ -183,12 +208,12 @@ class KeyEvent:
         "8" : VK_8,
         "9" : VK_9,
 
-        "MINUS"  : VK_OEM_MINUS,
-        "PLUS"   : VK_OEM_PLUS,
-        "COMMA"  : VK_OEM_COMMA,
-        "PERIOD" : VK_OEM_PERIOD,
+        "MINUS"  : VK_MINUS,
+        "PLUS"   : VK_PLUS,
+        "COMMA"  : VK_COMMA,
+        "PERIOD" : VK_PERIOD,
 
-        "NUMLOCK"  : VK_NUMLOCK,
+        #"NUMLOCK"  : VK_NUMLOCK, # FIXME : Mac対応
         "DIVIDE"   : VK_DIVIDE,
         "MULTIPLY" : VK_MULTIPLY,
         "SUBTRACT" : VK_SUBTRACT,
@@ -233,69 +258,111 @@ class KeyEvent:
         "CAPSLOCK" : VK_CAPITAL,
         "CAPS"     : VK_CAPITAL,
         "CAPITAL"  : VK_CAPITAL,
-        "APPS"     : VK_APPS,
+        #"APPS"     : VK_APPS, # FIXME : Mac対応
 
-        "INSERT"   : VK_INSERT,
+        #"INSERT"   : VK_INSERT, # FIXME : Mac対応
         "DELETE"   : VK_DELETE,
         "HOME"     : VK_HOME,
         "END"      : VK_END,
         "PAGEDOWN" : VK_NEXT,
         "PAGEUP"   : VK_PRIOR,
 
-        "ALT"  : VK_MENU ,
+        "ALT"  : VK_LMENU ,
         "LALT" : VK_LMENU,
         "RALT" : VK_RMENU,
-        "CTRL"  : VK_CONTROL ,
+        "CTRL"  : VK_LCONTROL ,
         "LCTRL" : VK_LCONTROL,
         "RCTRL" : VK_RCONTROL,
-        "SHIFT"  : VK_SHIFT ,
+        "SHIFT"  : VK_LSHIFT ,
         "LSHIFT" : VK_LSHIFT,
         "RSHIFT" : VK_RSHIFT,
-        "LWIN" : VK_LWIN,
-        "RWIN" : VK_RWIN,
+        #"LWIN" : VK_LWIN, # FIXME : Mac対応
+        #"RWIN" : VK_RWIN, # FIXME : Mac対応
 
-        "PRINTSCREEN" : VK_SNAPSHOT,
-        "SCROLLLOCK"  : VK_SCROLL,
-        "PAUSE"       : VK_PAUSE,
+        #"PRINTSCREEN" : VK_SNAPSHOT, # FIXME : Mac対応
+        #"SCROLLLOCK"  : VK_SCROLL, # FIXME : Mac対応
+        #"PAUSE"       : VK_PAUSE, # FIXME : Mac対応
     }
 
-    str_vk_table_std = {
+    if ckit_misc.platform()=="win":
+    
+        str_vk_table_std = {
 
-        "SEMICOLON"     : VK_OEM_1,
-        "COLON"         : VK_OEM_1,
-        "SLASH"         : VK_OEM_2,
-        "BACKQUOTE"     : VK_OEM_3,
-        "TILDE"         : VK_OEM_3,
-        "OPENBRACKET"   : VK_OEM_4,
-        "BACKSLASH"     : VK_OEM_5,
-        "YEN"           : VK_OEM_5,
-        "CLOSEBRACKET"  : VK_OEM_6,
-        "QUOTE"         : VK_OEM_7,
-        "DOUBLEQUOTE"   : VK_OEM_7,
-        "UNDERSCORE"    : VK_OEM_MINUS,
-        "ASTERISK"      : VK_8,
-        "ATMARK"        : VK_2,
-        "CARET"         : VK_6,
-    }
+            "SEMICOLON"     : VK_OEM_1,
+            "COLON"         : VK_OEM_1,
+            "SLASH"         : VK_OEM_2,
+            "BACKQUOTE"     : VK_OEM_3,
+            "TILDE"         : VK_OEM_3,
+            "OPENBRACKET"   : VK_OEM_4,
+            "BACKSLASH"     : VK_OEM_5,
+            "YEN"           : VK_OEM_5,
+            "CLOSEBRACKET"  : VK_OEM_6,
+            "QUOTE"         : VK_OEM_7,
+            "DOUBLEQUOTE"   : VK_OEM_7,
+            "UNDERSCORE"    : VK_OEM_MINUS,
+            "ASTERISK"      : VK_8,
+            "ATMARK"        : VK_2,
+            "CARET"         : VK_6,
+        }
 
-    str_vk_table_jpn = {
+        str_vk_table_jpn = {
         
-        "SEMICOLON"     : VK_OEM_PLUS,
-        "COLON"         : VK_OEM_1,
-        "SLASH"         : VK_OEM_2,
-        "BACKQUOTE"     : VK_OEM_3,
-        "TILDE"         : VK_OEM_7,
-        "OPENBRACKET"   : VK_OEM_4,
-        "BACKSLASH"     : VK_OEM_102,
-        "YEN"           : VK_OEM_5,
-        "CLOSEBRACKET"  : VK_OEM_6,
-        "QUOTE"         : VK_7,
-        "DOUBLEQUOTE"   : VK_2,
-        "UNDERSCORE"    : VK_OEM_102,
-        "ASTERISK"      : VK_OEM_1,
-        "ATMARK"        : VK_OEM_3,
-        "CARET"         : VK_OEM_7,
-    }
+            "SEMICOLON"     : VK_OEM_PLUS,
+            "COLON"         : VK_OEM_1,
+            "SLASH"         : VK_OEM_2,
+            "BACKQUOTE"     : VK_OEM_3,
+            "TILDE"         : VK_OEM_7,
+            "OPENBRACKET"   : VK_OEM_4,
+            "BACKSLASH"     : VK_OEM_102,
+            "YEN"           : VK_OEM_5,
+            "CLOSEBRACKET"  : VK_OEM_6,
+            "QUOTE"         : VK_7,
+            "DOUBLEQUOTE"   : VK_2,
+            "UNDERSCORE"    : VK_OEM_102,
+            "ASTERISK"      : VK_OEM_1,
+            "ATMARK"        : VK_OEM_3,
+            "CARET"         : VK_OEM_7,
+        }
+
+    else:
+
+        str_vk_table_std = {
+
+            "SEMICOLON"     : VK_SEMICOLON,
+            "COLON"         : VK_SEMICOLON,
+            "SLASH"         : VK_SLASH,
+            "BACKQUOTE"     : VK_GRAVE,
+            #"TILDE"         : VK_OEM_3, # FIXME : Mac対応
+            "OPENBRACKET"   : VK_OPENBRACKET,
+            "BACKSLASH"     : VK_BACKSLASH,
+            "YEN"           : VK_BACKSLASH,
+            "CLOSEBRACKET"  : VK_CLOSEBRACKET,
+            "QUOTE"         : VK_QUOTE,
+            "DOUBLEQUOTE"   : VK_QUOTE,
+            "UNDERSCORE"    : VK_MINUS,
+            "ASTERISK"      : VK_8,
+            "ATMARK"        : VK_2,
+            "CARET"         : VK_6,
+        }
+
+        str_vk_table_jpn = {
+        
+            "SEMICOLON"     : VK_PLUS,
+            #"COLON"         : VK_OEM_1, # FIXME : Mac対応
+            "SLASH"         : VK_SLASH,
+            "BACKQUOTE"     : VK_GRAVE,
+            #"TILDE"         : VK_OEM_7, # FIXME : Mac対応
+            "OPENBRACKET"   : VK_OPENBRACKET,
+            "BACKSLASH"     : VK_BACKSLASH,
+            "YEN"           : VK_YEN,
+            "CLOSEBRACKET"  : VK_CLOSEBRACKET,
+            "QUOTE"         : VK_7,
+            "DOUBLEQUOTE"   : VK_2,
+            "UNDERSCORE"    : VK_UNDERSCORE,
+            #"ASTERISK"      : VK_OEM_1, # FIXME : Mac対応
+            #"ATMARK"        : VK_OEM_3, # FIXME : Mac対応
+            #"CARET"         : VK_OEM_7, # FIXME : Mac対応
+        }
 
     str_mod_table = {
 
