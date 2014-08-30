@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		3393533719B1691F008BA442 /* ckitcore_hook.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3393533519B1691F008BA442 /* ckitcore_hook.cpp */; };
+		3393533819B1691F008BA442 /* ckitcore_hook.h in Headers */ = {isa = PBXBuildFile; fileRef = 3393533619B1691F008BA442 /* ckitcore_hook.h */; };
+		3393533B19B1718C008BA442 /* ckitcore_hook_mac.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3393533919B1718C008BA442 /* ckitcore_hook_mac.cpp */; };
+		3393533C19B1718C008BA442 /* ckitcore_hook_mac.h in Headers */ = {isa = PBXBuildFile; fileRef = 3393533A19B1718C008BA442 /* ckitcore_hook_mac.h */; };
 		33E3AA4F19677C2B004C7EDF /* basictypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 33E3AA4A19677C2B004C7EDF /* basictypes.h */; };
 		33E3AA5019677C2B004C7EDF /* ckitcore.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 33E3AA4B19677C2B004C7EDF /* ckitcore.cpp */; };
 		33E3AA5119677C2B004C7EDF /* ckitcore.h in Headers */ = {isa = PBXBuildFile; fileRef = 33E3AA4C19677C2B004C7EDF /* ckitcore.h */; };
@@ -49,6 +53,10 @@
 		3378E91819A04F8D00B5CE40 /* lredit_zenhan.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = lredit_zenhan.py; path = ../../../lredit/lredit_zenhan.py; sourceTree = "<group>"; };
 		3378E91919A04F8D00B5CE40 /* lredit.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = lredit.py; path = ../../../lredit/lredit.py; sourceTree = "<group>"; };
 		3378E92019A04FCF00B5CE40 /* config.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = config.py; path = ../../../lredit/LREdit/config.py; sourceTree = "<group>"; };
+		3393533519B1691F008BA442 /* ckitcore_hook.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ckitcore_hook.cpp; sourceTree = "<group>"; };
+		3393533619B1691F008BA442 /* ckitcore_hook.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ckitcore_hook.h; sourceTree = "<group>"; };
+		3393533919B1718C008BA442 /* ckitcore_hook_mac.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ckitcore_hook_mac.cpp; sourceTree = "<group>"; };
+		3393533A19B1718C008BA442 /* ckitcore_hook_mac.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ckitcore_hook_mac.h; sourceTree = "<group>"; };
 		33E3AA3A19677B22004C7EDF /* ckitcore.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = ckitcore.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		33E3AA3E19677B22004C7EDF /* ckitcore-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ckitcore-Prefix.pch"; sourceTree = "<group>"; };
 		33E3AA3F19677B22004C7EDF /* ckitcoreProj.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = ckitcoreProj.xcconfig; sourceTree = "<group>"; };
@@ -193,11 +201,15 @@
 				33E3AA4A19677C2B004C7EDF /* basictypes.h */,
 				33E3AA4B19677C2B004C7EDF /* ckitcore.cpp */,
 				33E3AA4C19677C2B004C7EDF /* ckitcore.h */,
+				3393533519B1691F008BA442 /* ckitcore_hook.cpp */,
+				3393533619B1691F008BA442 /* ckitcore_hook.h */,
 				33E3AA54196785F8004C7EDF /* ckitcore_mac.cpp */,
 				33E3AA55196785F8004C7EDF /* ckitcore_mac.h */,
 				33E3AA6F1967FB45004C7EDF /* ckitcore_cocoa.m */,
 				33E3AA6E1967FB45004C7EDF /* ckitcore_cocoa.h */,
 				33E3AA721967FC5E004C7EDF /* ckitcore_cocoa_export.h */,
+				3393533919B1718C008BA442 /* ckitcore_hook_mac.cpp */,
+				3393533A19B1718C008BA442 /* ckitcore_hook_mac.h */,
 				33E3AA4D19677C2B004C7EDF /* pythonutil.cpp */,
 				33E3AA4E19677C2B004C7EDF /* pythonutil.h */,
 			);
@@ -289,10 +301,12 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3393533819B1691F008BA442 /* ckitcore_hook.h in Headers */,
 				33E3AA701967FB45004C7EDF /* ckitcore_cocoa.h in Headers */,
 				33E3AA57196785F8004C7EDF /* ckitcore_mac.h in Headers */,
 				33E3AA731967FC5E004C7EDF /* ckitcore_cocoa_export.h in Headers */,
 				33E3AA5319677C2B004C7EDF /* pythonutil.h in Headers */,
+				3393533C19B1718C008BA442 /* ckitcore_hook_mac.h in Headers */,
 				33E3AA5119677C2B004C7EDF /* ckitcore.h in Headers */,
 				33E3AA4F19677C2B004C7EDF /* basictypes.h in Headers */,
 			);
@@ -351,6 +365,8 @@
 			files = (
 				33E3AA5219677C2B004C7EDF /* pythonutil.cpp in Sources */,
 				33E3AA56196785F8004C7EDF /* ckitcore_mac.cpp in Sources */,
+				3393533B19B1718C008BA442 /* ckitcore_hook_mac.cpp in Sources */,
+				3393533719B1691F008BA442 /* ckitcore_hook.cpp in Sources */,
 				33E3AA5019677C2B004C7EDF /* ckitcore.cpp in Sources */,
 				33E3AA711967FB45004C7EDF /* ckitcore_cocoa.m in Sources */,
 			);

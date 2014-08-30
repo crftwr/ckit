@@ -38,6 +38,9 @@ namespace PythonUtil
 	private:
 		PyGILState_STATE state;
 	};
+
+    #define PythonUtil_Printf(...) PySys_WriteStdout(__VA_ARGS__)
+    #define PythonUtil_DebugPrintf(...) if(g.debug) { PySys_WriteStdout(__VA_ARGS__); }
 };
 
 #endif // _PYTHONUTIL_H_

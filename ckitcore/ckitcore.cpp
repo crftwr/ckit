@@ -15,7 +15,9 @@
 
 #include "basictypes.h"
 #include "pythonutil.h"
+
 #include "ckitcore.h"
+#include "ckitcore_hook.h"
 
 #if defined(PLATFORM_WIN32)
 # include "ckitcore_win.h"
@@ -5376,9 +5378,10 @@ PyMODINIT_FUNC PyInit_ckitcore(void)
     if( PyType_Ready(&MenuNode_Type)<0 ) return NULL;
     if( PyType_Ready(&Window_Type)<0 ) return NULL;
     if( PyType_Ready(&Line_Type)<0 ) return NULL;
-#if defined(PLATFORM_WIN32)
+    #if defined(PLATFORM_WIN32)
     if( PyType_Ready(&TaskTrayIcon_Type)<0 ) return NULL;
-#endif
+    #endif
+    if( PyType_Ready(&Hook_Type)<0 ) return NULL;
     
     PyObject *m, *d;
 
@@ -5408,13 +5411,15 @@ PyMODINIT_FUNC PyInit_ckitcore(void)
 
     Py_INCREF(&Line_Type);
     PyModule_AddObject( m, "Line", (PyObject*)&Line_Type );
+	Line_static_init();
 
-#if defined(PLATFORM_WIN32)
+    #if defined(PLATFORM_WIN32)
     Py_INCREF(&TaskTrayIcon_Type);
     PyModule_AddObject( m, "TaskTrayIcon", (PyObject*)&TaskTrayIcon_Type );
-#endif
-    
-	Line_static_init();
+    #endif
+
+    Py_INCREF(&Hook_Type);
+    PyModule_AddObject( m, "Hook", (PyObject*)&Hook_Type );
 
     d = PyModule_GetDict(m);
 

@@ -23,9 +23,9 @@ class Test1( ckit.TextWindow ):
             x=20, 
             y=10, 
             width=80, 
-            height=24,
-            font_name = "Menlo-Regular",
-            font_size = 30,
+            height=12,
+            font_name = "Osaka-Mono",
+            font_size = 16,
             title_bar = True,
             title = "Ckit Test",
             sysmenu=True,
@@ -48,6 +48,10 @@ class Test1( ckit.TextWindow ):
         self.plane = ckit.ImagePlane( self, (50,50), (100,100), 0 )
         self.plane.setImage(ckit_img)
     
+        self.hook = ckit.Hook()
+        self.hook.keydown = self.onGlobalHook_KeyDown
+        self.hook.keyup = self.onGlobalHook_KeyUp
+        self.hook.reset()
 
     def onActivate( self, active ):
         print( "onActivate", active )
@@ -117,6 +121,15 @@ class Test1( ckit.TextWindow ):
     def onChar( self, ch, mod ):
         print( "onChar", ch, mod )
 
+    def onGlobalHook_KeyDown( self, vk, scan ):
+        print( "onGlobalHook_KeyDown", vk )
+        if vk==56:
+            return True
+
+    def onGlobalHook_KeyUp( self, vk, scan ):
+        print( "onGlobalHook_KeyUp", vk )
+        if vk==56:
+            return True
 
 class Test2( ckit.Window ):
 
