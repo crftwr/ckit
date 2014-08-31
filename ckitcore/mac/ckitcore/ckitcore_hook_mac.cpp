@@ -1,3 +1,6 @@
+#include <string.h>
+#include <wchar.h>
+
 #include <CoreGraphics/CGEventSource.h>
 
 #include "pythonutil.h"
@@ -333,123 +336,39 @@ int InputMac::setKey(int _vk)
 
 std::wstring InputMac::ToString()
 {
-    /*
-	char buf[64];
+	wchar_t buf[64];
 	buf[0] = 0;
     
-	switch( ((Input_Object*)self)->num )
+	switch(type)
 	{
-        case 0:
-            break;
+    case InputType_None:
+        break;
             
-        case 1:
+    case InputType_KeyDown:
 		{
-			INPUT & input = ((Input_Object*)self)->input[0];
-			
-			switch(input.type)
-			{
-                case INPUT_KEYBOARD:
-				{
-					if( input.ki.dwFlags & KEYEVENTF_UNICODE )
-					{
-						_snprintf_s( buf, sizeof(buf), _TRUNCATE, "Char(%d)", input.ki.wScan );
-					}
-					else if( input.ki.dwFlags & KEYEVENTF_KEYUP )
-					{
-						_snprintf_s( buf, sizeof(buf), _TRUNCATE, "KeyUp(%d)", input.ki.wVk );
-					}
-					else
-					{
-						_snprintf_s( buf, sizeof(buf), _TRUNCATE, "KeyDown(%d)", input.ki.wVk );
-					}
-				}
-                    break;
-                    
-                case INPUT_MOUSE:
-				{
-					if( input.mi.dwFlags & MOUSEEVENTF_LEFTDOWN )
-					{
-						_snprintf_s( buf, sizeof(buf), _TRUNCATE, "MouseLeftDown(%d,%d)", input.mi.dx, input.mi.dy );
-					}
-					else if( input.mi.dwFlags & MOUSEEVENTF_LEFTUP )
-					{
-						_snprintf_s( buf, sizeof(buf), _TRUNCATE, "MouseLeftUp(%d,%d)", input.mi.dx, input.mi.dy );
-					}
-					else if( input.mi.dwFlags & MOUSEEVENTF_RIGHTDOWN )
-					{
-						_snprintf_s( buf, sizeof(buf), _TRUNCATE, "MouseRightDown(%d,%d)", input.mi.dx, input.mi.dy );
-					}
-					else if( input.mi.dwFlags & MOUSEEVENTF_RIGHTUP )
-					{
-						_snprintf_s( buf, sizeof(buf), _TRUNCATE, "MouseRightUp(%d,%d)", input.mi.dx, input.mi.dy );
-					}
-					else if( input.mi.dwFlags & MOUSEEVENTF_MIDDLEDOWN )
-					{
-						_snprintf_s( buf, sizeof(buf), _TRUNCATE, "MouseMiddleDown(%d,%d)", input.mi.dx, input.mi.dy );
-					}
-					else if( input.mi.dwFlags & MOUSEEVENTF_MIDDLEUP )
-					{
-						_snprintf_s( buf, sizeof(buf), _TRUNCATE, "MouseMiddleUp(%d,%d)", input.mi.dx, input.mi.dy );
-					}
-					else if( input.mi.dwFlags & MOUSEEVENTF_WHEEL )
-					{
-						_snprintf_s( buf, sizeof(buf), _TRUNCATE, "MouseWheel(%d,%d,%d)", input.mi.dx, input.mi.dy, input.mi.mouseData );
-					}
-					else if( input.mi.dwFlags & MOUSEEVENTF_HWHEEL )
-					{
-						_snprintf_s( buf, sizeof(buf), _TRUNCATE, "MouseHorizontalWheel(%d,%d,%d)", input.mi.dx, input.mi.dy, input.mi.mouseData );
-					}
-					else
-					{
-						_snprintf_s( buf, sizeof(buf), _TRUNCATE, "MouseMove(%d,%d)", input.mi.dx, input.mi.dy );
-					}
-				}
-                    break;
-			}
+            swprintf( buf, sizeof(buf)/sizeof(buf[0]), L"KeyDown(%d)", vk );
 		}
-            break;
+        break;
             
-        case 2:
+    case InputType_KeyUp:
 		{
-			INPUT & input = ((Input_Object*)self)->input[0];
-            
-			switch(input.type)
-			{
-                case INPUT_KEYBOARD:
-				{
-					_snprintf_s( buf, sizeof(buf), _TRUNCATE, "Key(%d)", input.ki.wVk );
-				}
-                    break;
-                    
-                case INPUT_MOUSE:
-				{
-					if( input.mi.dwFlags & MOUSEEVENTF_LEFTDOWN )
-					{
-						_snprintf_s( buf, sizeof(buf), _TRUNCATE, "MouseLeftClick(%d,%d)", input.mi.dx, input.mi.dy );
-					}
-					else if( input.mi.dwFlags & MOUSEEVENTF_RIGHTDOWN )
-					{
-						_snprintf_s( buf, sizeof(buf), _TRUNCATE, "MouseRightClick(%d,%d)", input.mi.dx, input.mi.dy );
-					}
-					else if( input.mi.dwFlags & MOUSEEVENTF_MIDDLEDOWN )
-					{
-						_snprintf_s( buf, sizeof(buf), _TRUNCATE, "MouseMiddleClick(%d,%d)", input.mi.dx, input.mi.dy );
-					}
-				}
-                    break;
-			}
+            swprintf( buf, sizeof(buf)/sizeof(buf[0]), L"KeyUp(%d)", vk );
 		}
-            break;
+        break;
+            
+    case InputType_Key:
+		{
+            swprintf( buf, sizeof(buf)/sizeof(buf[0]), L"Key(%d)", vk );
+		}
+        break;
 	}
 	
 	if(buf[0]==0)
 	{
-		_snprintf_s( buf, sizeof(buf), _TRUNCATE, "<unknown Input object>" );
+		swprintf( buf, sizeof(buf)/sizeof(buf[0]), L"<unknown Input object>" );
 	}
+
     return buf;
-    */
-    
-    return L"<Input>";
 }
 
 int InputMac::Send( PyObject * py_input_list )
