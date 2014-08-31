@@ -1532,6 +1532,21 @@ int ckit_Global_GetClipboardChangeCount( int * change_count )
     return 0;
 }
 
+int ckit_Global_GetFocusedApplicationId( wchar_t ** id )
+{
+    NSWorkspace * ws = [NSWorkspace sharedWorkspace];
+    NSRunningApplication * app = [ws frontmostApplication];
+    NSString * bundleId = [app bundleIdentifier];
+
+    const wchar_t * _id = (const wchar_t*)[bundleId cStringUsingEncoding:NSUTF32LittleEndianStringEncoding];
+    
+    *id = (wchar_t*)malloc( (wcslen(_id)+1) * sizeof(wchar_t) );
+    
+    wcscpy( *id, _id );
+    
+    return 0;
+}
+
 int ckit_Global_Beep()
 {
     NSBeep();
@@ -1539,6 +1554,16 @@ int ckit_Global_Beep()
     return 0;
 }
 
+int ckit_Global_Test()
+{
+    NSWorkspace * ws = [NSWorkspace sharedWorkspace];
+    NSRunningApplication * app = [ws frontmostApplication];
+    NSString * bundleId = [app bundleIdentifier];
+    
+    printf( "bundleId : %s\n", [bundleId cStringUsingEncoding:NSUTF8StringEncoding] );
+    
+    return 0;
+}
 
 
 

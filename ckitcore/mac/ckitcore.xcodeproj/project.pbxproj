@@ -243,11 +243,11 @@
 				3393533619B1691F008BA442 /* ckitcore_hook.h */,
 				33E3AA54196785F8004C7EDF /* ckitcore_mac.cpp */,
 				33E3AA55196785F8004C7EDF /* ckitcore_mac.h */,
+				3393533919B1718C008BA442 /* ckitcore_hook_mac.cpp */,
+				3393533A19B1718C008BA442 /* ckitcore_hook_mac.h */,
 				33E3AA6F1967FB45004C7EDF /* ckitcore_cocoa.m */,
 				33E3AA6E1967FB45004C7EDF /* ckitcore_cocoa.h */,
 				33E3AA721967FC5E004C7EDF /* ckitcore_cocoa_export.h */,
-				3393533919B1718C008BA442 /* ckitcore_hook_mac.cpp */,
-				3393533A19B1718C008BA442 /* ckitcore_hook_mac.h */,
 				33E3AA4D19677C2B004C7EDF /* pythonutil.cpp */,
 				33E3AA4E19677C2B004C7EDF /* pythonutil.h */,
 			);

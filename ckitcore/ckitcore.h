@@ -501,7 +501,9 @@ namespace ckit
 		virtual void setClipboardText( const wchar_t * text ) = 0;
 		virtual std::wstring getClipboardText() = 0;
 		virtual int getClipboardChangeCount() = 0;
+        virtual std::wstring getFocusedApplicationId() = 0;
         virtual void beep() = 0;
+        virtual int test() = 0;
 
 		PyObject * Error;
 		PyObject * command_info_constructor;

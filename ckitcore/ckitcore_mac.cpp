@@ -2519,10 +2519,35 @@ int GlobalMac::getClipboardChangeCount()
     return change_count;
 }
 
+std::wstring GlobalMac::getFocusedApplicationId()
+{
+	FUNC_TRACE;
+    
+    wchar_t * _id;
+    
+    // mallocで確保された文字列が格納される
+    ckit_Global_GetFocusedApplicationId(&_id);
+    
+    std::wstring id = _id;
+    
+    free(_id);
+    
+    return id;
+}
+
 void GlobalMac::beep()
 {
 	FUNC_TRACE;
     
     ckit_Global_Beep();
+}
+
+int GlobalMac::test()
+{
+	FUNC_TRACE;
+    
+    ckit_Global_Test();
+    
+    return 0;
 }
 

@@ -5327,6 +5327,19 @@ static PyObject * Module_getClipboardChangeCount( PyObject * self, PyObject * ar
     return pyret;
 }
 
+static PyObject * Module_getFocusedApplicationId( PyObject * self, PyObject * args )
+{
+	FUNC_TRACE;
+    
+    if( ! PyArg_ParseTuple(args, "" ) )
+        return NULL;
+    
+    std::wstring str = g->getFocusedApplicationId();
+    
+    PyObject * pyret = Py_BuildValue( "u", str.c_str() );
+    return pyret;
+}
+
 static PyObject * Module_beep( PyObject * self, PyObject * args )
 {
 	FUNC_TRACE;
@@ -5335,6 +5348,19 @@ static PyObject * Module_beep( PyObject * self, PyObject * args )
     return NULL;
     
     g->beep();
+    
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+static PyObject * Module_test( PyObject * self, PyObject * args )
+{
+	FUNC_TRACE;
+    
+    if( ! PyArg_ParseTuple(args, "" ) )
+        return NULL;
+    
+    g->test();
     
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -5350,7 +5376,9 @@ static PyMethodDef ckit_funcs[] =
     { "setClipboardText", Module_setClipboardText, METH_VARARGS, "" },
     { "getClipboardText", Module_getClipboardText, METH_VARARGS, "" },
     { "getClipboardChangeCount", Module_getClipboardChangeCount, METH_VARARGS, "" },
+    { "getFocusedApplicationId", Module_getFocusedApplicationId, METH_VARARGS, "" },
     { "beep", Module_beep, METH_VARARGS, "" },
+    { "test", Module_test, METH_VARARGS, "" },
     {NULL,NULL}
 };
 

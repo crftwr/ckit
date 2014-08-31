@@ -166,8 +166,10 @@ namespace ckit
 		virtual void setClipboardText( const wchar_t * text );
 		virtual std::wstring getClipboardText();
 		virtual int getClipboardChangeCount();
+        virtual std::wstring getFocusedApplicationId();
 
         virtual void beep();
+        virtual int test();
     };
     
 	typedef ImageMac Image;
