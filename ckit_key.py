@@ -116,6 +116,9 @@ class KeyEvent:
         VK_RSHIFT   : "RShift",
         #VK_LWIN     : "LWin", # FIXME : Mac対応
         #VK_RWIN     : "RWin", # FIXME : Mac対応
+        VK_LCOMMAND : "LCmd", # FIXME : Macのみ
+        VK_RCOMMAND : "RCmd", # FIXME : Macのみ
+        VK_FUNCTION : "Fn", # FIXME : Macのみ
 
         #VK_SNAPSHOT : "PrintScreen", # FIXME : Mac対応
         #VK_SCROLL   : "ScrollLock", # FIXME : Mac対応
@@ -278,6 +281,10 @@ class KeyEvent:
         "RSHIFT" : VK_RSHIFT,
         #"LWIN" : VK_LWIN, # FIXME : Mac対応
         #"RWIN" : VK_RWIN, # FIXME : Mac対応
+        "CMD" : VK_LCOMMAND, # FIXME : Macのみ
+        "LCMD" : VK_LCOMMAND, # FIXME : Macのみ
+        "RCMD" : VK_RCOMMAND, # FIXME : Macのみ
+        "FN" : VK_FUNCTION, # FIXME : Macのみ
 
         #"PRINTSCREEN" : VK_SNAPSHOT, # FIXME : Mac対応
         #"SCROLLLOCK"  : VK_SCROLL, # FIXME : Mac対応
@@ -370,11 +377,13 @@ class KeyEvent:
         "CTRL"  :  MODKEY_CTRL,
         "SHIFT" :  MODKEY_SHIFT,
         "WIN"   :  MODKEY_WIN,
+        "CMD"   :  MODKEY_CMD,
+        "FN"    :  MODKEY_FN,
 
-        "A" :  MODKEY_ALT,
-        "C" :  MODKEY_CTRL,
-        "S" :  MODKEY_SHIFT,
-        "W" :  MODKEY_WIN,
+        #"A" :  MODKEY_ALT,
+        #"C" :  MODKEY_CTRL,
+        #"S" :  MODKEY_SHIFT,
+        #"W" :  MODKEY_WIN,
     }
 
     def __init__( self, vk, mod, extra=None ):
@@ -384,10 +393,12 @@ class KeyEvent:
 
     def __str__(self):
         s = ""
-        if self.mod & MODKEY_ALT : s += "A-"
-        if self.mod & MODKEY_CTRL : s += "C-"
-        if self.mod & MODKEY_SHIFT : s += "S-"
-        if self.mod & MODKEY_WIN : s += "W-"
+        if self.mod & MODKEY_ALT : s += "Alt-"
+        if self.mod & MODKEY_CTRL : s += "Ctrl-"
+        if self.mod & MODKEY_SHIFT : s += "Shift-"
+        if self.mod & MODKEY_WIN : s += "Win-"
+        if self.mod & MODKEY_CMD : s += "Cmd-"
+        if self.mod & MODKEY_FN : s += "Fn-"
         s += KeyEvent.vkToStr(self.vk)
         return s
 

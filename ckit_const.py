@@ -266,7 +266,8 @@ elif ckit_misc.platform()=="mac":
     VK_SPACE                = 0x31
     VK_BACK                 = 0x33
     VK_ESCAPE               = 0x35
-    VK_COMMAND              = 0x37
+    VK_RCOMMAND             = 0x36
+    VK_LCOMMAND             = 0x37
     VK_LSHIFT               = 0x38
     VK_CAPITAL              = 0x39
     VK_LMENU                = 0x3A
@@ -324,6 +325,8 @@ MODKEY_ALT   = 0x00000001
 MODKEY_CTRL  = 0x00000002
 MODKEY_SHIFT = 0x00000004
 MODKEY_WIN   = 0x00000008
+MODKEY_CMD   = 0x00000010
+MODKEY_FN    = 0x00000020
 
 # -- hit test result --
 HTERROR         = -2
