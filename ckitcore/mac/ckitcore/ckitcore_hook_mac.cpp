@@ -374,6 +374,10 @@ std::wstring InputMac::ToString()
 int InputMac::Send( PyObject * py_input_list )
 {
 	long item_num = PySequence_Length(py_input_list);
+
+    // FIXME : Sendが呼ばれた時点で、モディファイアが押されていないとは限らない
+    // APIで物理的なキーボードの状態を取得するか、あるいはPython側から、引数でもらった方がよいかも。
+    int mod = 0;
     
 	for( int i=0 ; i<item_num ; i++ )
 	{
@@ -396,9 +400,38 @@ int InputMac::Send( PyObject * py_input_list )
             {
                 CGEventRef event = CGEventCreateKeyboardEvent( eventSource, input->vk, true );
                 
-                // FIXME : CGEventSetFlags を使って、モディファイアの状態も設定する
-                //CGEventSetFlags(spcd, kCGEventFlagMaskCommand);
-
+                // FIXME : 左右のモディファイアの併用を意識するべき
+                switch(input->vk)
+                {
+                case kVK_Control:
+                    mod |= kCGEventFlagMaskControl;
+                    break;
+                case kVK_RightControl:
+                    mod |= kCGEventFlagMaskControl;
+                    break;
+                case kVK_Shift:
+                    mod |= kCGEventFlagMaskShift;
+                    break;
+                case kVK_RightShift:
+                    mod |= kCGEventFlagMaskShift;
+                    break;
+                case kVK_Command:
+                    mod |= kCGEventFlagMaskCommand;
+                    break;
+                case 0x36: // RightCommand
+                    mod |= kCGEventFlagMaskCommand;
+                    break;
+                case kVK_Option:
+                    mod |= kCGEventFlagMaskAlternate;
+                    break;
+                case kVK_RightOption:
+                    mod |= kCGEventFlagMaskAlternate;
+                    break;
+                default:
+                    CGEventSetFlags( event, mod );
+                    break;
+                }
+                
                 CGEventPost(kCGHIDEventTap, event);
 
                 CFRelease(event);
@@ -409,8 +442,37 @@ int InputMac::Send( PyObject * py_input_list )
             {
                 CGEventRef event = CGEventCreateKeyboardEvent( eventSource, input->vk, false );
                 
-                // FIXME : CGEventSetFlags を使って、モディファイアの状態も設定する
-                //CGEventSetFlags(spcd, kCGEventFlagMaskCommand);
+                // FIXME : 左右のモディファイアの併用を意識するべき
+                switch(input->vk)
+                {
+                case kVK_Control:
+                    mod &= ~kCGEventFlagMaskControl;
+                    break;
+                case kVK_RightControl:
+                    mod &= ~kCGEventFlagMaskControl;
+                    break;
+                case kVK_Shift:
+                    mod &= ~kCGEventFlagMaskShift;
+                    break;
+                case kVK_RightShift:
+                    mod &= ~kCGEventFlagMaskShift;
+                    break;
+                case kVK_Command:
+                    mod &= ~kCGEventFlagMaskCommand;
+                    break;
+                case 0x36: // RightCommand
+                    mod &= ~kCGEventFlagMaskCommand;
+                    break;
+                case kVK_Option:
+                    mod &= ~kCGEventFlagMaskAlternate;
+                    break;
+                case kVK_RightOption:
+                    mod &= ~kCGEventFlagMaskAlternate;
+                    break;
+                default:
+                    CGEventSetFlags( event, mod );
+                    break;
+                }
                 
                 CGEventPost(kCGHIDEventTap, event);
                 
@@ -423,8 +485,8 @@ int InputMac::Send( PyObject * py_input_list )
                 CGEventRef event_down = CGEventCreateKeyboardEvent( eventSource, input->vk, true );
                 CGEventRef event_up = CGEventCreateKeyboardEvent( eventSource, input->vk, false );
                 
-                // FIXME : CGEventSetFlags を使って、モディファイアの状態も設定する
-                //CGEventSetFlags(spcd, kCGEventFlagMaskCommand);
+                CGEventSetFlags( event_down, mod );
+                CGEventSetFlags( event_down, mod );
                 
                 CGEventPost(kCGHIDEventTap, event_down);
                 CGEventPost(kCGHIDEventTap, event_up);
