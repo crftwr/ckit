@@ -57,6 +57,21 @@
 		3393533619B1691F008BA442 /* ckitcore_hook.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ckitcore_hook.h; sourceTree = "<group>"; };
 		3393533919B1718C008BA442 /* ckitcore_hook_mac.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ckitcore_hook_mac.cpp; sourceTree = "<group>"; };
 		3393533A19B1718C008BA442 /* ckitcore_hook_mac.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ckitcore_hook_mac.h; sourceTree = "<group>"; };
+		33DBA72C19B2BBA10095DE67 /* _config.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = _config.py; path = ../../../keyhac/_config.py; sourceTree = "<group>"; };
+		33DBA72D19B2BBA10095DE67 /* keyhac_balloon.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = keyhac_balloon.py; path = ../../../keyhac/keyhac_balloon.py; sourceTree = "<group>"; };
+		33DBA72E19B2BBA10095DE67 /* keyhac_clipboard.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = keyhac_clipboard.py; path = ../../../keyhac/keyhac_clipboard.py; sourceTree = "<group>"; };
+		33DBA72F19B2BBA10095DE67 /* keyhac_consolewindow.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = keyhac_consolewindow.py; path = ../../../keyhac/keyhac_consolewindow.py; sourceTree = "<group>"; };
+		33DBA73019B2BBA10095DE67 /* keyhac_hook.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = keyhac_hook.py; path = ../../../keyhac/keyhac_hook.py; sourceTree = "<group>"; };
+		33DBA73119B2BBA10095DE67 /* keyhac_ini.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = keyhac_ini.py; path = ../../../keyhac/keyhac_ini.py; sourceTree = "<group>"; };
+		33DBA73219B2BBA10095DE67 /* keyhac_isearch.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = keyhac_isearch.py; path = ../../../keyhac/keyhac_isearch.py; sourceTree = "<group>"; };
+		33DBA73319B2BBA10095DE67 /* keyhac_keymap.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = keyhac_keymap.py; path = ../../../keyhac/keyhac_keymap.py; sourceTree = "<group>"; };
+		33DBA73419B2BBA10095DE67 /* keyhac_listwindow.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = keyhac_listwindow.py; path = ../../../keyhac/keyhac_listwindow.py; sourceTree = "<group>"; };
+		33DBA73519B2BBA10095DE67 /* keyhac_main.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = keyhac_main.py; path = ../../../keyhac/keyhac_main.py; sourceTree = "<group>"; };
+		33DBA73619B2BBA10095DE67 /* keyhac_misc.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = keyhac_misc.py; path = ../../../keyhac/keyhac_misc.py; sourceTree = "<group>"; };
+		33DBA73719B2BBA10095DE67 /* keyhac_resource.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = keyhac_resource.py; path = ../../../keyhac/keyhac_resource.py; sourceTree = "<group>"; };
+		33DBA73819B2BBA10095DE67 /* keyhac_statusbar.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = keyhac_statusbar.py; path = ../../../keyhac/keyhac_statusbar.py; sourceTree = "<group>"; };
+		33DBA73919B2BBA10095DE67 /* keyhac_tasktrayicon.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = keyhac_tasktrayicon.py; path = ../../../keyhac/keyhac_tasktrayicon.py; sourceTree = "<group>"; };
+		33DBA73A19B2BBA10095DE67 /* keyhac.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = keyhac.py; path = ../../../keyhac/keyhac.py; sourceTree = "<group>"; };
 		33E3AA3A19677B22004C7EDF /* ckitcore.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = ckitcore.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		33E3AA3E19677B22004C7EDF /* ckitcore-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ckitcore-Prefix.pch"; sourceTree = "<group>"; };
 		33E3AA3F19677B22004C7EDF /* ckitcoreProj.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = ckitcoreProj.xcconfig; sourceTree = "<group>"; };
@@ -175,11 +190,34 @@
 			name = "lredit - python";
 			sourceTree = "<group>";
 		};
+		33DBA72B19B2BB660095DE67 /* keyhac - python */ = {
+			isa = PBXGroup;
+			children = (
+				33DBA72C19B2BBA10095DE67 /* _config.py */,
+				33DBA72D19B2BBA10095DE67 /* keyhac_balloon.py */,
+				33DBA72E19B2BBA10095DE67 /* keyhac_clipboard.py */,
+				33DBA72F19B2BBA10095DE67 /* keyhac_consolewindow.py */,
+				33DBA73019B2BBA10095DE67 /* keyhac_hook.py */,
+				33DBA73119B2BBA10095DE67 /* keyhac_ini.py */,
+				33DBA73219B2BBA10095DE67 /* keyhac_isearch.py */,
+				33DBA73319B2BBA10095DE67 /* keyhac_keymap.py */,
+				33DBA73419B2BBA10095DE67 /* keyhac_listwindow.py */,
+				33DBA73519B2BBA10095DE67 /* keyhac_main.py */,
+				33DBA73619B2BBA10095DE67 /* keyhac_misc.py */,
+				33DBA73719B2BBA10095DE67 /* keyhac_resource.py */,
+				33DBA73819B2BBA10095DE67 /* keyhac_statusbar.py */,
+				33DBA73919B2BBA10095DE67 /* keyhac_tasktrayicon.py */,
+				33DBA73A19B2BBA10095DE67 /* keyhac.py */,
+			);
+			name = "keyhac - python";
+			sourceTree = "<group>";
+		};
 		33E3AA3119677B22004C7EDF = {
 			isa = PBXGroup;
 			children = (
 				33E3AA3C19677B22004C7EDF /* ckitcore */,
 				33E3AA5C1967CBB2004C7EDF /* ckit - python */,
+				33DBA72B19B2BB660095DE67 /* keyhac - python */,
 				3378E8F719A04F5700B5CE40 /* lredit - python */,
 				33F95561197A080900E57104 /* cfiler - python */,
 				33E3AA3D19677B22004C7EDF /* Supporting Files */,
