@@ -20,6 +20,8 @@ namespace ckit
         
         CFMachPortRef eventTap;
         CFRunLoopSourceRef runLoopSource;
+        
+        static CGEventFlags modifier;
     };
 
     enum InputType
