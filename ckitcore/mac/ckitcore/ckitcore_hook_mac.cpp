@@ -44,6 +44,11 @@ struct FuncTrace
 
 //-----------------------------------------------------------------------------
 
+enum AdditionalVk
+{
+    kVK_RightCommand = 0x36,
+};
+
 CGEventFlags HookMac::modifier = 0 ;
 CGEventSourceRef InputMac::eventSource = NULL;
 
@@ -75,6 +80,47 @@ int HookMac::reset()
     return 0;
 }
 
+static CGEventFlags FixupEventFlagMask( CGEventFlags src )
+{
+    CGEventFlags dst = src;
+    
+    if( src & (NX_DEVICELCTLKEYMASK|NX_DEVICERCTLKEYMASK) ){ dst |= kCGEventFlagMaskControl; }
+    if( src & (NX_DEVICELSHIFTKEYMASK|NX_DEVICERSHIFTKEYMASK) ){ dst |= kCGEventFlagMaskShift; }
+    if( src & (NX_DEVICELALTKEYMASK|NX_DEVICERALTKEYMASK) ){ dst |= kCGEventFlagMaskAlternate; }
+    if( src & (NX_DEVICELCMDKEYMASK|NX_DEVICERCMDKEYMASK) ){ dst |= kCGEventFlagMaskCommand; }
+    if( src & NX_SECONDARYFNMASK ){ dst |= kCGEventFlagMaskSecondaryFn; }
+    
+    PRINTF("AddEventFlagMask : %llx\n", dst );
+    
+    return dst;
+}
+
+static CGEventFlags VkToFlag( int vk )
+{
+    switch(vk)
+    {
+    case kVK_Control:
+        return NX_DEVICELCTLKEYMASK;
+    case kVK_RightControl:
+        return NX_DEVICERCTLKEYMASK;
+    case kVK_Shift:
+        return NX_DEVICELSHIFTKEYMASK;
+    case kVK_RightShift:
+        return NX_DEVICERSHIFTKEYMASK;
+    case kVK_Command:
+        return NX_DEVICELCMDKEYMASK;
+    case kVK_RightCommand:
+        return NX_DEVICERCMDKEYMASK;
+    case kVK_Option:
+        return NX_DEVICELALTKEYMASK;
+    case kVK_RightOption:
+        return NX_DEVICERALTKEYMASK;
+    case kVK_Function:
+        return NX_SECONDARYFNMASK;
+    }
+    return 0;
+}
+
 static CGEventRef _KeyHookCallback(CGEventTapProxy proxy, CGEventType type, CGEventRef event, void * userdata )
 {
     HookMac * hook = (HookMac*)userdata;
@@ -90,81 +136,61 @@ CGEventRef HookMac::KeyHookCallback(CGEventTapProxy proxy, CGEventType type, CGE
     //PRINTF("KeyHookCallback : src = %lld\n", CGEventGetIntegerValueField(event, kCGEventSourceStateID) );
     //PRINTF("KeyHookCallback : mysrc = %u\n", CGEventSourceGetSourceStateID(eventSource) );
     
-    // 自分で挿入したイベントは処理しない
-    if( CGEventGetIntegerValueField(event, kCGEventSourceStateID)==CGEventSourceGetSourceStateID(Input::eventSource) )
-    {
-        if(type==kCGEventFlagsChanged)
-        {
-            modifier = CGEventGetFlags(event);
-        }
-        
-        return event;
-    }
-    
     PythonUtil::GIL_Ensure gil_ensure;
     
     int vk = (int)CGEventGetIntegerValueField(event, kCGKeyboardEventKeycode);
     
-    PyObject * handler = NULL;
-    
+    // down か up かを判定する
+    bool down;
     switch(type)
     {
     case kCGEventKeyDown:
-        handler = keydown_handler;
-        break;
-
-    case kCGEventKeyUp:
-        handler = keyup_handler;
-        break;
-    
-    case kCGEventFlagsChanged:
         {
-            modifier = CGEventGetFlags(event);
-            
-            bool down;
-            switch(vk)
-            {
-            case kVK_Control:
-                down = (modifier & NX_DEVICELCTLKEYMASK) != 0;
-                break;
-            case kVK_RightControl:
-                down = (modifier & NX_DEVICERCTLKEYMASK) != 0;
-                break;
-            case kVK_Shift:
-                down = (modifier & NX_DEVICELSHIFTKEYMASK) != 0;
-                break;
-            case kVK_RightShift:
-                down = (modifier & NX_DEVICERSHIFTKEYMASK) != 0;
-                break;
-            case kVK_Command:
-                down = (modifier & NX_DEVICELCMDKEYMASK) != 0;
-                break;
-            case 0x36: // RightCommand
-                down = (modifier & NX_DEVICERCMDKEYMASK) != 0;
-                break;
-            case kVK_Option:
-                down = (modifier & NX_DEVICELALTKEYMASK) != 0;
-                break;
-            case kVK_RightOption:
-                down = (modifier & NX_DEVICERALTKEYMASK) != 0;
-                break;
-            case kVK_Function:
-                down = (modifier & NX_SECONDARYFNMASK) != 0;
-                break;
-            default:
-                goto pass_through;
-            }
-            
-            if(down)
-            {
-                handler = keydown_handler;
-            }
-            else
-            {
-                handler = keyup_handler;
-            }
+            down = true;
         }
         break;
+            
+    case kCGEventKeyUp:
+        {
+            down = false;
+        }
+        break;
+            
+    case kCGEventFlagsChanged:
+        {
+            CGEventFlags flags = CGEventGetFlags(event);
+            CGEventFlags changed_flag = VkToFlag(vk);
+            
+            if(changed_flag==0)
+            {
+                // FIXME : 普通のモディファイアキー以外の理由で kCGEventFlagsChanged
+                // が来たときも、modifier を更新するべき
+                goto end;
+            }
+            
+            down = ( flags & changed_flag ) != 0;
+        }
+        break;
+            
+    default:
+        // ここには到達しないはず
+        goto end;
+    }
+
+    // 自分で挿入したイベントはスクリプト処理しない
+    if( CGEventGetIntegerValueField(event, kCGEventSourceStateID)==CGEventSourceGetSourceStateID(Input::eventSource) )
+    {
+        goto treat_flags;
+    }
+    
+    PyObject * handler;
+    if(down)
+    {
+        handler = keydown_handler;
+    }
+    else
+    {
+        handler = keyup_handler;
     }
     
     if(handler)
@@ -189,15 +215,47 @@ CGEventRef HookMac::KeyHookCallback(CGEventTapProxy proxy, CGEventType type, CGE
             {
                 // Python側で処理済みなのでイベントを捨てる
                 CGEventSetType(event, kCGEventNull);
+                
+                goto end;
             }
         }
         else
         {
             PyErr_Print();
+            goto end;
         }
     }
     
-pass_through:
+treat_flags:
+
+    // Pythonで処理されなかったキーに対してはモディファイアキーの処理を行う
+    switch(type)
+    {
+    case kCGEventKeyDown:
+    case kCGEventKeyUp:
+        {
+            // 仮想のモディファイアキーの状態をイベントに設定する
+            CGEventSetFlags( event, FixupEventFlagMask( modifier ) );
+        }
+        break;
+            
+    case kCGEventFlagsChanged:
+        {
+            // 仮想のモディファイア状態を更新する
+            if(down)
+            {
+                modifier |= VkToFlag(vk);
+            }
+            else
+            {
+                modifier &= ~VkToFlag(vk);
+            }
+            PRINTF( "updated modifier = %llx\n", modifier );
+        }
+        break;
+    }
+    
+end:
 
     return event;
 }
@@ -315,27 +373,10 @@ std::wstring InputMac::ToString()
     return buf;
 }
 
-static CGEventFlags TranslateModifier_DeviceToLogical( CGEventFlags src )
-{
-    CGEventFlags dst = 0;
-    
-    if( src & (NX_DEVICELCTLKEYMASK|NX_DEVICERCTLKEYMASK) ){ dst |= kCGEventFlagMaskControl; }
-    if( src & (NX_DEVICELSHIFTKEYMASK|NX_DEVICERSHIFTKEYMASK) ){ dst |= kCGEventFlagMaskShift; }
-    if( src & (NX_DEVICELALTKEYMASK|NX_DEVICERALTKEYMASK) ){ dst |= kCGEventFlagMaskAlternate; }
-    if( src & (NX_DEVICELCMDKEYMASK|NX_DEVICERCMDKEYMASK) ){ dst |= kCGEventFlagMaskCommand; }
-    if( src & NX_SECONDARYFNMASK ){ dst |= kCGEventFlagMaskSecondaryFn; }
-    
-    PRINTF("TranslateModifier_DeviceToLogical : %llx\n", dst );
-    
-    return dst;
-}
-
 int InputMac::Send( PyObject * py_input_list )
 {
 	long item_num = PySequence_Length(py_input_list);
 
-    CGEventFlags mod = HookMac::modifier;
-    
 	for( int i=0 ; i<item_num ; i++ )
 	{
 		PyObject * pyitem = PySequence_GetItem( py_input_list, i );
@@ -357,39 +398,7 @@ int InputMac::Send( PyObject * py_input_list )
             {
                 CGEventRef event = CGEventCreateKeyboardEvent( eventSource, input->vk, true );
                 
-                switch(input->vk)
-                {
-                case kVK_Control:
-                    mod |= NX_DEVICELCTLKEYMASK;
-                    break;
-                case kVK_RightControl:
-                    mod |= NX_DEVICERCTLKEYMASK;
-                    break;
-                case kVK_Shift:
-                    mod |= NX_DEVICELSHIFTKEYMASK;
-                    break;
-                case kVK_RightShift:
-                    mod |= NX_DEVICERSHIFTKEYMASK;
-                    break;
-                case kVK_Command:
-                    mod |= NX_DEVICELCMDKEYMASK;
-                    break;
-                case 0x36: // RightCommand
-                    mod |= NX_DEVICERCMDKEYMASK;
-                    break;
-                case kVK_Option:
-                    mod |= NX_DEVICELALTKEYMASK;
-                    break;
-                case kVK_RightOption:
-                    mod |= NX_DEVICERALTKEYMASK;
-                    break;
-                case kVK_Function:
-                    mod |= NX_SECONDARYFNMASK;
-                    break;
-                default:
-                    CGEventSetFlags( event, TranslateModifier_DeviceToLogical(mod) );
-                    break;
-                }
+                // Note : この時点では CGEventSetFlags をしない。フックの中でつける
                 
                 CGEventPost(kCGHIDEventTap, event);
 
@@ -401,40 +410,8 @@ int InputMac::Send( PyObject * py_input_list )
             {
                 CGEventRef event = CGEventCreateKeyboardEvent( eventSource, input->vk, false );
                 
-                switch(input->vk)
-                {
-                case kVK_Control:
-                    mod &= ~NX_DEVICELCTLKEYMASK;
-                    break;
-                case kVK_RightControl:
-                    mod &= ~NX_DEVICERCTLKEYMASK;
-                    break;
-                case kVK_Shift:
-                    mod &= ~NX_DEVICELSHIFTKEYMASK;
-                    break;
-                case kVK_RightShift:
-                    mod &= ~NX_DEVICERSHIFTKEYMASK;
-                    break;
-                case kVK_Command:
-                    mod &= ~NX_DEVICELCMDKEYMASK;
-                    break;
-                case 0x36: // RightCommand
-                    mod &= ~NX_DEVICERCMDKEYMASK;
-                    break;
-                case kVK_Option:
-                    mod &= ~NX_DEVICELALTKEYMASK;
-                    break;
-                case kVK_RightOption:
-                    mod &= ~NX_DEVICERALTKEYMASK;
-                    break;
-                case kVK_Function:
-                    mod &= ~NX_SECONDARYFNMASK;
-                    break;
-                default:
-                    CGEventSetFlags( event, TranslateModifier_DeviceToLogical(mod) );
-                    break;
-                }
-                
+                // Note : この時点では CGEventSetFlags をしない。フックの中でつける
+
                 CGEventPost(kCGHIDEventTap, event);
                 
                 CFRelease(event);
@@ -446,8 +423,7 @@ int InputMac::Send( PyObject * py_input_list )
                 CGEventRef event_down = CGEventCreateKeyboardEvent( eventSource, input->vk, true );
                 CGEventRef event_up = CGEventCreateKeyboardEvent( eventSource, input->vk, false );
                 
-                CGEventSetFlags( event_down, TranslateModifier_DeviceToLogical(mod) );
-                CGEventSetFlags( event_down, TranslateModifier_DeviceToLogical(mod) );
+                // Note : この時点では CGEventSetFlags をしない。フックの中でつける
                 
                 CGEventPost(kCGHIDEventTap, event_down);
                 CGEventPost(kCGHIDEventTap, event_up);
