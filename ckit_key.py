@@ -378,7 +378,6 @@ class KeyEvent:
         "SHIFT" :  MODKEY_SHIFT,
         "WIN"   :  MODKEY_WIN,
         "CMD"   :  MODKEY_CMD,
-        "FN"    :  MODKEY_FN,
 
         #"A" :  MODKEY_ALT,
         #"C" :  MODKEY_CTRL,
@@ -398,7 +397,6 @@ class KeyEvent:
         if self.mod & MODKEY_SHIFT : s += "Shift-"
         if self.mod & MODKEY_WIN : s += "Win-"
         if self.mod & MODKEY_CMD : s += "Cmd-"
-        if self.mod & MODKEY_FN : s += "Fn-"
         s += KeyEvent.vkToStr(self.vk)
         return s
 

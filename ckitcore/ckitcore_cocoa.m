@@ -153,7 +153,6 @@ enum
     MODKEY_SHIFT = 0x00000004,
     MODKEY_WIN   = 0x00000008,
     MODKEY_CMD   = 0x00000010,
-    MODKEY_FN    = 0x00000020,
 };
 
 /*
@@ -598,7 +597,6 @@ static int translateVk_WinToMac(int src)
         if( theEvent.modifierFlags & NSControlKeyMask ){ mod |= MODKEY_CTRL; }
         if( theEvent.modifierFlags & NSShiftKeyMask ){ mod |= MODKEY_SHIFT; }
         if( theEvent.modifierFlags & NSCommandKeyMask ){ mod |= MODKEY_CMD; }
-        if( theEvent.modifierFlags & NSFunctionKeyMask ){ mod |= MODKEY_FN; }
         
         callbacks->keyDown( owner, keyCode, mod );
     }
@@ -643,7 +641,6 @@ static int translateVk_WinToMac(int src)
     if( theEvent.modifierFlags & NSControlKeyMask ){ mod |= MODKEY_CTRL; }
     if( theEvent.modifierFlags & NSShiftKeyMask ){ mod |= MODKEY_SHIFT; }
     if( theEvent.modifierFlags & NSCommandKeyMask ){ mod |= MODKEY_CMD; }
-    if( theEvent.modifierFlags & NSFunctionKeyMask ){ mod |= MODKEY_FN; }
     
     callbacks->keyUp( owner, keyCode, mod );
 }
