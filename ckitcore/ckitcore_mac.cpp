@@ -2496,12 +2496,17 @@ std::wstring GlobalMac::getClipboardText()
 {
 	FUNC_TRACE;
     
-    wchar_t * _text;
+    wchar_t * _text = NULL;
 
     // mallocで確保された文字列が格納される
     ckit_Global_GetClipboardText(&_text);
     
-    std::wstring text = _text;
+    std::wstring text;
+    
+    if(_text)
+    {
+        text = _text;
+    }
     
     free(_text);
     

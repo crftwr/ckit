@@ -41,6 +41,30 @@ static OSStatus hotKeyHandler(EventHandlerCallRef nextHandler, EventRef theEvent
 
 //-----------------------------------------------------------------------------
 
+static wchar_t * NSStringToMallocedWchar( NSString * src )
+{
+    NSData * data = [src dataUsingEncoding:NSUTF32LittleEndianStringEncoding allowLossyConversion:YES];
+    
+    unsigned long char_len = [src length];
+    unsigned long byte_len = [data length];
+    
+    wchar_t * dst = (wchar_t*)malloc( byte_len + sizeof(wchar_t) );
+    
+    memcpy( dst, [data bytes], byte_len );
+    dst[char_len] = 0;
+    
+    return dst;
+}
+
+static NSString * WcharToNSString( const wchar_t * src )
+{
+    NSString * dst = [[NSString alloc] initWithBytes:src length:wcslen(src)*sizeof(wchar_t) encoding:NSUTF32LittleEndianStringEncoding];
+
+    return dst;
+}
+
+//-----------------------------------------------------------------------------
+
 @implementation CkitView
 
 - (id)initWithFrame:(NSRect)frame callbacks:(ckit_Window_Callbacks*)_callbacks owner:(void*)_owner parent_window:(CocoaObject*)parent_window
@@ -626,7 +650,11 @@ static int translateVk_WinToMac(int src)
 
         PRINTF( "keyDown: [%s]\n", [theEvent.characters cStringUsingEncoding:NSUTF8StringEncoding] );
         
-        callbacks->insertText( owner, (const wchar_t*)[s cStringUsingEncoding:NSUTF32LittleEndianStringEncoding], 0 );
+        wchar_t * p = NSStringToMallocedWchar(s);
+        
+        callbacks->insertText( owner, p, 0 );
+        
+        free(p);
     }
 }
 
@@ -654,8 +682,12 @@ static int translateVk_WinToMac(int src)
     // FIXME : insertString が　AttributedStringである可能性もある
     NSString * s = insertString;
     
+    wchar_t * p = NSStringToMallocedWchar(s);
+
     // FIXME : modifierをちゃんとする
-    callbacks->insertText( owner, (const wchar_t*)[s cStringUsingEncoding:NSUTF32LittleEndianStringEncoding], 0 );
+    callbacks->insertText( owner, p, 0 );
+    
+    free(p);
 }
 
 - (void)deleteBackward:(id)sender
@@ -908,8 +940,12 @@ static int translateVk_WinToMac(int src)
     
     [self->marked_text replaceCharactersInRange:replacementRange withString:@""];
 
+    wchar_t * p = NSStringToMallocedWchar(s);
+
     // FIXME : modifierをちゃんとする
-    callbacks->insertText( owner, (const wchar_t*)[s cStringUsingEncoding:NSUTF32LittleEndianStringEncoding], 0 );
+    callbacks->insertText( owner, p, 0 );
+    
+    free(p);
 }
 
 - (void)setMarkedText:(id)aString selectedRange:(NSRange)selectedRange replacementRange:(NSRange)replacementRange
@@ -1371,7 +1407,7 @@ int ckit_Window_SetTitle( CocoaObject * _window, const wchar_t * _title )
 
     NSWindow * window = (__bridge NSWindow*)_window;
     
-    NSString * title = [[NSString alloc] initWithBytes:_title length:wcslen(_title)*sizeof(wchar_t) encoding:NSUTF32LittleEndianStringEncoding];
+    NSString * title = WcharToNSString(_title);
 
     [window setTitle:title];
     
@@ -1495,7 +1531,7 @@ int ckit_Global_SetClipboardText( const wchar_t * _text )
 {
     NSPasteboard * pb = [NSPasteboard generalPasteboard];
 
-    NSString * text = [[NSString alloc] initWithBytes:_text length:wcslen(_text)*sizeof(wchar_t) encoding:NSUTF32LittleEndianStringEncoding];
+    NSString * text = WcharToNSString(_text);
     
     [pb clearContents];
     [pb writeObjects:[NSArray arrayWithObject:text]];
@@ -1510,15 +1546,12 @@ int ckit_Global_GetClipboardText( wchar_t ** text )
     NSArray * classes = [NSArray arrayWithObject:[NSString class]];
     NSArray * objects = [pb readObjectsForClasses:classes options:nil];
     
+    PRINTF( "ckit_Global_GetClipboardText : objects count = %lu\n", (unsigned long)[objects count] );
+
     if([objects count]>0)
     {
         NSString * value = [objects objectAtIndex:0];
-        
-        const wchar_t * _text = (const wchar_t*)[value cStringUsingEncoding:NSUTF32LittleEndianStringEncoding];
-        
-        *text = (wchar_t*)malloc( (wcslen(_text)+1) * sizeof(wchar_t) );
-        
-        wcscpy( *text, _text );
+        *text = NSStringToMallocedWchar(value);
     }
 
     return 0;
@@ -1539,11 +1572,7 @@ int ckit_Global_GetFocusedApplicationId( wchar_t ** id )
     NSRunningApplication * app = [ws frontmostApplication];
     NSString * bundleId = [app bundleIdentifier];
 
-    const wchar_t * _id = (const wchar_t*)[bundleId cStringUsingEncoding:NSUTF32LittleEndianStringEncoding];
-    
-    *id = (wchar_t*)malloc( (wcslen(_id)+1) * sizeof(wchar_t) );
-    
-    wcscpy( *id, _id );
+    *id = NSStringToMallocedWchar(bundleId);
     
     return 0;
 }
