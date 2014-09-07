@@ -12,10 +12,10 @@
 
 @interface CkitView : NSView <NSWindowDelegate,NSTextInputClient>
 {
-    ckit_Window_Callbacks * callbacks;
-    void * owner;
+    @public ckit_Window_Callbacks * callbacks;
+    @public void * owner;
     
-    NSTrackingRectTag mouse_tracking_tag;
+    @public NSTrackingRectTag mouse_tracking_tag;
 
     @public BOOL ime_enabled;
     @public NSMutableAttributedString * marked_text;

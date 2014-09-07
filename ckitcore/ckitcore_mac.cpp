@@ -13,7 +13,6 @@ using namespace ckit;
 #define MODULE_NAME "ckitcore"
 
 const double TIMER_PAINT_INTERVAL = 0.01666;
-const double TIMER_CHECK_QUIT_INTERVAL = 0.01666;
 
 //-----------------------------------------------------------------------------
 
@@ -983,41 +982,6 @@ int WindowMac::timerHandler( CocoaObject * timer )
             }
         }
     }
-    else if( timer == timer_check_quit )
-    {
-        // FIXME : 一番深い messageLoop だけを Quit 判定するようにすべき
-        
-        if(quit_requested)
-        {
-            quit_requested = false;
-            ckit_Window_Quit(handle);
-        }
-        
-        if(messageloop_continue_cond_func_stack.size()>0)
-        {
-            PyObject * continue_cond_func = messageloop_continue_cond_func_stack.back();
-            if(continue_cond_func)
-            {
-                PyObject * pyarglist = Py_BuildValue("()");
-                PyObject * pyresult = PyEval_CallObject( continue_cond_func, pyarglist );
-                Py_DECREF(pyarglist);
-                if(pyresult)
-                {
-                    int result;
-                    PyArg_Parse(pyresult,"i", &result );
-                    Py_DECREF(pyresult);
-                    if(!result)
-                    {
-                        ckit_Window_Quit(handle);
-                    }
-                }
-                else
-                {
-                    PyErr_Print();
-                }
-            }
-        }
-    }
     else
     {
         timer_list_ref_count ++;
@@ -1551,7 +1515,6 @@ WindowMac::WindowMac( Param & _params )
     handle(0),
     initial_rect_set(false),
     timer_paint(0),
-    timer_check_quit(0),
     bg_color(_params.bg_color),
     caret_color0(_params.caret0_color),
     caret_color1(_params.caret1_color),
@@ -1593,7 +1556,6 @@ WindowMac::WindowMac( Param & _params )
     initial_rect_set = true;
     
     ckit_Window_SetTimer( handle, TIMER_PAINT_INTERVAL, &timer_paint );
-    ckit_Window_SetTimer( handle, TIMER_CHECK_QUIT_INTERVAL, &timer_check_quit );
     
     if( _params.show )
     {
@@ -1612,7 +1574,6 @@ WindowMac::~WindowMac()
 
     // タイマー破棄
     ckit_Window_KillTimer( handle, timer_paint );
-    ckit_Window_KillTimer( handle, timer_check_quit );
     
     // terminate graphics system
     if(ime_font){ ime_font->Release(); }
@@ -2465,16 +2426,52 @@ void WindowMac::setImeFont( FontBase * _font )
     if(ime_font){ ime_font->AddRef(); }
 }
 
+static int _checkMessageLoopContinue( void * owner, PyObject * continue_cond_func )
+{
+    WindowMac * window = (WindowMac*)owner;
+    return window->checkMessageLoopContinue( continue_cond_func );
+}
+
+int WindowMac::checkMessageLoopContinue( PyObject * continue_cond_func )
+{
+	PythonUtil::GIL_Ensure gil_ensure;
+
+    if(quit_requested)
+    {
+        quit_requested = false;
+        return 0;
+    }
+
+    if(continue_cond_func)
+    {
+        PyObject * pyarglist = Py_BuildValue("()");
+        PyObject * pyresult = PyEval_CallObject( continue_cond_func, pyarglist );
+        Py_DECREF(pyarglist);
+        if(pyresult)
+        {
+            int result;
+            PyArg_Parse(pyresult,"i", &result );
+            Py_DECREF(pyresult);
+            if(!result)
+            {
+                return 0;
+            }
+        }
+        else
+        {
+            PyErr_Print();
+        }
+    }
+    
+    return 1;
+}
+
 void WindowMac::messageLoop( PyObject * continue_cond_func )
 {
     Py_BEGIN_ALLOW_THREADS
     
-    messageloop_continue_cond_func_stack.push_back(continue_cond_func);
+    ckit_Window_MessageLoop( handle, (ckit_Window_MessageLoopCallback)_checkMessageLoopContinue, continue_cond_func );
     
-    ckit_Window_MessageLoop(handle);
-    
-    messageloop_continue_cond_func_stack.pop_back();
-
     Py_END_ALLOW_THREADS
 }
 

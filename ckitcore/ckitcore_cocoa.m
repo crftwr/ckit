@@ -102,7 +102,10 @@ static NSString * WcharToNSString( const wchar_t * src )
 {
     TRACE;
 
-    callbacks->windowShouldClose( owner );
+    if( callbacks && owner )
+    {
+        callbacks->windowShouldClose( owner );
+    }
     
     return FALSE;
 }
@@ -117,7 +120,10 @@ static NSString * WcharToNSString( const wchar_t * src )
     
     CGContextRef gctx = [[NSGraphicsContext currentContext] graphicsPort];
     
-    callbacks->drawRect( owner, dirtyRect, gctx );
+    if( callbacks && owner )
+    {
+        callbacks->drawRect( owner, dirtyRect, gctx );
+    }
 }
 
 - (void)windowDidResize:(NSNotification *)notification
@@ -129,7 +135,10 @@ static NSString * WcharToNSString( const wchar_t * src )
     [self removeTrackingRect:mouse_tracking_tag];
     mouse_tracking_tag = [self addTrackingRect:rect owner:self userData:NULL assumeInside:NO];
     
-    callbacks->windowDidResize( owner, rect.size );
+    if( callbacks && owner )
+    {
+        callbacks->windowDidResize( owner, rect.size );
+    }
 }
 
 - (void)windowDidEndLiveResize:(NSNotification *)notification
@@ -138,31 +147,46 @@ static NSString * WcharToNSString( const wchar_t * src )
 
     CGRect rect = [self frame];
     
-    callbacks->windowDidResize( owner, rect.size );
+    if( callbacks && owner )
+    {
+        callbacks->windowDidResize( owner, rect.size );
+    }
 }
 
 - (NSSize)windowWillResize:(NSWindow *)sender toSize:(NSSize)frameSize
 {
     TRACE;
 
-    callbacks->windowWillResize( owner, &frameSize );
+    if( callbacks && owner )
+    {
+        callbacks->windowWillResize( owner, &frameSize );
+    }
+    
     return frameSize;
 }
 
 - (void)windowDidBecomeKey:(NSNotification *)notification
 {
-    callbacks->windowDidBecomeKey(owner);
+    if( callbacks && owner )
+    {
+        callbacks->windowDidBecomeKey(owner);
+    }
 }
 
 - (void)windowDidResignKey:(NSNotification *)notification
 {
-    callbacks->windowDidResignKey(owner);
+    if( callbacks && owner )
+    {
+        callbacks->windowDidResignKey(owner);
+    }
 }
 
 -(void)timerHandler:(NSTimer*)timer
 {
-    //TRACE;
-    callbacks->timerHandler( owner, (__bridge CocoaObject *)(timer) );
+    if( callbacks && owner )
+    {
+        callbacks->timerHandler( owner, (__bridge CocoaObject *)(timer) );
+    }
 }
 
 - (BOOL)acceptsFirstResponder
@@ -622,7 +646,10 @@ static int translateVk_WinToMac(int src)
         if( theEvent.modifierFlags & NSShiftKeyMask ){ mod |= MODKEY_SHIFT; }
         if( theEvent.modifierFlags & NSCommandKeyMask ){ mod |= MODKEY_CMD; }
         
-        callbacks->keyDown( owner, keyCode, mod );
+        if( callbacks && owner )
+        {
+            callbacks->keyDown( owner, keyCode, mod );
+        }
     }
 
     // messageLoopやremoveKeyMessageが呼ばれたら、それ以前の keyDown については interpretKeyEvents を呼ばない
@@ -652,7 +679,10 @@ static int translateVk_WinToMac(int src)
         
         wchar_t * p = NSStringToMallocedWchar(s);
         
-        callbacks->insertText( owner, p, 0 );
+        if( callbacks && owner )
+        {
+            callbacks->insertText( owner, p, 0 );
+        }
         
         free(p);
     }
@@ -670,7 +700,10 @@ static int translateVk_WinToMac(int src)
     if( theEvent.modifierFlags & NSShiftKeyMask ){ mod |= MODKEY_SHIFT; }
     if( theEvent.modifierFlags & NSCommandKeyMask ){ mod |= MODKEY_CMD; }
     
-    callbacks->keyUp( owner, keyCode, mod );
+    if( callbacks && owner )
+    {
+        callbacks->keyUp( owner, keyCode, mod );
+    }
 }
 
 - (void)insertText:(id)insertString
@@ -684,8 +717,11 @@ static int translateVk_WinToMac(int src)
     
     wchar_t * p = NSStringToMallocedWchar(s);
 
-    // FIXME : modifierをちゃんとする
-    callbacks->insertText( owner, p, 0 );
+    if( callbacks && owner )
+    {
+        // FIXME : modifierをちゃんとする
+        callbacks->insertText( owner, p, 0 );
+    }
     
     free(p);
 }
@@ -694,8 +730,11 @@ static int translateVk_WinToMac(int src)
 {
     TRACE;
 
-    // FIXME : modifierをちゃんとする
-    callbacks->insertText( owner, L"\b", 0 );
+    if( callbacks && owner )
+    {
+        // FIXME : modifierをちゃんとする
+        callbacks->insertText( owner, L"\b", 0 );
+    }
 }
 
 - (void)viewDidMoveToWindow
@@ -738,7 +777,10 @@ static int translateVk_WinToMac(int src)
     
     mouse_event.location = theEvent.locationInWindow;
     
-    callbacks->mouse( owner, &mouse_event );
+    if( callbacks && owner )
+    {
+        callbacks->mouse( owner, &mouse_event );
+    }
 }
 
 - (void)mouseUp:(NSEvent *)theEvent
@@ -751,7 +793,10 @@ static int translateVk_WinToMac(int src)
     mouse_event.type = ckit_MouseEventType_LeftUp;
     mouse_event.location = theEvent.locationInWindow;
     
-    callbacks->mouse( owner, &mouse_event );
+    if( callbacks && owner )
+    {
+        callbacks->mouse( owner, &mouse_event );
+    }
 }
 
 - (void)rightMouseDown:(NSEvent *)theEvent
@@ -775,7 +820,10 @@ static int translateVk_WinToMac(int src)
     
     mouse_event.location = theEvent.locationInWindow;
     
-    callbacks->mouse( owner, &mouse_event );
+    if( callbacks && owner )
+    {
+        callbacks->mouse( owner, &mouse_event );
+    }
 }
 
 - (void)rightMouseUp:(NSEvent *)theEvent
@@ -788,7 +836,10 @@ static int translateVk_WinToMac(int src)
     mouse_event.type = ckit_MouseEventType_RightUp;
     mouse_event.location = theEvent.locationInWindow;
     
-    callbacks->mouse( owner, &mouse_event );
+    if( callbacks && owner )
+    {
+        callbacks->mouse( owner, &mouse_event );
+    }
 }
 
 - (void)otherMouseDown:(NSEvent *)theEvent
@@ -814,7 +865,10 @@ static int translateVk_WinToMac(int src)
     
     mouse_event.location = theEvent.locationInWindow;
     
-    callbacks->mouse( owner, &mouse_event );
+    if( callbacks && owner )
+    {
+        callbacks->mouse( owner, &mouse_event );
+    }
 }
 
 - (void)otherMouseUp:(NSEvent *)theEvent
@@ -829,7 +883,10 @@ static int translateVk_WinToMac(int src)
     mouse_event.type = ckit_MouseEventType_MiddleUp;
     mouse_event.location = theEvent.locationInWindow;
     
-    callbacks->mouse( owner, &mouse_event );
+    if( callbacks && owner )
+    {
+        callbacks->mouse( owner, &mouse_event );
+    }
 }
 
 - (void)mouseMoved:(NSEvent *)theEvent
@@ -842,7 +899,10 @@ static int translateVk_WinToMac(int src)
     mouse_event.type = ckit_MouseEventType_Move;
     mouse_event.location = theEvent.locationInWindow;
     
-    callbacks->mouse( owner, &mouse_event );
+    if( callbacks && owner )
+    {
+        callbacks->mouse( owner, &mouse_event );
+    }
 }
 
 - (void)mouseDragged:(NSEvent *)theEvent
@@ -855,7 +915,10 @@ static int translateVk_WinToMac(int src)
     mouse_event.type = ckit_MouseEventType_Move;
     mouse_event.location = theEvent.locationInWindow;
     
-    callbacks->mouse( owner, &mouse_event );
+    if( callbacks && owner )
+    {
+        callbacks->mouse( owner, &mouse_event );
+    }
 }
 
 - (void)rightMouseDragged:(NSEvent *)theEvent
@@ -868,7 +931,10 @@ static int translateVk_WinToMac(int src)
     mouse_event.type = ckit_MouseEventType_Move;
     mouse_event.location = theEvent.locationInWindow;
     
-    callbacks->mouse( owner, &mouse_event );
+    if( callbacks && owner )
+    {
+        callbacks->mouse( owner, &mouse_event );
+    }
 }
 
 - (void)otherMouseDragged:(NSEvent *)theEvent
@@ -881,7 +947,10 @@ static int translateVk_WinToMac(int src)
     mouse_event.type = ckit_MouseEventType_Move;
     mouse_event.location = theEvent.locationInWindow;
     
-    callbacks->mouse( owner, &mouse_event );
+    if( callbacks && owner )
+    {
+        callbacks->mouse( owner, &mouse_event );
+    }
 }
 
 - (void)scrollWheel:(NSEvent *)theEvent
@@ -896,7 +965,10 @@ static int translateVk_WinToMac(int src)
     mouse_event.delta_x = theEvent.deltaX;
     mouse_event.delta_y = theEvent.deltaY;
     
-    callbacks->mouse( owner, &mouse_event );
+    if( callbacks && owner )
+    {
+        callbacks->mouse( owner, &mouse_event );
+    }
 }
 
 - (void)touchesBeganWithEvent:(NSEvent *)event
@@ -942,8 +1014,11 @@ static int translateVk_WinToMac(int src)
 
     wchar_t * p = NSStringToMallocedWchar(s);
 
-    // FIXME : modifierをちゃんとする
-    callbacks->insertText( owner, p, 0 );
+    if( callbacks && owner )
+    {
+        // FIXME : modifierをちゃんとする
+        callbacks->insertText( owner, p, 0 );
+    }
     
     free(p);
 }
@@ -1035,7 +1110,11 @@ static int translateVk_WinToMac(int src)
     PRINTF( "firstRectForCharacterRange: range=(%d,%d)\n", (int)aRange.location, (int)aRange.length );
 
     CGRect caret_rect;
-    callbacks->imePosition( owner, &caret_rect );
+
+    if( callbacks && owner )
+    {
+        callbacks->imePosition( owner, &caret_rect );
+    }
     
     NSWindow * window = [self window];
     
@@ -1162,15 +1241,17 @@ int ckit_Window_Destroy( CocoaObject * _window )
     TRACE;
     
     NSWindow * window = (__bridge_transfer NSWindow*)_window;
+    CkitView * view = window.contentView;
+    
+    // C++側のオブジェクトとの関連をきる
+    view->owner = NULL;
+    view->callbacks = NULL;
 
     // ウインドウ削除前に親子関係を切る
+    NSWindow * parent_window = (__bridge NSWindow*)view.parent_window;
+    if(parent_window)
     {
-        CkitView * view = window.contentView;
-        NSWindow * parent_window = (__bridge NSWindow*)view.parent_window;
-        if(parent_window)
-        {
-            [parent_window removeChildWindow:window];
-        }
+        [parent_window removeChildWindow:window];
     }
     
     [window close];
@@ -1178,33 +1259,42 @@ int ckit_Window_Destroy( CocoaObject * _window )
     return 0;
 }
 
-int ckit_Window_MessageLoop( CocoaObject * _window )
+int ckit_Window_MessageLoop( CocoaObject * _window, ckit_Window_MessageLoopCallback callback, void * py_func )
 {
     TRACE;
     
     NSWindow * window = (__bridge NSWindow*)_window;
+    CkitView * view = window.contentView;
     
     TRACE;
 
     // キーイベントのタグを更新し、文字入力イベントをキャンセル
     g.keyevent_removal_tag ++;
     
-    [NSApp runModalForWindow:window];
+    if(0)
+    {
+        [NSApp runModalForWindow:window];
+    }
+    else
+    {
+        while(1)
+        {
+            int result = callback( view->owner, py_func );
+            if(!result)
+            {
+                break;
+            }
+            
+            NSEvent * event = [NSApp nextEventMatchingMask:NSAnyEventMask
+                                                 untilDate:[NSDate distantPast]
+                                                    inMode:NSDefaultRunLoopMode
+                                                   dequeue:YES];
+            [NSApp sendEvent:event];
+        }
+    }
     
     TRACE;
 
-    return 0;
-}
-
-int ckit_Window_Quit( CocoaObject * _window )
-{
-    TRACE;
-    
-    NSWindow * window = (__bridge NSWindow*)_window;
-    (void)window;
-    
-    [NSApp stopModal];
-    
     return 0;
 }
 
@@ -1365,7 +1455,10 @@ static OSStatus hotKeyHandler(EventHandlerCallRef nextHandler, EventRef theEvent
     
     if (hotKeyID.signature == 'htky')
     {
-        g.application_callbacks->hotKey( hotKeyID.id );
+        if( g.application_callbacks )
+        {
+            g.application_callbacks->hotKey( hotKeyID.id );
+        }
     }
     
     return noErr;

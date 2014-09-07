@@ -139,6 +139,8 @@ namespace ckit
         
         int imePosition( CGRect * caret_rect );
         
+        int checkMessageLoopContinue( PyObject * py_func );
+        
         bool initialized;
 
         CocoaObject * handle;
@@ -148,9 +150,6 @@ namespace ckit
         CGRect initial_rect;
         
         CocoaObject * timer_paint;
-        CocoaObject * timer_check_quit;
-        
-        std::vector<PyObject*> messageloop_continue_cond_func_stack;
         
         Color bg_color;
         Color caret_color0;

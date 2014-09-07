@@ -72,6 +72,8 @@ typedef struct ckit_Window_Callbacks_t
 
 } ckit_Window_Callbacks;
 
+typedef int (*ckit_Window_MessageLoopCallback)( void * owner, void * py_func );
+
 typedef struct ckit_Window_Create_Parameters_t
 {
     ckit_Window_Callbacks * callbacks;
@@ -90,8 +92,7 @@ EXTERN int ckit_Application_KillHotKey( CocoaObject * handle );
 
 EXTERN int ckit_Window_Create( ckit_Window_Create_Parameters * params, CocoaObject ** window );
 EXTERN int ckit_Window_Destroy( CocoaObject * window );
-EXTERN int ckit_Window_MessageLoop( CocoaObject * window );
-EXTERN int ckit_Window_Quit( CocoaObject * window );
+EXTERN int ckit_Window_MessageLoop( CocoaObject * window, ckit_Window_MessageLoopCallback callback, void * py_func );
 EXTERN int ckit_Window_RemoveKeyMessage( CocoaObject * window );
 EXTERN int ckit_Window_SetWindowRect( CocoaObject * window, CGRect rect );
 EXTERN int ckit_Window_GetWindowRect( CocoaObject * window, CGRect * rect );
