@@ -1289,7 +1289,15 @@ int ckit_Window_MessageLoop( CocoaObject * _window, ckit_Window_MessageLoopCallb
                                                  untilDate:[NSDate distantPast]
                                                     inMode:NSDefaultRunLoopMode
                                                    dequeue:YES];
-            [NSApp sendEvent:event];
+            if(event)
+            {
+                [NSApp sendEvent:event];
+            }
+            else
+            {
+                // FIXME : もっとエレガントなイベントの待ち方はないのか
+                usleep(1000*10);
+            }
         }
     }
     
