@@ -2482,6 +2482,29 @@ void WindowMac::removeKeyMessage()
     ckit_Window_RemoveKeyMessage(handle);
 }
 
+std::list<MonitorInfo> GlobalMac::getMonitorInfo()
+{
+	FUNC_TRACE;
+    
+    std::list<MonitorInfo> monitor_info;
+    
+    ckit_MonitorInfo _monitor_info[8];
+    int num_info = 8;
+    
+    ckit_Global_GetMonitorInfo( _monitor_info, &num_info );
+    
+    for( int i=0 ; i<num_info ; ++i )
+    {
+        MonitorInfo info;
+        info.monitor_rect = _monitor_info[i].monitor_rect;
+        info.workspace_rect = _monitor_info[i].workspace_rect;
+        
+        monitor_info.push_back(info);
+    }
+    
+    return monitor_info;
+}
+
 void GlobalMac::setClipboardText( const wchar_t * text )
 {
 	FUNC_TRACE;
@@ -2521,20 +2544,20 @@ int GlobalMac::getClipboardChangeCount()
     return change_count;
 }
 
-std::wstring GlobalMac::getFocusedApplicationId()
+std::wstring GlobalMac::getApplicationNameByPid( int pid )
 {
 	FUNC_TRACE;
     
-    wchar_t * _id;
+    wchar_t * _name;
     
     // mallocで確保された文字列が格納される
-    ckit_Global_GetFocusedApplicationId(&_id);
+    ckit_Global_GetApplicationNameByPid( pid, &_name );
     
-    std::wstring id = _id;
+    std::wstring name = _name;
     
-    free(_id);
+    free(_name);
     
-    return id;
+    return name;
 }
 
 void GlobalMac::beep()

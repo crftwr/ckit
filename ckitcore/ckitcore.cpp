@@ -5280,6 +5280,29 @@ static PyObject * Module_setBlockDetector( PyObject * self, PyObject * args )
 	return Py_None;
 }
 
+static PyObject * Module_getMonitorInfo( PyObject * self, PyObject * args )
+{
+	FUNC_TRACE;
+    
+    if( ! PyArg_ParseTuple(args, "" ) )
+        return NULL;
+    
+    std::list<MonitorInfo> monitor_info = g->getMonitorInfo();
+
+	PyObject * pyret = PyList_New(0);
+	for( std::list<MonitorInfo>::const_iterator i=monitor_info.begin() ; i!=monitor_info.end() ; i++ )
+	{
+		PyObject * item = Py_BuildValue( "[[iiii][iiii]]",
+                                        i->monitor_rect.left, i->monitor_rect.top, i->monitor_rect.right, i->monitor_rect.bottom,
+                                        i->workspace_rect.left, i->workspace_rect.top, i->workspace_rect.right, i->workspace_rect.bottom );
+		
+		PyList_Append( pyret, item );
+		
+		Py_XDECREF(item);
+	}
+	return pyret;
+}
+
 static PyObject * Module_setClipboardText( PyObject * self, PyObject * args )
 {
 	FUNC_TRACE;
@@ -5327,14 +5350,16 @@ static PyObject * Module_getClipboardChangeCount( PyObject * self, PyObject * ar
     return pyret;
 }
 
-static PyObject * Module_getFocusedApplicationId( PyObject * self, PyObject * args )
+static PyObject * Module_getApplicationNameByPid( PyObject * self, PyObject * args )
 {
 	FUNC_TRACE;
     
-    if( ! PyArg_ParseTuple(args, "" ) )
+    int pid;
+    
+    if( ! PyArg_ParseTuple(args, "i", &pid ) )
         return NULL;
     
-    std::wstring str = g->getFocusedApplicationId();
+    std::wstring str = g->getApplicationNameByPid(pid);
     
     PyObject * pyret = Py_BuildValue( "u", str.c_str() );
     return pyret;
@@ -5373,10 +5398,11 @@ static PyMethodDef ckit_funcs[] =
     { "setGlobalOption", Module_setGlobalOption, METH_VARARGS, "" },
     { "enableBlockDetector", Module_enableBlockDetector, METH_VARARGS, "" },
     { "setBlockDetector", Module_setBlockDetector, METH_VARARGS, "" },
+    { "getMonitorInfo", Module_getMonitorInfo, METH_VARARGS, "" },
     { "setClipboardText", Module_setClipboardText, METH_VARARGS, "" },
     { "getClipboardText", Module_getClipboardText, METH_VARARGS, "" },
     { "getClipboardChangeCount", Module_getClipboardChangeCount, METH_VARARGS, "" },
-    { "getFocusedApplicationId", Module_getFocusedApplicationId, METH_VARARGS, "" },
+    { "getApplicationNameByPid", Module_getApplicationNameByPid, METH_VARARGS, "" },
     { "beep", Module_beep, METH_VARARGS, "" },
     { "test", Module_test, METH_VARARGS, "" },
     {NULL,NULL}

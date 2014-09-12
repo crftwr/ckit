@@ -18,6 +18,13 @@
 
 typedef struct CocoaObject_t CocoaObject;
 
+typedef struct ckit_MonitorInfo_t
+{
+    CGRect monitor_rect;
+    CGRect workspace_rect;
+
+} ckit_MonitorInfo;
+
 typedef struct ckit_Application_Callbacks_t
 {
     int (*hotKey)( int id );
@@ -115,10 +122,11 @@ EXTERN int ckit_Window_GetMarkedText( CocoaObject * window, CFMutableAttributedS
 EXTERN int ckit_Window_EnableIme( CocoaObject * window, int enable );
 EXTERN int ckit_Window_IsImeOpened( CocoaObject * window, int * ime_opened );
 
+EXTERN int ckit_Global_GetMonitorInfo( ckit_MonitorInfo monitor_info[], int * num_info );
 EXTERN int ckit_Global_SetClipboardText( const wchar_t * text );
 EXTERN int ckit_Global_GetClipboardText( wchar_t ** text );
 EXTERN int ckit_Global_GetClipboardChangeCount( int * change_count );
-EXTERN int ckit_Global_GetFocusedApplicationId( wchar_t ** id );
+EXTERN int ckit_Global_GetApplicationNameByPid( int pid, wchar_t ** name );
 EXTERN int ckit_Global_Beep();
 
 EXTERN int ckit_Global_Test();

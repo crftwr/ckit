@@ -1628,6 +1628,33 @@ int ckit_Window_IsImeOpened( CocoaObject * _window, int * ime_opened )
     return 0;
 }
 
+int ckit_Global_GetMonitorInfo( ckit_MonitorInfo monitor_info[], int * num_info )
+{
+    NSArray * screenArray = [NSScreen screens];
+    unsigned long screenCount = [screenArray count];
+    
+    for( int i=0 ; i<screenCount && i<*num_info ; ++i )
+    {
+        NSScreen * screen = [screenArray objectAtIndex: i];
+
+        /*
+        NSRect frame = [screen frame];
+        NSRect visibleFrame = [screen visibleFrame];
+        printf( "screen[%d] : (%f,%f,%f,%f)  (%f,%f,%f,%f)\n", i,
+               frame.origin.x, frame.origin.y, frame.size.width, frame.size.height,
+               visibleFrame.origin.x, visibleFrame.origin.y, visibleFrame.size.width, visibleFrame.size.height
+               );
+        */
+        
+        monitor_info[i].monitor_rect = [screen frame];
+        monitor_info[i].workspace_rect = [screen visibleFrame];
+    }
+    
+    *num_info = (int)screenCount;
+    
+    return 0;
+}
+
 int ckit_Global_SetClipboardText( const wchar_t * _text )
 {
     NSPasteboard * pb = [NSPasteboard generalPasteboard];
@@ -1667,13 +1694,12 @@ int ckit_Global_GetClipboardChangeCount( int * change_count )
     return 0;
 }
 
-int ckit_Global_GetFocusedApplicationId( wchar_t ** id )
+int ckit_Global_GetApplicationNameByPid( int pid, wchar_t ** name )
 {
-    NSWorkspace * ws = [NSWorkspace sharedWorkspace];
-    NSRunningApplication * app = [ws frontmostApplication];
+    NSRunningApplication * app = [NSRunningApplication runningApplicationWithProcessIdentifier:pid];
     NSString * bundleId = [app bundleIdentifier];
 
-    *id = NSStringToMallocedWchar(bundleId);
+    *name = NSStringToMallocedWchar(bundleId);
     
     return 0;
 }

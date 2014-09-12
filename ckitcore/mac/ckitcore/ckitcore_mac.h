@@ -162,10 +162,11 @@ namespace ckit
 
     struct GlobalMac : public GlobalBase
     {
+        virtual std::list<MonitorInfo> getMonitorInfo();
 		virtual void setClipboardText( const wchar_t * text );
 		virtual std::wstring getClipboardText();
 		virtual int getClipboardChangeCount();
-        virtual std::wstring getFocusedApplicationId();
+        virtual std::wstring getApplicationNameByPid( int pid );
 
         virtual void beep();
         virtual int test();

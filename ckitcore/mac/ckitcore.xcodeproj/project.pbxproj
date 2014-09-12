@@ -450,6 +450,7 @@
 					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
 					/Library/Frameworks/Python.framework/Versions/3.4/Headers,
 					/System/Library/Frameworks/Carbon.framework/Frameworks/HIToolbox.framework/Headers,
+					/System/Library/Frameworks/ApplicationServices.framework/Frameworks/HIServices.framework/Headers,
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				ONLY_ACTIVE_ARCH = YES;
@@ -489,6 +490,7 @@
 					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
 					/Library/Frameworks/Python.framework/Versions/3.4/Headers,
 					/System/Library/Frameworks/Carbon.framework/Frameworks/HIToolbox.framework/Headers,
+					/System/Library/Frameworks/ApplicationServices.framework/Frameworks/HIServices.framework/Headers,
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				SDKROOT = macosx;

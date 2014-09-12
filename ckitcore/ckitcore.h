@@ -495,13 +495,20 @@ namespace ckit
 	    std::vector<PyObject*> popup_menu_commands;	// popupメニュー用のコマンド
         #endif // PLATFORM
 	};
+    
+    struct MonitorInfo
+    {
+        Rect monitor_rect;
+        Rect workspace_rect;
+    };
 
 	struct GlobalBase
 	{
+        virtual std::list<MonitorInfo> getMonitorInfo() = 0;
 		virtual void setClipboardText( const wchar_t * text ) = 0;
 		virtual std::wstring getClipboardText() = 0;
 		virtual int getClipboardChangeCount() = 0;
-        virtual std::wstring getFocusedApplicationId() = 0;
+        virtual std::wstring getApplicationNameByPid( int pid ) = 0;
         virtual void beep() = 0;
         virtual int test() = 0;
 
