@@ -166,6 +166,7 @@ namespace ckit
 		virtual void setClipboardText( const wchar_t * text );
 		virtual std::wstring getClipboardText();
 		virtual int getClipboardChangeCount();
+		virtual int getFocusChangeCount();
         virtual std::wstring getApplicationNameByPid( int pid );
 
         virtual void beep();

@@ -5350,6 +5350,19 @@ static PyObject * Module_getClipboardChangeCount( PyObject * self, PyObject * ar
     return pyret;
 }
 
+static PyObject * Module_getFocusChangeCount( PyObject * self, PyObject * args )
+{
+	FUNC_TRACE;
+    
+    if( ! PyArg_ParseTuple(args, "" ) )
+    return NULL;
+    
+    int count = g->getFocusChangeCount();
+    
+    PyObject * pyret = Py_BuildValue( "i", count );
+    return pyret;
+}
+
 static PyObject * Module_getApplicationNameByPid( PyObject * self, PyObject * args )
 {
 	FUNC_TRACE;
@@ -5402,6 +5415,7 @@ static PyMethodDef ckit_funcs[] =
     { "setClipboardText", Module_setClipboardText, METH_VARARGS, "" },
     { "getClipboardText", Module_getClipboardText, METH_VARARGS, "" },
     { "getClipboardChangeCount", Module_getClipboardChangeCount, METH_VARARGS, "" },
+    { "getFocusChangeCount", Module_getFocusChangeCount, METH_VARARGS, "" },
     { "getApplicationNameByPid", Module_getApplicationNameByPid, METH_VARARGS, "" },
     { "beep", Module_beep, METH_VARARGS, "" },
     { "test", Module_test, METH_VARARGS, "" },

@@ -508,6 +508,7 @@ namespace ckit
 		virtual void setClipboardText( const wchar_t * text ) = 0;
 		virtual std::wstring getClipboardText() = 0;
 		virtual int getClipboardChangeCount() = 0;
+        virtual int getFocusChangeCount() = 0;
         virtual std::wstring getApplicationNameByPid( int pid ) = 0;
         virtual void beep() = 0;
         virtual int test() = 0;

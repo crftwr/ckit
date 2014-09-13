@@ -2544,6 +2544,17 @@ int GlobalMac::getClipboardChangeCount()
     return change_count;
 }
 
+int GlobalMac::getFocusChangeCount()
+{
+	FUNC_TRACE;
+    
+    int change_count;
+    
+    ckit_Global_GetFocusChangeCount(&change_count);
+    
+    return change_count;
+}
+
 std::wstring GlobalMac::getApplicationNameByPid( int pid )
 {
 	FUNC_TRACE;

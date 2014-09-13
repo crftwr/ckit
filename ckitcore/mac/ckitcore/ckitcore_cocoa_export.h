@@ -126,6 +126,7 @@ EXTERN int ckit_Global_GetMonitorInfo( ckit_MonitorInfo monitor_info[], int * nu
 EXTERN int ckit_Global_SetClipboardText( const wchar_t * text );
 EXTERN int ckit_Global_GetClipboardText( wchar_t ** text );
 EXTERN int ckit_Global_GetClipboardChangeCount( int * change_count );
+EXTERN int ckit_Global_GetFocusChangeCount( int * change_count );
 EXTERN int ckit_Global_GetApplicationNameByPid( int pid, wchar_t ** name );
 EXTERN int ckit_Global_Beep();
 
