@@ -169,6 +169,7 @@ namespace ckit
 		virtual int getFocusChangeCount();
         virtual std::vector<ProcessId> getRunningApplications();
         virtual std::wstring getApplicationNameByPid( ProcessId pid );
+        virtual int activateApplicationByPid( ProcessId pid );
 
         virtual void beep();
         virtual int test();

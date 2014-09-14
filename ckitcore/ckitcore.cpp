@@ -5399,6 +5399,21 @@ static PyObject * Module_getApplicationNameByPid( PyObject * self, PyObject * ar
     return pyret;
 }
 
+static PyObject * Module_activateApplicationByPid( PyObject * self, PyObject * args )
+{
+	FUNC_TRACE;
+    
+    ProcessId pid;
+    
+    if( ! PyArg_ParseTuple(args, "i", &pid ) )
+        return NULL;
+    
+    g->activateApplicationByPid(pid);
+    
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
 static PyObject * Module_beep( PyObject * self, PyObject * args )
 {
 	FUNC_TRACE;
@@ -5439,6 +5454,7 @@ static PyMethodDef ckit_funcs[] =
     { "getFocusChangeCount", Module_getFocusChangeCount, METH_VARARGS, "" },
     { "getRunningApplications", Module_getRunningApplications, METH_VARARGS, "" },
     { "getApplicationNameByPid", Module_getApplicationNameByPid, METH_VARARGS, "" },
+    { "activateApplicationByPid", Module_activateApplicationByPid, METH_VARARGS, "" },
     { "beep", Module_beep, METH_VARARGS, "" },
     { "test", Module_test, METH_VARARGS, "" },
     {NULL,NULL}

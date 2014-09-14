@@ -1382,6 +1382,15 @@ int ckit_Global_GetApplicationNameByPid( pid_t pid, wchar_t ** name )
     return 0;
 }
 
+int ckit_Global_ActivateApplicationByPid( pid_t pid )
+{
+    NSRunningApplication * app = [NSRunningApplication runningApplicationWithProcessIdentifier:pid];
+    
+    [app activateWithOptions:NSApplicationActivateAllWindows | NSApplicationActivateIgnoringOtherApps];
+    
+    return 0;
+}
+
 int ckit_Global_Beep()
 {
     NSBeep();

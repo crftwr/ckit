@@ -2592,6 +2592,15 @@ std::wstring GlobalMac::getApplicationNameByPid( ProcessId pid )
     return name;
 }
 
+int GlobalMac::activateApplicationByPid( ProcessId pid )
+{
+	FUNC_TRACE;
+    
+    ckit_Global_ActivateApplicationByPid(pid);
+    
+    return 0;
+}
+
 void GlobalMac::beep()
 {
 	FUNC_TRACE;
