@@ -2555,7 +2555,28 @@ int GlobalMac::getFocusChangeCount()
     return change_count;
 }
 
-std::wstring GlobalMac::getApplicationNameByPid( int pid )
+std::vector<ProcessId> GlobalMac::getRunningApplications()
+{
+	FUNC_TRACE;
+    
+    std::vector<ProcessId> applications;
+    
+    ProcessId * _applications = NULL;
+    int num = 0;
+    
+    ckit_Global_GetRunningApplications( &_applications, &num );
+    
+    for( int i=0 ; i<num ; ++i )
+    {
+        applications.push_back(_applications[i]);
+    }
+    
+    free(_applications);
+    
+    return applications;
+}
+
+std::wstring GlobalMac::getApplicationNameByPid( ProcessId pid )
 {
 	FUNC_TRACE;
     

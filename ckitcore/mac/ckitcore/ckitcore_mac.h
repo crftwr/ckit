@@ -167,7 +167,8 @@ namespace ckit
 		virtual std::wstring getClipboardText();
 		virtual int getClipboardChangeCount();
 		virtual int getFocusChangeCount();
-        virtual std::wstring getApplicationNameByPid( int pid );
+        virtual std::vector<ProcessId> getRunningApplications();
+        virtual std::wstring getApplicationNameByPid( ProcessId pid );
 
         virtual void beep();
         virtual int test();

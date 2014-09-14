@@ -22,7 +22,8 @@ namespace ckit
 	typedef COLORREF Color;
 	typedef HWND WindowHandle;
 };
-#endif
+
+#endif // PLATFORM_XXX
 
 #if defined(PLATFORM_MAC)
 
@@ -156,8 +157,10 @@ namespace ckit
     };
     
 	typedef void* WindowHandle;
+    typedef pid_t ProcessId;
 };
-#endif
+
+#endif // PLATFORM_XXX
 
 const int ORIGIN_X_LEFT     = 0;
 const int ORIGIN_X_CENTER   = 1<<0;

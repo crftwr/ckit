@@ -5363,11 +5363,32 @@ static PyObject * Module_getFocusChangeCount( PyObject * self, PyObject * args )
     return pyret;
 }
 
+static PyObject * Module_getRunningApplications( PyObject * self, PyObject * args )
+{
+	FUNC_TRACE;
+    
+    if( ! PyArg_ParseTuple(args, "" ) )
+        return NULL;
+    
+    std::vector<ProcessId> applications = g->getRunningApplications();
+    
+	PyObject * pyret = PyList_New(0);
+	for( std::vector<ProcessId>::const_iterator i=applications.begin() ; i!=applications.end() ; i++ )
+	{
+		PyObject * item = Py_BuildValue( "i", *i );
+		
+		PyList_Append( pyret, item );
+		
+		Py_XDECREF(item);
+	}
+	return pyret;
+}
+
 static PyObject * Module_getApplicationNameByPid( PyObject * self, PyObject * args )
 {
 	FUNC_TRACE;
     
-    int pid;
+    ProcessId pid;
     
     if( ! PyArg_ParseTuple(args, "i", &pid ) )
         return NULL;
@@ -5416,6 +5437,7 @@ static PyMethodDef ckit_funcs[] =
     { "getClipboardText", Module_getClipboardText, METH_VARARGS, "" },
     { "getClipboardChangeCount", Module_getClipboardChangeCount, METH_VARARGS, "" },
     { "getFocusChangeCount", Module_getFocusChangeCount, METH_VARARGS, "" },
+    { "getRunningApplications", Module_getRunningApplications, METH_VARARGS, "" },
     { "getApplicationNameByPid", Module_getApplicationNameByPid, METH_VARARGS, "" },
     { "beep", Module_beep, METH_VARARGS, "" },
     { "test", Module_test, METH_VARARGS, "" },

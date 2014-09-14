@@ -1352,7 +1352,27 @@ end:
     return 0;
 }
 
-int ckit_Global_GetApplicationNameByPid( int pid, wchar_t ** name )
+int ckit_Global_GetRunningApplications( pid_t ** _applications, int * _num )
+{
+    NSArray * runningApplications = [[NSWorkspace sharedWorkspace] runningApplications];
+    
+    int num = (int)runningApplications.count;
+    
+    pid_t * applications = (pid_t*)malloc( num * sizeof(pid_t) );
+    
+    for( int i=0 ; i<num ; ++i )
+    {
+        NSRunningApplication * app = [runningApplications objectAtIndex:i];
+        applications[i] = app.processIdentifier;
+    }
+    
+    *_applications = applications;
+    *_num = num;
+    
+    return 0;
+}
+
+int ckit_Global_GetApplicationNameByPid( pid_t pid, wchar_t ** name )
 {
     NSRunningApplication * app = [NSRunningApplication runningApplicationWithProcessIdentifier:pid];
     NSString * bundleId = [app bundleIdentifier];
