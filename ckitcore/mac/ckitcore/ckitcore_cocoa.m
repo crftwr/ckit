@@ -1274,7 +1274,7 @@ int ckit_Global_GetClipboardChangeCount( int * change_count )
 
 static void _AccessibilityCallback( AXObserverRef observer, AXUIElementRef element, CFStringRef notificationName, void * contextData )
 {
-    printf("_AccessibilityCallback : %s\n", CFStringGetCStringPtr(notificationName, kCFStringEncodingUTF8) );
+    PRINTF("_AccessibilityCallback : %s\n", CFStringGetCStringPtr(notificationName, kCFStringEncodingUTF8) );
     
     if( CFStringCompare( notificationName, kAXApplicationActivatedNotification, 0 )==kCFCompareEqualTo
      || CFStringCompare( notificationName, kAXApplicationDeactivatedNotification, 0 )==kCFCompareEqualTo
@@ -1299,7 +1299,7 @@ int ckit_Global_GetFocusChangeCount( int * change_count )
     
     if(ret!=kAXErrorSuccess)
     {
-        printf("AXUIElementCopyAttributeValue failed = %d\n", ret);
+        g.focus_change_count ++;
         goto end;
     }
     

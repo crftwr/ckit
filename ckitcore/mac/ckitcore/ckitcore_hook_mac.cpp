@@ -171,9 +171,14 @@ CGEventRef HookMac::KeyHookCallback(CGEventTapProxy proxy, CGEventType type, CGE
             down = ( flags & changed_flag ) != 0;
         }
         break;
-            
+    
+    case kCGEventTapDisabledByTimeout:
+        printf("Warning : Key hook timed out. Re-enabling.\n");
+        CGEventTapEnable(eventTap, true);
+        goto end;
+
     default:
-        // ここには到達しないはず
+        printf("Unknown hook event type %d\n", type);
         goto end;
     }
 
