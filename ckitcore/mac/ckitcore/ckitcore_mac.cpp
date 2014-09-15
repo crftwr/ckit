@@ -2513,10 +2513,14 @@ std::list<MonitorInfo> GlobalMac::getMonitorInfo()
     int num_info = 8;
     
     ckit_Global_GetMonitorInfo( _monitor_info, &num_info );
-    
+
     for( int i=0 ; i<num_info ; ++i )
     {
         MonitorInfo info;
+
+        // 左上原点に変換
+        _monitor_info[i].workspace_rect.origin.y = _monitor_info[i].monitor_rect.size.height - ( _monitor_info[i].workspace_rect.origin.y + _monitor_info[i].workspace_rect.size.height );
+        
         info.monitor_rect = _monitor_info[i].monitor_rect;
         info.workspace_rect = _monitor_info[i].workspace_rect;
         
