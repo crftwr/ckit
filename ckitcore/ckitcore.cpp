@@ -819,9 +819,7 @@ void WindowBase::setImeRect( const Rect & rect )
 //
 // ----------------------------------------------------------------------------
 
-#if defined(PLATFORM_WIN32)
-
-TaskTrayIcon::Param::Param()
+TaskTrayIconBase::Param::Param()
 {
 	FUNC_TRACE;
 
@@ -832,7 +830,7 @@ TaskTrayIcon::Param::Param()
     lbuttondoubleclick_handler = NULL;
 }
 
-TaskTrayIcon::TaskTrayIcon( Param & param )
+TaskTrayIconBase::TaskTrayIconBase( Param & param )
 	:
 	pyobj(NULL)
 {
@@ -842,6 +840,7 @@ TaskTrayIcon::TaskTrayIcon( Param & param )
     rbuttonup_handler = param.rbuttonup_handler; Py_XINCREF(rbuttonup_handler);
     lbuttondoubleclick_handler = param.lbuttondoubleclick_handler; Py_XINCREF(lbuttondoubleclick_handler);
 
+#if defined(PLATFORM_WIN)
     HINSTANCE hInstance = GetModuleHandle(NULL);
 
 	hwnd = CreateWindow( TASKTRAY_WINDOW_CLASS_NAME.c_str(), param.title.c_str(), WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, NULL, NULL, hInstance, this );
@@ -887,20 +886,27 @@ TaskTrayIcon::TaskTrayIcon( Param & param )
 
 	ShowWindow(hwnd, SW_HIDE);
 	UpdateWindow(hwnd);
+
+#endif //defined(PLATFORM_WIN)
 }
 
-TaskTrayIcon::~TaskTrayIcon()
+TaskTrayIconBase::~TaskTrayIconBase()
 {
+#if defined(PLATFORM_WIN)
 	Shell_NotifyIcon( NIM_DELETE, &icon_data );
+#endif //defined(PLATFORM_WIN)
 
     Py_XDECREF(lbuttondown_handler); lbuttondown_handler=NULL;
     Py_XDECREF(lbuttonup_handler); lbuttonup_handler=NULL;
     Py_XDECREF(rbuttondown_handler); rbuttondown_handler=NULL;
     Py_XDECREF(rbuttonup_handler); rbuttonup_handler=NULL;
     Py_XDECREF(lbuttondoubleclick_handler); lbuttondoubleclick_handler=NULL;
+
+	((TaskTrayIcon_Object*)pyobj)->p = NULL;
+    Py_XDECREF(pyobj); pyobj=NULL;
 }
 
-void TaskTrayIcon::SetPyObject( PyObject * _pyobj )
+void TaskTrayIconBase::SetPyObject( PyObject * _pyobj )
 {
 	FUNC_TRACE;
 
@@ -912,7 +918,9 @@ void TaskTrayIcon::SetPyObject( PyObject * _pyobj )
 	}
 }
 
-void TaskTrayIcon::destroy()
+#if defined(PLATFORM_WIN)
+
+void TaskTrayIconBase::destroy()
 {
 	FUNC_TRACE;
 	
@@ -921,7 +929,7 @@ void TaskTrayIcon::destroy()
     DestroyWindow(hwnd);
 }
 
-bool TaskTrayIcon::_registerWindowClass()
+bool TaskTrayIconBase::_registerWindowClass()
 {
 	FUNC_TRACE;
 
@@ -951,7 +959,7 @@ bool TaskTrayIcon::_registerWindowClass()
     return(TRUE);
 }
 
-void TaskTrayIcon::_clearPopupMenuCommands()
+void TaskTrayIconBase::_clearPopupMenuCommands()
 {
 	for( int i=0 ; i<(int)popup_menu_commands.size() ; ++i )
 	{
@@ -1163,7 +1171,7 @@ LRESULT CALLBACK TaskTrayIcon::_wndProc( HWND hwnd, UINT msg, WPARAM wp, LPARAM 
 	return 0;
 }
 
-#endif //PLATFORM_WIN32
+#endif //defined(PLATFORM_WIN)
 
 // ----------------------------------------------------------------------------
 //
@@ -4465,8 +4473,6 @@ PyTypeObject Window_Type = {
 //
 // ----------------------------------------------------------------------------
 
-#if defined(PLATFORM_WIN32)
-
 static int TaskTrayIcon_instance_count = 0;
 
 static int TaskTrayIcon_init( PyObject * self, PyObject * args, PyObject * kwds)
@@ -4538,7 +4544,7 @@ static void TaskTrayIcon_dealloc(PyObject* self)
 	TaskTrayIcon_instance_count --;
 	PRINTF("TaskTrayIcon_instance_count=%d\n", TaskTrayIcon_instance_count);
 
-    TaskTrayIcon * task_tray_icon = ((TaskTrayIcon_Object*)self)->p;
+    TaskTrayIconBase * task_tray_icon = ((TaskTrayIcon_Object*)self)->p;
 	if(task_tray_icon){ task_tray_icon->SetPyObject(NULL); }
 
     self->ob_type->tp_free(self);
@@ -4557,9 +4563,9 @@ static PyObject * TaskTrayIcon_destroy(PyObject* self, PyObject* args)
 		return NULL;
 	}
 
-    TaskTrayIcon * task_tray_icon = ((TaskTrayIcon_Object*)self)->p;
+    TaskTrayIconBase * task_tray_icon = ((TaskTrayIcon_Object*)self)->p;
 
-    task_tray_icon->destroy();
+    delete task_tray_icon;
 
     Py_INCREF(Py_None);
     return Py_None;
@@ -4573,14 +4579,14 @@ static PyObject * TaskTrayIcon_popupMenu(PyObject* self, PyObject* args, PyObjec
 	int y;
 	PyObject * items;
 
-    static char * kwlist[] = {
+    static const char * kwlist[] = {
         "x",
         "y",
         "items",
         NULL
     };
 
-    if(!PyArg_ParseTupleAndKeywords( args, kwds, "iiO", kwlist,
+    if(!PyArg_ParseTupleAndKeywords( args, kwds, "iiO", (char**)kwlist,
         &x,
         &y,
         &items
@@ -4595,8 +4601,9 @@ static PyObject * TaskTrayIcon_popupMenu(PyObject* self, PyObject* args, PyObjec
 		return NULL;
 	}
 
-    TaskTrayIcon * task_tray_icon = ((TaskTrayIcon_Object*)self)->p;
+    //TaskTrayIconBase * task_tray_icon = ((TaskTrayIcon_Object*)self)->p;
 	
+    /*
 	HMENU menu;
 	menu = CreatePopupMenu();
 	
@@ -4680,6 +4687,7 @@ static PyObject * TaskTrayIcon_popupMenu(PyObject* self, PyObject* args, PyObjec
 	}
 
 	DestroyMenu(menu);
+    */
 
     Py_INCREF(Py_None);
     return Py_None;
@@ -4732,8 +4740,6 @@ PyTypeObject TaskTrayIcon_Type = {
     PyType_GenericNew,	/* tp_new */
     0,					/* tp_free */
 };
-
-#endif //PLATFORM_WIN32
 
 // ----------------------------------------------------------------------------
 //
@@ -5486,9 +5492,7 @@ PyMODINIT_FUNC PyInit_ckitcore(void)
     if( PyType_Ready(&MenuNode_Type)<0 ) return NULL;
     if( PyType_Ready(&Window_Type)<0 ) return NULL;
     if( PyType_Ready(&Line_Type)<0 ) return NULL;
-    #if defined(PLATFORM_WIN32)
     if( PyType_Ready(&TaskTrayIcon_Type)<0 ) return NULL;
-    #endif
     if( PyType_Ready(&Hook_Type)<0 ) return NULL;
     if( PyType_Ready(&Input_Type)<0 ) return NULL;
     
@@ -5522,10 +5526,8 @@ PyMODINIT_FUNC PyInit_ckitcore(void)
     PyModule_AddObject( m, "Line", (PyObject*)&Line_Type );
 	Line_static_init();
 
-    #if defined(PLATFORM_WIN32)
     Py_INCREF(&TaskTrayIcon_Type);
     PyModule_AddObject( m, "TaskTrayIcon", (PyObject*)&TaskTrayIcon_Type );
-    #endif
 
     Py_INCREF(&Hook_Type);
     PyModule_AddObject( m, "Hook", (PyObject*)&Hook_Type );

@@ -2482,6 +2482,27 @@ void WindowMac::removeKeyMessage()
     ckit_Window_RemoveKeyMessage(handle);
 }
 
+TaskTrayIconMac::TaskTrayIconMac( Param & _param )
+    :
+    TaskTrayIconBase(_param)
+{
+    ckit_TaskTrayIcon_Create_Parameters params;
+    memset(&params, 0, sizeof(params));
+    params.owner = this;
+    params.title = _param.title.c_str();
+
+    if( ckit_TaskTrayIcon_Create( &params, &handle )!=0 )
+    {
+        printf("ckit_TaskTrayIcon_Create failed\n");
+        return;
+    }
+}
+
+TaskTrayIconMac::~TaskTrayIconMac()
+{
+    ckit_TaskTrayIcon_Destroy(handle);
+}
+
 std::list<MonitorInfo> GlobalMac::getMonitorInfo()
 {
 	FUNC_TRACE;

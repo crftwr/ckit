@@ -456,9 +456,8 @@ namespace ckit
 	    std::vector<PyObject*> popup_menu_commands; // popupメニュー用のコマンド
 	};
 
-    struct TaskTrayIcon
+    struct TaskTrayIconBase
     {
-        #if defined(PLATFORM_WIN32)
 	    struct Param
 	    {
 	        Param();
@@ -471,20 +470,21 @@ namespace ckit
 		    PyObject * lbuttondoubleclick_handler;
 	    };
 
-        TaskTrayIcon( Param & param );
-        virtual ~TaskTrayIcon();
+        TaskTrayIconBase( Param & param );
+        virtual ~TaskTrayIconBase();
 
         void SetPyObject( PyObject * pyobj );
-        void destroy();
-        
+
+        /*
         static LRESULT CALLBACK _wndProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp);
 	    static bool _registerWindowClass();
 	    void _clearPopupMenuCommands();
-	
-		HWND hwnd;
-		PyObject * pyobj;
 
-		NOTIFYICONDATA icon_data;
+        HWND hwnd;
+        NOTIFYICONDATA icon_data;
+        */
+        
+		PyObject * pyobj;
 
 	    PyObject * lbuttondown_handler;
 	    PyObject * lbuttonup_handler;
@@ -493,7 +493,6 @@ namespace ckit
 	    PyObject * lbuttondoubleclick_handler;
 	    
 	    std::vector<PyObject*> popup_menu_commands;	// popupメニュー用のコマンド
-        #endif // PLATFORM
 	};
     
     struct MonitorInfo
@@ -602,7 +601,7 @@ extern PyTypeObject TaskTrayIcon_Type;
 struct TaskTrayIcon_Object
 {
     PyObject_HEAD
-    ckit::TaskTrayIcon * p;
+    ckit::TaskTrayIconBase * p;
 };
 
 

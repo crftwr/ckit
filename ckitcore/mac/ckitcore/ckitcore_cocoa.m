@@ -1206,6 +1206,35 @@ int ckit_Window_IsImeOpened( CocoaObject * _window, int * ime_opened )
     return 0;
 }
 
+int ckit_TaskTrayIcon_Create( ckit_TaskTrayIcon_Create_Parameters * params, CocoaObject ** _task_tray_icon )
+{
+    NSStatusItem * statusItem;
+
+    NSStatusBar * systemStatusBar = [NSStatusBar systemStatusBar];
+
+    statusItem = [systemStatusBar statusItemWithLength:NSVariableStatusItemLength];
+    
+    [statusItem setHighlightMode:YES];
+
+    NSString * title = WcharToNSString(params->title);
+    [statusItem setTitle:title];
+
+    //[statusItem setImage:[NSImage imageNamed:@"AppIcon"]];
+    //[statusItem setMenu:self.statusMenu];
+    
+    *_task_tray_icon = (__bridge_retained CocoaObject*)statusItem;
+
+    return 0;
+}
+
+int ckit_TaskTrayIcon_Destroy( CocoaObject * _task_tray_icon )
+{
+    NSStatusItem * statusItem = (__bridge_transfer NSStatusItem*)_task_tray_icon;
+    (void)statusItem;
+    
+    return 0;
+}
+
 int ckit_Global_GetMonitorInfo( ckit_MonitorInfo monitor_info[], int * num_info )
 {
     NSArray * screenArray = [NSScreen screens];

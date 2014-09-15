@@ -93,6 +93,13 @@ typedef struct ckit_Window_Create_Parameters_t
     
 } ckit_Window_Create_Parameters;
 
+typedef struct ckit_TaskTrayIcon_Create_Parameters_t
+{
+    void * owner;
+    const wchar_t * title;
+    
+} ckit_TaskTrayIcon_Create_Parameters;
+
 EXTERN int ckit_Application_Create( ckit_Application_Create_Parameters * params );
 EXTERN int ckit_Application_SetHotKey( int vk, int mod, CocoaObject ** handle, int * id );
 EXTERN int ckit_Application_KillHotKey( CocoaObject * handle );
@@ -121,6 +128,9 @@ EXTERN int ckit_Window_SetForeground( CocoaObject * window );
 EXTERN int ckit_Window_GetMarkedText( CocoaObject * window, CFMutableAttributedStringRef * marked_text );
 EXTERN int ckit_Window_EnableIme( CocoaObject * window, int enable );
 EXTERN int ckit_Window_IsImeOpened( CocoaObject * window, int * ime_opened );
+
+EXTERN int ckit_TaskTrayIcon_Create( ckit_TaskTrayIcon_Create_Parameters * params, CocoaObject ** task_tray_icon );
+EXTERN int ckit_TaskTrayIcon_Destroy( CocoaObject * task_tray_icon );
 
 EXTERN int ckit_Global_GetMonitorInfo( ckit_MonitorInfo monitor_info[], int * num_info );
 EXTERN int ckit_Global_SetClipboardText( const wchar_t * text );

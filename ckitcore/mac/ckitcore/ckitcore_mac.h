@@ -160,6 +160,14 @@ namespace ckit
         Size paint_client_size;
 	};
 
+    struct TaskTrayIconMac : public TaskTrayIconBase
+    {
+        TaskTrayIconMac( Param & param );
+        virtual ~TaskTrayIconMac();
+
+        CocoaObject * handle;
+    };
+    
     struct GlobalMac : public GlobalBase
     {
         virtual std::list<MonitorInfo> getMonitorInfo();
@@ -179,6 +187,7 @@ namespace ckit
 	typedef FontMac Font;
 	typedef ImagePlaneMac ImagePlane;
 	typedef TextPlaneMac TextPlane;
+	typedef TaskTrayIconMac TaskTrayIcon;
 	typedef WindowMac Window;
 	typedef GlobalMac Global;
 };
