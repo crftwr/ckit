@@ -173,8 +173,14 @@ CGEventRef HookMac::KeyHookCallback(CGEventTapProxy proxy, CGEventType type, CGE
         break;
     
     case kCGEventTapDisabledByTimeout:
-        printf("Warning : Key hook timed out. Re-enabling.\n");
-        CGEventTapEnable(eventTap, true);
+        {
+            printf("Warning : Key hook timed out. Re-enabling.\n");
+            
+            // タイムアウトしたときは、モディファイアキーをニュートラルに戻す
+            modifier &= ~VkToFlag(vk);
+            
+            CGEventTapEnable(eventTap, true);
+        }
         goto end;
 
     default:
