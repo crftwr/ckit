@@ -17,3 +17,4 @@ ckitcore/mac/ckitcore/ckitcore-Prefix.pch
 ckitcore.so
 ckitcore/mac/ckitcore.xcodeproj/project.xcworkspace/xcshareddata/ckitcore.xccheckout
 *.so
+ckitcore/mac/ckitcore.xcodeproj/project.xcworkspace/xcuserdata

@@ -190,6 +190,34 @@
 			name = "lredit - python";
 			sourceTree = "<group>";
 		};
+		33CFAD0919CEA8C400561292 /* mac */ = {
+			isa = PBXGroup;
+			children = (
+				3301E00919C27D04000AA454 /* ckitcore_mac.h */,
+				3301E00A19C27D04000AA454 /* ckitcore_mac.cpp */,
+				3301E00719C27D04000AA454 /* ckitcore_cocoa_export.h */,
+				3301E00819C27D04000AA454 /* ckitcore_cocoa.h */,
+				3301E00B19C27D04000AA454 /* ckitcore_cocoa.m */,
+				3393533A19B1718C008BA442 /* ckitcore_hook_mac.h */,
+				3393533919B1718C008BA442 /* ckitcore_hook_mac.cpp */,
+			);
+			name = mac;
+			sourceTree = "<group>";
+		};
+		33CFAD0A19CEA8DB00561292 /* common */ = {
+			isa = PBXGroup;
+			children = (
+				33E3AA4A19677C2B004C7EDF /* basictypes.h */,
+				33E3AA4C19677C2B004C7EDF /* ckitcore.h */,
+				33E3AA4B19677C2B004C7EDF /* ckitcore.cpp */,
+				3301E01119C27DD9000AA454 /* ckitcore_hook.h */,
+				3301E01219C27DD9000AA454 /* ckitcore_hook.cpp */,
+				33E3AA4E19677C2B004C7EDF /* pythonutil.h */,
+				33E3AA4D19677C2B004C7EDF /* pythonutil.cpp */,
+			);
+			name = common;
+			sourceTree = "<group>";
+		};
 		33DBA72B19B2BB660095DE67 /* keyhac - python */ = {
 			isa = PBXGroup;
 			children = (
@@ -236,20 +264,8 @@
 		33E3AA3C19677B22004C7EDF /* ckitcore */ = {
 			isa = PBXGroup;
 			children = (
-				33E3AA4A19677C2B004C7EDF /* basictypes.h */,
-				33E3AA4C19677C2B004C7EDF /* ckitcore.h */,
-				33E3AA4B19677C2B004C7EDF /* ckitcore.cpp */,
-				3301E01119C27DD9000AA454 /* ckitcore_hook.h */,
-				3301E01219C27DD9000AA454 /* ckitcore_hook.cpp */,
-				3301E00919C27D04000AA454 /* ckitcore_mac.h */,
-				3301E00A19C27D04000AA454 /* ckitcore_mac.cpp */,
-				3301E00719C27D04000AA454 /* ckitcore_cocoa_export.h */,
-				3301E00819C27D04000AA454 /* ckitcore_cocoa.h */,
-				3301E00B19C27D04000AA454 /* ckitcore_cocoa.m */,
-				3393533A19B1718C008BA442 /* ckitcore_hook_mac.h */,
-				3393533919B1718C008BA442 /* ckitcore_hook_mac.cpp */,
-				33E3AA4E19677C2B004C7EDF /* pythonutil.h */,
-				33E3AA4D19677C2B004C7EDF /* pythonutil.cpp */,
+				33CFAD0A19CEA8DB00561292 /* common */,
+				33CFAD0919CEA8C400561292 /* mac */,
 			);
 			path = ckitcore;
 			sourceTree = "<group>";
@@ -376,7 +392,7 @@
 		33E3AA3219677B22004C7EDF /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0510;
+				LastUpgradeCheck = 0600;
 				ORGANIZATIONNAME = craftware;
 			};
 			buildConfigurationList = 33E3AA3519677B22004C7EDF /* Build configuration list for PBXProject "ckitcore" */;
@@ -500,6 +516,7 @@
 		33E3AA4819677B22004C7EDF /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(LOCAL_LIBRARY_DIR)/Frameworks/Python.framework/Versions/3.4",
@@ -511,6 +528,7 @@
 		33E3AA4919677B22004C7EDF /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(LOCAL_LIBRARY_DIR)/Frameworks/Python.framework/Versions/3.4",
