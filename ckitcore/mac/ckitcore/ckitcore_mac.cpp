@@ -683,9 +683,256 @@ ckit_Application_Callbacks application_callbacks = {
     _hotKey,
 };
 
+//-----------------------------------------------------------------------------
+
+int _menuClicked( void * owner, int tag )
+{
+    MenuMac * menu = (MenuMac*)owner;
+    
+    return menu->menuClicked(tag);
+}
+
+int MenuMac::menuClicked( int tag )
+{
+    TRACE;
+    
+    PythonUtil::GIL_Ensure gil_ensure;
+    
+    printf( "menuClicked : %d\n", tag );
+
+    if( 0<=tag && tag<commands.size() )
+    {
+        PyObject * func = commands[tag];
+        if(func)
+        {
+            PyObject * command_info;
+            /* FIXME
+            if(g.command_info_constructor)
+            {
+                PyObject * pyarglist2 = Py_BuildValue( "()" );
+                command_info = PyEval_CallObject( g.command_info_constructor, pyarglist2 );
+                Py_DECREF(pyarglist2);
+                if(!command_info)
+                {
+                    PyErr_Print();
+                    break;
+                }
+            }
+            else
+            */
+            {
+                command_info = Py_None;
+                Py_INCREF(command_info);
+            }
+            
+            PyObject * pyarglist = Py_BuildValue( "(O)", command_info );
+            Py_DECREF(command_info);
+            PyObject * pyresult = PyEval_CallObject( func, pyarglist );
+            Py_DECREF(pyarglist);
+            if(pyresult)
+            {
+                Py_DECREF(pyresult);
+            }
+            else
+            {
+                PyErr_Print();
+            }
+        }
+    }
+    
+    return 0;
+}
+
+ckit_Menu_Callbacks menu_callbacks = {
+    _menuClicked,
+};
+
+MenuMac::MenuMac()
+    :
+    handle(NULL)
+{
+    ckit_Menu_Create_Parameters params;
+    memset(&params, 0, sizeof(params));
+    params.callbacks = &menu_callbacks;
+    params.owner = this;
+    
+    ckit_Menu_Create( &params, &handle );
+}
+
+MenuMac::~MenuMac()
+{
+    ckit_Menu_Destroy(handle);
+}
+
+void MenuMac::build()
+{
+    TRACE;
+    
+    PyObject * pysequence = ((MenuNode_Object*)root_node)->p->items;
+    buildRecursive(handle, pysequence, 1, true );
+}
+
+void MenuMac::buildRecursive( CocoaObject * parent_handle, PyObject * pysequence, int depth, bool parent_enabled )
+{
+    TRACE;
+
+    if( PySequence_Check(pysequence) )
+    {
+        int num_items = (int)PySequence_Length(pysequence);
+        for( int i=0 ; i<num_items ; ++i )
+        {
+            PyObject * pychild_node = PySequence_GetItem( pysequence, i );
+            
+            bool enabled = parent_enabled;
+            bool checked = false;
+            bool unchecked = false;
+            
+            if( MenuNode_Check(pychild_node) )
+            {
+                TRACE;
+
+                MenuNode * child_node = ((MenuNode_Object*)pychild_node)->p;
+                
+                if( depth>0 && child_node->visible )
+                {
+                    PyObject * pyarglist = Py_BuildValue("()");
+                    PyObject * pyresult = PyEval_CallObject( child_node->visible, pyarglist );
+                    Py_DECREF(pyarglist);
+                    if(pyresult)
+                    {
+                        int result;
+                        PyArg_Parse(pyresult,"i", &result );
+                        Py_DECREF(pyresult);
+                        
+                        if(!result)
+                        {
+                            goto cont;
+                        }
+                    }
+                    else
+                    {
+                        PyErr_Print();
+                    }
+                }
+                
+                if(enabled)
+                {
+                    if( child_node->enabled )
+                    {
+                        PyObject * pyarglist = Py_BuildValue("()");
+                        PyObject * pyresult = PyEval_CallObject( child_node->enabled, pyarglist );
+                        Py_DECREF(pyarglist);
+                        if(pyresult)
+                        {
+                            int result;
+                            PyArg_Parse(pyresult,"i", &result );
+                            Py_DECREF(pyresult);
+                            
+                            if(!result)
+                            {
+                                enabled = false;
+                            }
+                        }
+                        else
+                        {
+                            PyErr_Print();
+                        }
+                    }
+                }
+                
+                if( depth>0 && child_node->checked )
+                {
+                    PyObject * pyarglist = Py_BuildValue("()");
+                    PyObject * pyresult = PyEval_CallObject( child_node->checked, pyarglist );
+                    Py_DECREF(pyarglist);
+                    if(pyresult)
+                    {
+                        int result;
+                        PyArg_Parse(pyresult,"i", &result );
+                        Py_DECREF(pyresult);
+                        
+                        if(result)
+                        {
+                            checked = true;
+                        }
+                        else
+                        {
+                            unchecked = true;
+                        }
+                    }
+                    else
+                    {
+                        PyErr_Print();
+                    }
+                }
+                
+                if( depth>0 && child_node->separator )
+                {
+                    TRACE;
+
+                    ckit_Menu_AppendSeparator(parent_handle);
+                }
+                else if( child_node->items )
+                {
+                    ckit_Menu_Create_Parameters params;
+                    memset(&params, 0, sizeof(params));
+                    params.callbacks = &menu_callbacks;
+                    params.owner = this;
+                    
+                    CocoaObject * child_menu_handle;
+                    ckit_Menu_Create( &params, &child_menu_handle );
+                    
+                    buildRecursive( child_menu_handle, child_node->items, depth+1, enabled );
+                    
+                    //ckit_Menu_AppendSubMenu( parent_handle, child_menu_handle, child_node->text.c_str() );
+                }
+                else if( depth>0 && child_node->command )
+                {
+                    TRACE;
+                    
+                    /*
+                    if( ID_MENUITEM + commands.size() > ID_MENUITEM_MAX )
+                    {
+                        goto cont;
+                    }
+                    */
+                    
+                    ckit_Menu_AppendItem(parent_handle, child_node->text.c_str(), commands.size() );
+                    
+                    commands.push_back(child_node->command);
+                    Py_INCREF(child_node->command);
+                }
+            }
+            else if( depth>0 && PyCallable_Check(pychild_node) )
+            {
+                PyObject * pyarglist = Py_BuildValue("()");
+                PyObject * pyresult = PyEval_CallObject( pychild_node, pyarglist );
+                Py_DECREF(pyarglist);
+                if(pyresult)
+                {
+                    buildRecursive( parent_handle, pyresult, depth, enabled );
+                    
+                    Py_DECREF(pyresult);
+                }
+                else
+                {
+                    PyErr_Print();
+                }
+            }
+            
+        cont:
+            
+            Py_XDECREF(pychild_node);
+        }
+    }
+}
+
+//-----------------------------------------------------------------------------
+
 void WindowMac::initializeSystem( const wchar_t * prefix )
 {
     ckit_Application_Create_Parameters params;
+    memset(&params, 0, sizeof(params));
     params.callbacks = &application_callbacks;
     
     ckit_Application_Create( &params );
@@ -1776,6 +2023,7 @@ void WindowMac::setCaretColor( Color color0, Color color1 )
 
 void WindowMac::setMenu( PyObject * _menu )
 {
+    /*
 	if( menu == _menu ) return;
 	
 	Py_XDECREF(menu);
@@ -1786,7 +2034,6 @@ void WindowMac::setMenu( PyObject * _menu )
 
     WARN_NOT_IMPLEMENTED;
 
-    /*
 	HMENU old_menu_handle = GetMenu(hwnd);
 
 	// MenuNode Ç…ÇµÇΩÇ™Ç¡ÇƒÉÅÉjÉÖÅ[Ççƒç\ízÇ∑ÇÈ
@@ -2482,26 +2729,38 @@ void WindowMac::removeKeyMessage()
     ckit_Window_RemoveKeyMessage(handle);
 }
 
+//-----------------------------------------------------------------------------
+
+ckit_TaskTrayIcon_Callbacks task_tray_icon_callbacks = {
+};
+
 TaskTrayIconMac::TaskTrayIconMac( Param & _param )
     :
     TaskTrayIconBase(_param)
 {
     ckit_TaskTrayIcon_Create_Parameters params;
     memset(&params, 0, sizeof(params));
+    params.callbacks = &task_tray_icon_callbacks;
     params.owner = this;
     params.title = _param.title.c_str();
-
+    
     if( ckit_TaskTrayIcon_Create( &params, &handle )!=0 )
     {
         printf("ckit_TaskTrayIcon_Create failed\n");
         return;
     }
+
+    ckit_TaskTrayIcon_SetMenu(handle, ((MenuMac*)menu)->handle);
+
+    menu->setRootNode(_param.menu);
 }
 
 TaskTrayIconMac::~TaskTrayIconMac()
 {
     ckit_TaskTrayIcon_Destroy(handle);
 }
+
+//-----------------------------------------------------------------------------
 
 std::list<MonitorInfo> GlobalMac::getMonitorInfo()
 {

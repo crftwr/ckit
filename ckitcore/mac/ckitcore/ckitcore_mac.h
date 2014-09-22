@@ -60,6 +60,19 @@ namespace ckit
 		Size offscreen_size;
 	};
 
+    struct MenuMac : public MenuBase
+    {
+        MenuMac();
+        virtual ~MenuMac();
+        
+        virtual void build();
+        
+        void buildRecursive( CocoaObject * parent_handle, PyObject * pysequence, int depth, bool parent_enabled );
+        int menuClicked( int tag );
+
+        CocoaObject * handle;
+    };
+    
     struct WindowMac : public WindowBase
     {
         static void initializeSystem( const wchar_t * prefix );
@@ -188,6 +201,7 @@ namespace ckit
 	typedef ImagePlaneMac ImagePlane;
 	typedef TextPlaneMac TextPlane;
 	typedef TaskTrayIconMac TaskTrayIcon;
+    typedef MenuMac Menu;
 	typedef WindowMac Window;
 	typedef GlobalMac Global;
 };

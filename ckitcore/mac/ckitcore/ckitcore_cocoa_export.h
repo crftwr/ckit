@@ -93,8 +93,27 @@ typedef struct ckit_Window_Create_Parameters_t
     
 } ckit_Window_Create_Parameters;
 
+typedef struct ckit_Menu_Callbacks_t
+{
+    int (*menuClicked)( void * owner, int tag );
+    
+} ckit_Menu_Callbacks;
+
+typedef struct ckit_Menu_Create_Parameters_t
+{
+    ckit_Menu_Callbacks * callbacks;
+    void * owner;
+    
+} ckit_Menu_Create_Parameters;
+
+typedef struct ckit_TaskTrayIcon_Callbacks_t
+{
+    
+} ckit_TaskTrayIcon_Callbacks;
+
 typedef struct ckit_TaskTrayIcon_Create_Parameters_t
 {
+    ckit_TaskTrayIcon_Callbacks * callbacks;
     void * owner;
     const wchar_t * title;
     
@@ -131,6 +150,12 @@ EXTERN int ckit_Window_IsImeOpened( CocoaObject * window, int * ime_opened );
 
 EXTERN int ckit_TaskTrayIcon_Create( ckit_TaskTrayIcon_Create_Parameters * params, CocoaObject ** task_tray_icon );
 EXTERN int ckit_TaskTrayIcon_Destroy( CocoaObject * task_tray_icon );
+EXTERN int ckit_TaskTrayIcon_SetMenu( CocoaObject * task_tray_icon, CocoaObject * menu );
+
+EXTERN int ckit_Menu_Create( ckit_Menu_Create_Parameters * params, CocoaObject ** menu );
+EXTERN int ckit_Menu_Destroy( CocoaObject * menu );
+EXTERN int ckit_Menu_AppendItem( CocoaObject * menu, const wchar_t * title, long tag );
+EXTERN int ckit_Menu_AppendSeparator( CocoaObject * menu );
 
 EXTERN int ckit_Global_GetMonitorInfo( ckit_MonitorInfo monitor_info[], int * num_info );
 EXTERN int ckit_Global_SetClipboardText( const wchar_t * text );

@@ -10,6 +10,8 @@
 
 #import "ckitcore_cocoa_export.h"
 
+//-----------------------------------------------------------------------------
+
 @interface CkitView : NSView <NSWindowDelegate,NSTextInputClient>
 {
     @public ckit_Window_Callbacks * callbacks;
@@ -28,3 +30,17 @@
 @property CocoaObject * parent_window;
 
 @end
+
+//-----------------------------------------------------------------------------
+
+@interface CkitMenu : NSMenu <NSMenuDelegate>
+{
+    @public ckit_Menu_Callbacks * callbacks;
+    @public void * owner;
+}
+
+- (void)menuClicked:(NSMenuItem*)menuItem;
+
+@end
+
+//-----------------------------------------------------------------------------

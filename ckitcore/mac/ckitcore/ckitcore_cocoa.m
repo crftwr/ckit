@@ -724,6 +724,24 @@ enum
 
 //-----------------------------------------------------------------------------
 
+@implementation CkitMenu
+
+- (void)menuWillOpen:(NSMenu *)menu
+{
+    PRINTF("menuWillOpen\n");
+}
+
+- (void)menuClicked:(NSMenuItem*)menuItem
+{
+    TRACE;
+    
+    callbacks->menuClicked( owner, (int)menuItem.tag );
+}
+
+@end
+
+//-----------------------------------------------------------------------------
+
 int ckit_Application_Create( ckit_Application_Create_Parameters * params )
 {
     TRACE;
@@ -1214,17 +1232,13 @@ int ckit_Window_IsImeOpened( CocoaObject * _window, int * ime_opened )
 
 int ckit_TaskTrayIcon_Create( ckit_TaskTrayIcon_Create_Parameters * params, CocoaObject ** _task_tray_icon )
 {
-    NSStatusItem * statusItem;
-
     NSStatusBar * systemStatusBar = [NSStatusBar systemStatusBar];
-
-    statusItem = [systemStatusBar statusItemWithLength:NSVariableStatusItemLength];
-    
-    [statusItem setHighlightMode:YES];
+    NSStatusItem * statusItem = [systemStatusBar statusItemWithLength:NSVariableStatusItemLength];
 
     NSString * title = WcharToNSString(params->title);
-    [statusItem setTitle:title];
 
+    [statusItem setHighlightMode:YES];
+    [statusItem setTitle:title];
     //[statusItem setImage:[NSImage imageNamed:@"AppIcon"]];
     //[statusItem setMenu:self.statusMenu];
     
@@ -1237,6 +1251,65 @@ int ckit_TaskTrayIcon_Destroy( CocoaObject * _task_tray_icon )
 {
     NSStatusItem * statusItem = (__bridge_transfer NSStatusItem*)_task_tray_icon;
     (void)statusItem;
+    
+    return 0;
+}
+
+int ckit_TaskTrayIcon_SetMenu( CocoaObject * _task_tray_icon, CocoaObject * _menu )
+{
+    NSStatusItem * task_tray_icon = (__bridge NSStatusItem*)_task_tray_icon;
+    NSMenu * menu = (__bridge NSMenu*)_menu;
+
+    [task_tray_icon setMenu:menu];
+    
+    return 0;
+}
+
+
+//-----------------------------------------------------------------------------
+
+int ckit_Menu_Create( ckit_Menu_Create_Parameters * params, CocoaObject ** _menu )
+{
+    CkitMenu * menu = [[CkitMenu alloc] initWithTitle:@""];
+    [menu setDelegate:menu];
+
+    menu->callbacks = params->callbacks;
+    menu->owner = params->owner;
+    
+    *_menu = (__bridge_retained CocoaObject*)menu;
+    
+    return 0;
+}
+
+int ckit_Menu_Destroy( CocoaObject * _menu )
+{
+    // FIXME : 呼ばれていない。CkitMenuがリークしていないのかチェック。
+    
+    CkitMenu * menu = (__bridge_transfer CkitMenu*)_menu;
+    (void)menu;
+    
+    return 0;
+}
+
+int ckit_Menu_AppendItem( CocoaObject * _menu, const wchar_t * _title, long tag )
+{
+    CkitMenu * menu = (__bridge CkitMenu*)_menu;
+
+    NSString * title = WcharToNSString(_title);
+    
+    NSMenuItem * menuItem = [[NSMenuItem alloc] initWithTitle:title action:@selector(menuClicked:) keyEquivalent:@""];
+    [menuItem setTarget:menu];
+    [menuItem setTag:tag];
+    [menu addItem:menuItem];
+    
+    return 0;
+}
+
+int ckit_Menu_AppendSeparator( CocoaObject * _menu )
+{
+    CkitMenu * menu = (__bridge CkitMenu*)_menu;
+
+    [menu addItem:[NSMenuItem separatorItem]];
     
     return 0;
 }

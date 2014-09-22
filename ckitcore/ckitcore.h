@@ -275,6 +275,20 @@ namespace ckit
 	    PyObject * items;
         bool separator;
     };
+    
+    struct MenuBase
+    {
+        MenuBase();
+        virtual ~MenuBase();
+        
+        void setRootNode( PyObject * _root_node );
+        void clearCommands();
+        
+        virtual void build() = 0;
+        
+        PyObject * root_node;
+        std::vector<PyObject*> commands;
+    };
 
     struct WindowBase
     {
@@ -396,8 +410,9 @@ namespace ckit
         void setImeRect( const Rect & rect );
 
 	    void clearCallables();
-	    void clearMenuCommands();
-	    void clearPopupMenuCommands();
+        
+	    //void clearMenuCommands();
+	    //void clearPopupMenuCommands();
 
 	public:
 		PyObject * pyobj;
@@ -450,10 +465,9 @@ namespace ckit
 
 	    std::list<HotKeyInfo> hotkey_list;
 	    int hotkey_list_ref_count;
-
-        PyObject * menu; 							// メニューバー
-	    std::vector<PyObject*> menu_commands;		// メニューバー用のコマンド
-	    std::vector<PyObject*> popup_menu_commands; // popupメニュー用のコマンド
+        
+        MenuBase * menu_bar;
+        MenuBase * popup_menu;
 	};
 
     struct TaskTrayIconBase
@@ -463,11 +477,7 @@ namespace ckit
 	        Param();
 
 	        std::wstring title;
-		    PyObject * lbuttondown_handler;
-		    PyObject * lbuttonup_handler;
-		    PyObject * rbuttondown_handler;
-		    PyObject * rbuttonup_handler;
-		    PyObject * lbuttondoubleclick_handler;
+            PyObject * menu;
 	    };
 
         TaskTrayIconBase( Param & param );
@@ -475,24 +485,8 @@ namespace ckit
 
         void SetPyObject( PyObject * pyobj );
 
-        /*
-        static LRESULT CALLBACK _wndProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp);
-	    static bool _registerWindowClass();
-	    void _clearPopupMenuCommands();
-
-        HWND hwnd;
-        NOTIFYICONDATA icon_data;
-        */
-        
 		PyObject * pyobj;
-
-	    PyObject * lbuttondown_handler;
-	    PyObject * lbuttonup_handler;
-	    PyObject * rbuttondown_handler;
-	    PyObject * rbuttonup_handler;
-	    PyObject * lbuttondoubleclick_handler;
-	    
-	    std::vector<PyObject*> popup_menu_commands;	// popupメニュー用のコマンド
+        MenuBase * menu;
 	};
     
     struct MonitorInfo

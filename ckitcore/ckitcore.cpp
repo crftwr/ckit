@@ -530,6 +530,40 @@ MenuNode::~MenuNode()
 
 //-----------------------------------------------------------------------------
 
+MenuBase::MenuBase()
+    :
+    root_node(NULL)
+{
+}
+
+MenuBase::~MenuBase()
+{
+    Py_XDECREF(root_node);
+    clearCommands();
+}
+
+void MenuBase::setRootNode( PyObject * _root_node )
+{
+    if( root_node == _root_node ) return;
+    
+    Py_XDECREF(root_node);
+    root_node = _root_node;
+    Py_XINCREF(root_node);
+    
+    build();
+}
+
+void MenuBase::clearCommands()
+{
+    for( unsigned int i=0 ; i<commands.size() ; ++i )
+    {
+        Py_XDECREF(commands[i]);
+    }
+    commands.clear();
+}
+
+//-----------------------------------------------------------------------------
+
 WindowBase::Param::Param()
 {
 	FUNC_TRACE;
@@ -635,8 +669,6 @@ WindowBase::WindowBase( Param & param )
 	timer_list_ref_count = 0;
 	delayed_call_list_ref_count = 0;
 	hotkey_list_ref_count = 0;
-
-	menu = NULL;
     
     g->window_list.push_back(this);
 }
@@ -747,27 +779,9 @@ void WindowBase::clearCallables()
 		Py_XDECREF( i->pyobj );
 	}
 	hotkey_list.clear();
-
-	clearMenuCommands();
-	clearPopupMenuCommands();
-}
-
-void WindowBase::clearMenuCommands()
-{
-	for( unsigned int i=0 ; i<menu_commands.size() ; ++i )
-	{
-		Py_XDECREF(menu_commands[i]);
-	}
-	menu_commands.clear();
-}
-
-void WindowBase::clearPopupMenuCommands()
-{
-	for( unsigned int i=0 ; i<popup_menu_commands.size() ; ++i )
-	{
-		Py_XDECREF(popup_menu_commands[i]);
-	}
-	popup_menu_commands.clear();
+    
+    menu_bar->clearCommands();
+    popup_menu->clearCommands();
 }
 
 void WindowBase::clearPlanes()
@@ -820,25 +834,18 @@ void WindowBase::setImeRect( const Rect & rect )
 // ----------------------------------------------------------------------------
 
 TaskTrayIconBase::Param::Param()
+    :
+    menu(NULL)
 {
 	FUNC_TRACE;
-
-    lbuttondown_handler = NULL;
-    lbuttonup_handler = NULL;
-    rbuttondown_handler = NULL;
-    rbuttonup_handler = NULL;
-    lbuttondoubleclick_handler = NULL;
 }
 
 TaskTrayIconBase::TaskTrayIconBase( Param & param )
 	:
 	pyobj(NULL)
 {
-    lbuttondown_handler = param.lbuttondown_handler; Py_XINCREF(lbuttondown_handler);
-    lbuttonup_handler = param.lbuttonup_handler; Py_XINCREF(lbuttonup_handler);
-    rbuttondown_handler = param.rbuttondown_handler; Py_XINCREF(rbuttondown_handler);
-    rbuttonup_handler = param.rbuttonup_handler; Py_XINCREF(rbuttonup_handler);
-    lbuttondoubleclick_handler = param.lbuttondoubleclick_handler; Py_XINCREF(lbuttondoubleclick_handler);
+    menu = new Menu();
+    menu->setRootNode( param.menu );
 
 #if defined(PLATFORM_WIN)
     HINSTANCE hInstance = GetModuleHandle(NULL);
@@ -896,14 +903,10 @@ TaskTrayIconBase::~TaskTrayIconBase()
 	Shell_NotifyIcon( NIM_DELETE, &icon_data );
 #endif //defined(PLATFORM_WIN)
 
-    Py_XDECREF(lbuttondown_handler); lbuttondown_handler=NULL;
-    Py_XDECREF(lbuttonup_handler); lbuttonup_handler=NULL;
-    Py_XDECREF(rbuttondown_handler); rbuttondown_handler=NULL;
-    Py_XDECREF(rbuttonup_handler); rbuttonup_handler=NULL;
-    Py_XDECREF(lbuttondoubleclick_handler); lbuttondoubleclick_handler=NULL;
-
 	((TaskTrayIcon_Object*)pyobj)->p = NULL;
     Py_XDECREF(pyobj); pyobj=NULL;
+    
+    delete menu;
 }
 
 void TaskTrayIconBase::SetPyObject( PyObject * _pyobj )
@@ -4483,29 +4486,17 @@ static int TaskTrayIcon_init( PyObject * self, PyObject * args, PyObject * kwds)
 	PRINTF("TaskTrayIcon_instance_count=%d\n", TaskTrayIcon_instance_count);
 
     PyObject * pystr_title = NULL;
-    PyObject * lbuttondown_handler = NULL;
-    PyObject * lbuttonup_handler = NULL;
-    PyObject * rbuttondown_handler = NULL;
-    PyObject * rbuttonup_handler = NULL;
-    PyObject * lbuttondoubleclick_handler= NULL;
+    PyObject * menu = NULL;
 
     static const char * kwlist[] = {
         "title",
-        "lbuttondown_handler",
-        "lbuttonup_handler",
-        "rbuttondown_handler",
-        "rbuttonup_handler",
-        "lbuttondoubleclick_handler",
+        "menu",
         NULL
     };
 
-    if(!PyArg_ParseTupleAndKeywords( args, kwds, "|OOOOOO", (char**)kwlist,
+    if(!PyArg_ParseTupleAndKeywords( args, kwds, "|OO", (char**)kwlist,
         &pystr_title,
-        &lbuttondown_handler,
-        &lbuttonup_handler,
-        &rbuttondown_handler,
-        &rbuttonup_handler,
-        &lbuttondoubleclick_handler
+        &menu
     ))
     {
         return -1;
@@ -4522,12 +4513,8 @@ static int TaskTrayIcon_init( PyObject * self, PyObject * args, PyObject * kwds)
 
 	TaskTrayIcon::Param param;
 	param.title = str_title;
-    param.lbuttondown_handler = lbuttondown_handler;
-    param.lbuttonup_handler = lbuttonup_handler;
-    param.rbuttondown_handler = rbuttondown_handler;
-    param.rbuttonup_handler = rbuttonup_handler;
-    param.lbuttondoubleclick_handler = lbuttondoubleclick_handler;
-
+    param.menu = menu;
+    
     TaskTrayIcon * task_tray_icon = new TaskTrayIcon(param);
 
     task_tray_icon->SetPyObject(self);
