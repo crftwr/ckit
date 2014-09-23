@@ -66,6 +66,7 @@ typedef struct ckit_Window_Callbacks_t
 {
     int (*drawRect)( void * owner, CGRect rect, CGContextRef gctx );
     int (*windowShouldClose)( void * owner );
+    int (*windowDidMove)( void * owner, CGPoint origin );
     int (*windowDidResize)( void * owner, CGSize size );
     int (*windowWillResize)( void * owner, CGSize * size );
     int (*windowDidBecomeKey)( void * owner );

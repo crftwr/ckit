@@ -329,7 +329,7 @@ namespace ckit
 		    PyObject * activate_handler;
 		    PyObject * close_handler;
 		    PyObject * endsession_handler;          // FIXME : Mac対応
-		    PyObject * move_handler;                // FIXME : Mac対応
+		    PyObject * move_handler;
 		    PyObject * sizing_handler;
 		    PyObject * size_handler;
 		    PyObject * dropfiles_handler;           // FIXME : Mac対応

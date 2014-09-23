@@ -131,6 +131,21 @@ static NSString * WcharToNSString( const wchar_t * src )
     }
 }
 
+- (void)windowDidMove:(NSNotification *)notification
+{
+    TRACE;
+    
+    CGRect rect = [self frame];
+    
+    [self removeTrackingRect:mouse_tracking_tag];
+    mouse_tracking_tag = [self addTrackingRect:rect owner:self userData:NULL assumeInside:NO];
+    
+    if( callbacks && owner )
+    {
+        callbacks->windowDidMove( owner, rect.origin );
+    }
+}
+
 - (void)windowDidResize:(NSNotification *)notification
 {
     TRACE;

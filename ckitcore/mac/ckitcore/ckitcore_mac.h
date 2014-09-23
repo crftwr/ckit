@@ -134,6 +134,7 @@ namespace ckit
         void paintCaret();
         
         int windowShouldClose();
+        int windowDidMove( CGPoint origin );
         int windowDidResize( CGSize size );
         int windowWillResize( CGSize * size );
         int windowDidBecomeKey();

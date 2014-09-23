@@ -1007,6 +1007,39 @@ int WindowMac::windowShouldClose()
     return 0;
 }
 
+static int _windowDidMove( void * owner, CGPoint origin )
+{
+    WindowMac * window = (WindowMac*)owner;
+    return window->windowDidMove(origin);
+}
+
+int WindowMac::windowDidMove( CGPoint origin )
+{
+    TRACE;
+    
+    PythonUtil::GIL_Ensure gil_ensure;
+    
+    Rect window_rect;
+    getWindowRect(&window_rect);
+    
+    if( move_handler )
+    {
+        PyObject * pyarglist = Py_BuildValue( "(ii)", window_rect.left, window_rect.top );
+        PyObject * pyresult = PyEval_CallObject( move_handler, pyarglist );
+        Py_DECREF(pyarglist);
+        if(pyresult)
+        {
+            Py_DECREF(pyresult);
+        }
+        else
+        {
+            PyErr_Print();
+        }
+    }
+    
+    return 0;
+}
+
 static int _windowDidResize( void * owner, CGSize size )
 {
     WindowMac * window = (WindowMac*)owner;
@@ -1743,6 +1776,7 @@ int WindowMac::imePosition( CGRect * _caret_rect )
 ckit_Window_Callbacks window_callbacks = {
     _drawRect,
     _windowShouldClose,
+    _windowDidMove,
     _windowDidResize,
     _windowWillResize,
     _windowDidBecomeKey,
