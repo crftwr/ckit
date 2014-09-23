@@ -780,8 +780,9 @@ void WindowBase::clearCallables()
 	}
 	hotkey_list.clear();
     
-    menu_bar->clearCommands();
-    popup_menu->clearCommands();
+    // FIXME : 呼ぶ
+    //menu_bar->clearCommands();
+    //popup_menu->clearCommands();
 }
 
 void WindowBase::clearPlanes()

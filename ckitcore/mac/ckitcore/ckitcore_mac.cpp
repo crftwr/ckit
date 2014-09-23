@@ -698,7 +698,7 @@ int MenuMac::menuClicked( int tag )
     
     PythonUtil::GIL_Ensure gil_ensure;
     
-    printf( "menuClicked : %d\n", tag );
+    PRINTF( "menuClicked : %d\n", tag );
 
     if( 0<=tag && tag<commands.size() )
     {
@@ -706,20 +706,18 @@ int MenuMac::menuClicked( int tag )
         if(func)
         {
             PyObject * command_info;
-            /* FIXME
-            if(g.command_info_constructor)
+            if(g->command_info_constructor)
             {
                 PyObject * pyarglist2 = Py_BuildValue( "()" );
-                command_info = PyEval_CallObject( g.command_info_constructor, pyarglist2 );
+                command_info = PyEval_CallObject( g->command_info_constructor, pyarglist2 );
                 Py_DECREF(pyarglist2);
                 if(!command_info)
                 {
                     PyErr_Print();
-                    break;
+                    return 0;
                 }
             }
             else
-            */
             {
                 command_info = Py_None;
                 Py_INCREF(command_info);

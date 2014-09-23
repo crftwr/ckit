@@ -410,9 +410,6 @@ namespace ckit
         void setImeRect( const Rect & rect );
 
 	    void clearCallables();
-        
-	    //void clearMenuCommands();
-	    //void clearPopupMenuCommands();
 
 	public:
 		PyObject * pyobj;
