@@ -96,6 +96,7 @@ typedef struct ckit_Window_Create_Parameters_t
 
 typedef struct ckit_Menu_Callbacks_t
 {
+    int (*menuWillOpen)( void * owner );
     int (*menuClicked)( void * owner, int tag );
     
 } ckit_Menu_Callbacks;
@@ -157,6 +158,7 @@ EXTERN int ckit_Menu_Create( ckit_Menu_Create_Parameters * params, CocoaObject *
 EXTERN int ckit_Menu_Destroy( CocoaObject * menu );
 EXTERN int ckit_Menu_AppendItem( CocoaObject * menu, const wchar_t * title, long tag );
 EXTERN int ckit_Menu_AppendSeparator( CocoaObject * menu );
+EXTERN int ckit_Menu_RemoveAllItems( CocoaObject * menu );
 
 EXTERN int ckit_Global_GetMonitorInfo( ckit_MonitorInfo monitor_info[], int * num_info );
 EXTERN int ckit_Global_SetClipboardText( const wchar_t * text );

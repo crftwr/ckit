@@ -68,6 +68,8 @@ namespace ckit
         virtual void build();
         
         void buildRecursive( CocoaObject * parent_handle, PyObject * pysequence, int depth, bool parent_enabled );
+
+        int menuWillOpen();
         int menuClicked( int tag );
 
         CocoaObject * handle;

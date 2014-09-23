@@ -744,6 +744,8 @@ enum
 - (void)menuWillOpen:(NSMenu *)menu
 {
     PRINTF("menuWillOpen\n");
+
+    callbacks->menuWillOpen( owner );
 }
 
 - (void)menuClicked:(NSMenuItem*)menuItem
@@ -1287,7 +1289,7 @@ int ckit_Menu_Create( ckit_Menu_Create_Parameters * params, CocoaObject ** _menu
 {
     CkitMenu * menu = [[CkitMenu alloc] initWithTitle:@""];
     [menu setDelegate:menu];
-
+    
     menu->callbacks = params->callbacks;
     menu->owner = params->owner;
     
@@ -1325,6 +1327,15 @@ int ckit_Menu_AppendSeparator( CocoaObject * _menu )
     CkitMenu * menu = (__bridge CkitMenu*)_menu;
 
     [menu addItem:[NSMenuItem separatorItem]];
+    
+    return 0;
+}
+
+int ckit_Menu_RemoveAllItems( CocoaObject * _menu )
+{
+    CkitMenu * menu = (__bridge CkitMenu*)_menu;
+    
+    [menu removeAllItems];
     
     return 0;
 }

@@ -282,7 +282,7 @@ namespace ckit
         virtual ~MenuBase();
         
         void setRootNode( PyObject * _root_node );
-        void clearCommands();
+        void clear();
         
         virtual void build() = 0;
         

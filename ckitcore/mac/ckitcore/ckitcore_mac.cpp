@@ -685,6 +685,20 @@ ckit_Application_Callbacks application_callbacks = {
 
 //-----------------------------------------------------------------------------
 
+int _menuWillOpen( void * owner )
+{
+    MenuMac * menu = (MenuMac*)owner;
+    
+    return menu->menuWillOpen();
+}
+
+int MenuMac::menuWillOpen()
+{
+    build();
+    
+    return 0;
+}
+
 int _menuClicked( void * owner, int tag )
 {
     MenuMac * menu = (MenuMac*)owner;
@@ -742,6 +756,7 @@ int MenuMac::menuClicked( int tag )
 }
 
 ckit_Menu_Callbacks menu_callbacks = {
+    _menuWillOpen,
     _menuClicked,
 };
 
@@ -765,7 +780,11 @@ MenuMac::~MenuMac()
 void MenuMac::build()
 {
     TRACE;
+
+    // メニューを空にする
+    ckit_Menu_RemoveAllItems(handle);
     
+    // メニュー元データからメニューを生成する
     PyObject * pysequence = ((MenuNode_Object*)root_node)->p->items;
     buildRecursive(handle, pysequence, 1, true );
 }
@@ -774,6 +793,8 @@ void MenuMac::buildRecursive( CocoaObject * parent_handle, PyObject * pysequence
 {
     TRACE;
 
+    PythonUtil::GIL_Ensure gil_ensure;
+    
     if( PySequence_Check(pysequence) )
     {
         int num_items = (int)PySequence_Length(pysequence);

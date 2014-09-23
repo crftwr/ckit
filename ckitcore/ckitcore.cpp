@@ -539,7 +539,7 @@ MenuBase::MenuBase()
 MenuBase::~MenuBase()
 {
     Py_XDECREF(root_node);
-    clearCommands();
+    clear();
 }
 
 void MenuBase::setRootNode( PyObject * _root_node )
@@ -550,10 +550,10 @@ void MenuBase::setRootNode( PyObject * _root_node )
     root_node = _root_node;
     Py_XINCREF(root_node);
     
-    build();
+    clear();
 }
 
-void MenuBase::clearCommands()
+void MenuBase::clear()
 {
     for( unsigned int i=0 ; i<commands.size() ; ++i )
     {
