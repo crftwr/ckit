@@ -118,6 +118,7 @@ typedef struct ckit_TaskTrayIcon_Create_Parameters_t
     ckit_TaskTrayIcon_Callbacks * callbacks;
     void * owner;
     const wchar_t * title;
+    const wchar_t * icon;
     
 } ckit_TaskTrayIcon_Create_Parameters;
 

@@ -474,6 +474,7 @@ namespace ckit
 	        Param();
 
 	        std::wstring title;
+            std::wstring icon;
             PyObject * menu;
 	    };
 

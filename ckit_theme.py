@@ -19,7 +19,7 @@ theme_name = default_theme_name
 ini = None
 
 
-def _themePath(filename):
+def getThemeAssetFullpath(filename):
     return os.path.join( ckit_misc.getAppExePath(), 'theme', theme_name, filename )
 
 ## テーマを設定する
@@ -31,7 +31,7 @@ def setTheme( name, default_color ):
     
     theme_name = name
     
-    filename = _themePath("theme.ini")
+    filename = getThemeAssetFullpath("theme.ini")
 
     ini = configparser.RawConfigParser()
     
@@ -83,7 +83,7 @@ def getColor( name, section="COLOR" ):
 def createThemeImage(filename):
 
     try:
-        path = _themePath(filename)
+        path = getThemeAssetFullpath(filename)
         pil_img = Image.open(path)
         pil_img = pil_img.convert( "RGBA" )
         return ckitcore.Image.fromString( pil_img.size, pil_img.tostring(), (0,0,0) )
@@ -97,7 +97,7 @@ def createThemeImage(filename):
 def createThemeImage3x3(filename):
 
     try:
-        path = _themePath(filename)
+        path = getThemeAssetFullpath(filename)
         pil_img = Image.open(path)
         pil_img = pil_img.convert( "RGBA" )
     except IOError:

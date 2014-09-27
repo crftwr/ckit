@@ -2796,6 +2796,7 @@ TaskTrayIconMac::TaskTrayIconMac( Param & _param )
     params.callbacks = &task_tray_icon_callbacks;
     params.owner = this;
     params.title = _param.title.c_str();
+    params.icon = _param.icon.c_str();
     
     if( ckit_TaskTrayIcon_Create( &params, &handle )!=0 )
     {

@@ -1253,11 +1253,14 @@ int ckit_TaskTrayIcon_Create( ckit_TaskTrayIcon_Create_Parameters * params, Coco
     NSStatusItem * statusItem = [systemStatusBar statusItemWithLength:NSVariableStatusItemLength];
 
     NSString * title = WcharToNSString(params->title);
-
-    [statusItem setHighlightMode:YES];
     [statusItem setTitle:title];
-    //[statusItem setImage:[NSImage imageNamed:@"AppIcon"]];
-    //[statusItem setMenu:self.statusMenu];
+
+    NSString * icon = WcharToNSString(params->icon);
+    NSImage * image = [[NSImage alloc] initWithContentsOfFile:icon];
+    [image setSize:NSMakeSize(20,20)];
+    [statusItem setImage:image];
+    
+    [statusItem setHighlightMode:YES];
     
     *_task_tray_icon = (__bridge_retained CocoaObject*)statusItem;
     

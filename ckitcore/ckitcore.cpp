@@ -4487,16 +4487,19 @@ static int TaskTrayIcon_init( PyObject * self, PyObject * args, PyObject * kwds)
 	PRINTF("TaskTrayIcon_instance_count=%d\n", TaskTrayIcon_instance_count);
 
     PyObject * pystr_title = NULL;
+    PyObject * pystr_icon = NULL;
     PyObject * menu = NULL;
 
     static const char * kwlist[] = {
         "title",
+        "icon",
         "menu",
         NULL
     };
 
-    if(!PyArg_ParseTupleAndKeywords( args, kwds, "|OO", (char**)kwlist,
+    if(!PyArg_ParseTupleAndKeywords( args, kwds, "|OOO", (char**)kwlist,
         &pystr_title,
+        &pystr_icon,
         &menu
     ))
     {
@@ -4512,8 +4515,18 @@ static int TaskTrayIcon_init( PyObject * self, PyObject * args, PyObject * kwds)
         }
     }
 
+    std::wstring str_icon;
+    if(pystr_icon)
+    {
+        if( !PythonUtil::PyStringToWideString( pystr_icon, &str_icon ) )
+        {
+            return -1;
+        }
+    }
+    
 	TaskTrayIcon::Param param;
 	param.title = str_title;
+    param.icon = str_icon;
     param.menu = menu;
     
     TaskTrayIcon * task_tray_icon = new TaskTrayIcon(param);
