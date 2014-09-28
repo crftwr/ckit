@@ -435,9 +435,31 @@ static PyObject * Hook_reset( Hook_Object * self, PyObject* args )
 	return Py_None;
 }
 
+static PyObject * Hook_isAllowed( PyObject * self, PyObject * args )
+{
+    int prompt = 0;
+    
+    if( ! PyArg_ParseTuple(args,"i",&prompt) )
+        return NULL;
+    
+    bool allowed = Hook::IsAllowed( prompt!=0 );
+
+    if(allowed)
+    {
+        Py_INCREF(Py_True);
+        return Py_True;
+    }
+    else
+    {
+        Py_INCREF(Py_False);
+        return Py_False;
+    }
+}
+
 static PyMethodDef Hook_methods[] = {
 	{ "destroy", Hook_destroy, METH_VARARGS, "" },
 	{ "reset", (PyCFunction)Hook_reset, METH_VARARGS, "" },
+    { "isAllowed", Hook_isAllowed, METH_STATIC|METH_VARARGS, "" },
 	{NULL,NULL}
 };
 

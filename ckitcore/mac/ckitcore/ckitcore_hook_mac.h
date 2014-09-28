@@ -18,6 +18,8 @@ namespace ckit
         int UninstallKeyHook();
         CGEventRef KeyHookCallback(CGEventTapProxy proxy, CGEventType type, CGEventRef event);
         
+        static bool IsAllowed( bool prompt );
+        
         CFMachPortRef eventTap;
         CFRunLoopSourceRef runLoopSource;
         

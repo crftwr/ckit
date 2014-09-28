@@ -295,6 +295,28 @@ int HookMac::UninstallKeyHook()
     return 0;
 }
 
+bool HookMac::IsAllowed( bool prompt )
+{
+    TRACE;
+    
+    const void * keys[] = { kAXTrustedCheckOptionPrompt };
+    const void * values[] = { prompt ? kCFBooleanTrue:kCFBooleanFalse };
+    
+    CFDictionaryRef options = CFDictionaryCreate(
+                                                 kCFAllocatorDefault,
+                                                 keys,
+                                                 values,
+                                                 sizeof(keys) / sizeof(*keys),
+                                                 &kCFCopyStringDictionaryKeyCallBacks,
+                                                 &kCFTypeDictionaryValueCallBacks);
+    
+    bool allowed = AXIsProcessTrustedWithOptions(options);
+    
+    CFRelease(options);
+    
+    return allowed;
+}
+
 //-----------------------------------------------------------------------------
 
 int InputMac::Initialize()
