@@ -553,7 +553,7 @@ class EditWidget(Widget):
         self.margin1 = margin1
         self.margin2 = margin2
         self.auto_complete = auto_complete
-        self.vk_complete = [ VK_SPACE ]
+        self.vk_complete = []
         self.scroll_pos = -self.margin1
         self.bg_margin = bg_margin
         self.autofix_list = autofix_list
@@ -1588,33 +1588,9 @@ class CandidateWindow( ckit_textwindow.TextWindow ):
             if self.keydown_hook( vk, mod ):
                 return True
 
-        if mod==MODKEY_SHIFT:
-            if vk==VK_SPACE:
-                if not len(self.items) : return True
-                self.select -= 1
-                if self.select<0 : self.select=len(self.items)-1
-                self.scroll_info.makeVisible( self.select, self.height() )
-
-                if self.selchange_handler:
-                    self.selchange_handler( self.select, self.items[self.select] )
-
-                self.paint()
-                return True
-
-        elif mod==0:
-            if vk==VK_SPACE:
-                if not len(self.items) : return True
-                self.select += 1
-                if self.select>len(self.items)-1 : self.select=0
-                self.scroll_info.makeVisible( self.select, self.height() )
-
-                if self.selchange_handler:
-                    self.selchange_handler( self.select, self.items[self.select] )
-
-                self.paint()
-                return True
-
-            elif vk==VK_UP:
+        if mod==0:
+        
+            if vk==VK_UP:
                 if not len(self.items) : return True
                 if self.select>=0:
                     self.select -= 1

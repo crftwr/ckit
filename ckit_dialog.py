@@ -268,10 +268,6 @@ class Dialog( ckit_textwindow.TextWindow ):
 
         def onKeyDown( self, vk, mod ):
 
-            # Spaceで補完しない
-            if vk==VK_SPACE:
-                return False
-            
             if self.widget.isListOpened():
                 # Enter/Esc で補完候補を閉じる
                 if vk==VK_RETURN or vk==VK_ESCAPE:
