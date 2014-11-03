@@ -379,10 +379,10 @@ class KeyEvent:
         "WIN"   :  MODKEY_WIN,
         "CMD"   :  MODKEY_CMD,
 
-        #"A" :  MODKEY_ALT,
-        #"C" :  MODKEY_CTRL,
-        #"S" :  MODKEY_SHIFT,
-        #"W" :  MODKEY_WIN,
+        "A" :  MODKEY_ALT,
+        "C" :  MODKEY_CMD if ckit.platform()=="mac" else MODKEY_CTRL,
+        "S" :  MODKEY_SHIFT,
+        "W" :  MODKEY_WIN,
     }
 
     def __init__( self, vk, mod, extra=None ):
