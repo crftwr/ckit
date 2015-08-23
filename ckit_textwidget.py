@@ -250,13 +250,17 @@ class WordCompletion(Completion):
         Completion.__init__(self)
 
     def getCandidateList( self, window, edit, point ):
-    
-        # FIXME : 単語の途中にキャレットがあるときは補完できないようにする
-    
+
         word_left = point.wordLeft()
+        word_right = point.wordRight()
         hint = edit.getText( word_left, point )
-        
-        if not re.match( "[a-zA-Z0-9_]+", hint ):
+        tail = edit.getText( point, word_right )
+
+        if not re.fullmatch( "[a-zA-Z0-9_]+", hint ):
+            return None
+
+        # 単語の途中にキャレットがあるときは補完しない
+        if re.match( "[a-zA-Z0-9_]+", tail ):
             return None
 
         items = set()
