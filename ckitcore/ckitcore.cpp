@@ -3958,7 +3958,7 @@ static void _Image_ConvertRGBAtoDIB( char * dst, const char * src, int w, int h,
 	}
 }
 
-static PyObject * Image_fromString( PyObject * self, PyObject * args )
+static PyObject * Image_fromBytes( PyObject * self, PyObject * args )
 {
 	FUNC_TRACE;
 
@@ -4020,7 +4020,7 @@ static PyObject * Image_fromString( PyObject * self, PyObject * args )
 
 static PyMethodDef Image_methods[] = {
 	{ "getSize", Image_getSize, METH_VARARGS, "" },
-	{ "fromString", Image_fromString, METH_STATIC|METH_VARARGS, "" },
+	{ "fromBytes", Image_fromBytes, METH_STATIC|METH_VARARGS, "" },
 	{NULL,NULL}
 };
 

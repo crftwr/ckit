@@ -292,10 +292,10 @@ class ColorWidget(Widget):
 
         self.frame_plane.setPosition( ( (pos1[0]+pos2[0]-self.color_plane_size[0])//2, (pos1[1]+pos2[1]-self.color_plane_size[1])//2 ) )
         bg_color = ckit_theme.getColor("bg")
-        self.frame_plane.setImage( ckitcore.Image.fromString( (1,1), struct.pack( "BBBB", bg_color[0]^0xff, bg_color[1]^0xff, bg_color[2]^0xff, 0xff ) ) )
+        self.frame_plane.setImage( ckitcore.Image.fromBytes( (1,1), struct.pack( "BBBB", bg_color[0]^0xff, bg_color[1]^0xff, bg_color[2]^0xff, 0xff ) ) )
 
         self.color_plane.setPosition( ( (pos1[0]+pos2[0]-self.color_plane_size[0])//2+1, (pos1[1]+pos2[1]-self.color_plane_size[1])//2+1 ) )
-        self.color_plane.setImage( ckitcore.Image.fromString( (1,1), struct.pack( "BBBB", self.color[0], self.color[1], self.color[2], 0xff ) ) )
+        self.color_plane.setImage( ckitcore.Image.fromBytes( (1,1), struct.pack( "BBBB", self.color[0], self.color[1], self.color[2], 0xff ) ) )
 
         if self.enable_cursor:
             attr = ckitcore.Attribute( fg=ckit_theme.getColor("select_fg"), bg=ckit_theme.getColor("select_bg") )

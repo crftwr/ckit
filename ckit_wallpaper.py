@@ -78,6 +78,6 @@ class Wallpaper:
         cropped_pil_image = self.pil_image.crop(self.crop_rect)
         cropped_scaled_pil_image = cropped_pil_image.resize( client_size )
 
-        img = ckitcore.Image.fromString( cropped_scaled_pil_image.size, cropped_scaled_pil_image.tostring() )
+        img = ckitcore.Image.fromBytes( cropped_scaled_pil_image.size, cropped_scaled_pil_image.tobytes() )
         self.plane.setSize(client_size)
         self.plane.setImage(img)

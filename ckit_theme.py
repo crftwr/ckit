@@ -86,10 +86,10 @@ def createThemeImage(filename):
         path = _themePath(filename)
         pil_img = Image.open(path)
         pil_img = pil_img.convert( "RGBA" )
-        return ckitcore.Image.fromString( pil_img.size, pil_img.tostring(), (0,0,0) )
+        return ckitcore.Image.fromBytes( pil_img.size, pil_img.tobytes(), (0,0,0) )
     except:
         print( "ERROR : image file cannot be loaded.", filename )
-        return ckitcore.Image.fromString( (1,1), struct.pack( "BBBB", 0x10, 0x10, 0x10, 0xff ) ) 
+        return ckitcore.Image.fromBytes( (1,1), struct.pack( "BBBB", 0x10, 0x10, 0x10, 0xff ) ) 
 
 
 ## テーマ画像を 3x3 に分割したものを取得する
@@ -102,7 +102,7 @@ def createThemeImage3x3(filename):
         pil_img = pil_img.convert( "RGBA" )
     except IOError:
         print( "ERROR : image file cannot be loaded.", filename )
-        img = ckitcore.Image.fromString( (1,1), struct.pack( "BBBB", 0x10, 0x10, 0x10, 0xff ) )
+        img = ckitcore.Image.fromBytes( (1,1), struct.pack( "BBBB", 0x10, 0x10, 0x10, 0xff ) )
         img = [ [img,img,img], [img,img,img], [img,img,img] ]
         return img, 1, 1, 1, 1
 
@@ -115,7 +115,7 @@ def createThemeImage3x3(filename):
 
     def crop( y, x, rect ):
         crop_img = pil_img.crop( rect )
-        img[y][x] = ckitcore.Image.fromString( crop_img.size, crop_img.tostring(), (0,0,0) )
+        img[y][x] = ckitcore.Image.fromBytes( crop_img.size, crop_img.tobytes(), (0,0,0) )
 
     crop( 0, 0, ( 0,                        0,                          frame_width,                frame_height ) )
     crop( 0, 1, ( frame_width,              0,                          frame_width+center_width,   frame_height ) )
