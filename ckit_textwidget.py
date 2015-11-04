@@ -1166,6 +1166,7 @@ class TextWidget(ckit_widget.Widget):
 
     ## 指定した行に関してカラムから文字インデックスを取得する
     def getIndexFromColumn( self, line, column, sub_x=0.0, block_mode=False ):
+        if len(self.doc.lines) <= line : return 0
         s = self.doc.lines[ line ].s
         column_list = self.window.getStringColumns( s, self.doc.mode.tab_width )
         pos = bisect.bisect_right( column_list, column ) - 1
@@ -1180,6 +1181,7 @@ class TextWidget(ckit_widget.Widget):
             return pos+1
 
     def getColumnFromIndex( self, line, index ):
+        if len(self.doc.lines) <= line : return 0
         line = self.doc.lines[ line ].s
         s = line[:index]
         width = self.window.getStringWidth( s, self.doc.mode.tab_width )
