@@ -747,13 +747,9 @@ def joinPath(*args):
 #  @param path     分離されるパス
 #  @return         ( ディレクトリ名, ファイル名 )
 #
-#  この関数の動きは os.path.split() に似せてありますが、
-#  os.path.split() とは違い、UNC形式 ( //machine/share/ で始まるもの ) のパスを扱うことが出来ます。
+#  動作は os.path.split と同じです。
 #
 def splitPath(path):
-    unc = os.path.splitunc(path)
-    if not unc[1]:
-        return unc
     return os.path.split( path )
 
 
@@ -780,9 +776,6 @@ def splitExt( path, maxlen=5 ):
 #  @return         ルートディレクトリのパス
 #
 def rootPath(path):
-    unc = os.path.splitunc(path)
-    if not unc[1]:
-        return unc[0]
     while True:
         new_path, name = os.path.split(path)
         if new_path == path : return path
@@ -816,14 +809,16 @@ def replacePath(path):
         path = path.replace("/","\\")
         
     if _drive_case_upper==True:
-        drive, path = os.path.splitdrive(path)
-        drive = drive.upper()
-        path = os.path.join(drive, path)
+        drive, tail = os.path.splitdrive(path)
+        if drive.endswith(":"):
+            drive = drive.upper()
+            path = os.path.join(drive, tail)
         
     elif _drive_case_upper==False:
-        drive, path = os.path.splitdrive(path)
-        drive = drive.lower()
-        path = os.path.join(drive, path)
+        drive, tail = os.path.splitdrive(path)
+        if drive.endswith(":"):
+            drive = drive.lower()
+            path = os.path.join(drive, tail)
     
     return path
 
