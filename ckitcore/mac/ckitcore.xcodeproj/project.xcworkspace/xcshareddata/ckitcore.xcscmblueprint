@@ -1,0 +1,30 @@
+{
+  "DVTSourceControlWorkspaceBlueprintPrimaryRemoteRepositoryKey" : "AD6076C7180910D77393D183DED66ECB3ED6584C",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyRepositoryLocationsKey" : {
+
+  },
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyStatesKey" : {
+    "AD6076C7180910D77393D183DED66ECB3ED6584C" : 0,
+    "A27C8B1F264CB38980B0CA1193AE60856B58526F" : 0
+  },
+  "DVTSourceControlWorkspaceBlueprintIdentifierKey" : "5BECCF97-E4BD-4026-9E01-AC7EB9EEB99B",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyPathsKey" : {
+    "AD6076C7180910D77393D183DED66ECB3ED6584C" : "ckit\/",
+    "A27C8B1F264CB38980B0CA1193AE60856B58526F" : "keyhac\/"
+  },
+  "DVTSourceControlWorkspaceBlueprintNameKey" : "ckitcore",
+  "DVTSourceControlWorkspaceBlueprintVersion" : 204,
+  "DVTSourceControlWorkspaceBlueprintRelativePathToProjectKey" : "ckitcore\/mac\/ckitcore.xcodeproj",
+  "DVTSourceControlWorkspaceBlueprintRemoteRepositoriesKey" : [
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/github.com\/crftwr\/keyhac.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "A27C8B1F264CB38980B0CA1193AE60856B58526F"
+    },
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/github.com\/crftwr\/ckit.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "AD6076C7180910D77393D183DED66ECB3ED6584C"
+    }
+  ]
+}
