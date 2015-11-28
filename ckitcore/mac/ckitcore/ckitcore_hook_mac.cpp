@@ -49,7 +49,7 @@ enum AdditionalVk
     kVK_RightCommand = 0x36,
 };
 
-CGEventFlags HookMac::modifier = 0 ;
+CGEventFlags HookMac::modifier = (CGEventFlags)0;
 CGEventSourceRef InputMac::eventSource = NULL;
 
 //-----------------------------------------------------------------------------
@@ -84,11 +84,12 @@ static CGEventFlags FixupEventFlagMask( CGEventFlags src )
 {
     CGEventFlags dst = src;
     
-    if( src & (NX_DEVICELCTLKEYMASK|NX_DEVICERCTLKEYMASK) ){ dst |= kCGEventFlagMaskControl; }
-    if( src & (NX_DEVICELSHIFTKEYMASK|NX_DEVICERSHIFTKEYMASK) ){ dst |= kCGEventFlagMaskShift; }
-    if( src & (NX_DEVICELALTKEYMASK|NX_DEVICERALTKEYMASK) ){ dst |= kCGEventFlagMaskAlternate; }
-    if( src & (NX_DEVICELCMDKEYMASK|NX_DEVICERCMDKEYMASK) ){ dst |= kCGEventFlagMaskCommand; }
-    if( src & NX_SECONDARYFNMASK ){ dst |= kCGEventFlagMaskSecondaryFn; }
+    //if( src & (NX_DEVICELCTLKEYMASK|NX_DEVICERCTLKEYMASK) ){ dst |= kCGEventFlagMaskControl; }
+    if( src & (NX_DEVICELCTLKEYMASK|NX_DEVICERCTLKEYMASK) ){ dst = (CGEventFlags)(dst | kCGEventFlagMaskControl); }
+    if( src & (NX_DEVICELSHIFTKEYMASK|NX_DEVICERSHIFTKEYMASK) ){ dst = (CGEventFlags)(dst | kCGEventFlagMaskShift); }
+    if( src & (NX_DEVICELALTKEYMASK|NX_DEVICERALTKEYMASK) ){ dst = (CGEventFlags)(dst | kCGEventFlagMaskAlternate); }
+    if( src & (NX_DEVICELCMDKEYMASK|NX_DEVICERCMDKEYMASK) ){ dst = (CGEventFlags)(dst | kCGEventFlagMaskCommand); }
+    if( src & NX_SECONDARYFNMASK ){ dst = (CGEventFlags)(dst | kCGEventFlagMaskSecondaryFn); }
     
     PRINTF("AddEventFlagMask : %llx\n", dst );
     
@@ -100,25 +101,25 @@ static CGEventFlags VkToFlag( int vk )
     switch(vk)
     {
     case kVK_Control:
-        return NX_DEVICELCTLKEYMASK;
+        return (CGEventFlags)NX_DEVICELCTLKEYMASK;
     case kVK_RightControl:
-        return NX_DEVICERCTLKEYMASK;
+        return (CGEventFlags)NX_DEVICERCTLKEYMASK;
     case kVK_Shift:
-        return NX_DEVICELSHIFTKEYMASK;
+        return (CGEventFlags)NX_DEVICELSHIFTKEYMASK;
     case kVK_RightShift:
-        return NX_DEVICERSHIFTKEYMASK;
+        return (CGEventFlags)NX_DEVICERSHIFTKEYMASK;
     case kVK_Command:
-        return NX_DEVICELCMDKEYMASK;
+        return (CGEventFlags)NX_DEVICELCMDKEYMASK;
     case kVK_RightCommand:
-        return NX_DEVICERCMDKEYMASK;
+        return (CGEventFlags)NX_DEVICERCMDKEYMASK;
     case kVK_Option:
-        return NX_DEVICELALTKEYMASK;
+        return (CGEventFlags)NX_DEVICELALTKEYMASK;
     case kVK_RightOption:
-        return NX_DEVICERALTKEYMASK;
+        return (CGEventFlags)NX_DEVICERALTKEYMASK;
     case kVK_Function:
-        return NX_SECONDARYFNMASK;
+        return (CGEventFlags)NX_SECONDARYFNMASK;
     }
-    return 0;
+    return (CGEventFlags)0;
 }
 
 static CGEventRef _KeyHookCallback(CGEventTapProxy proxy, CGEventType type, CGEventRef event, void * userdata )
@@ -177,7 +178,7 @@ CGEventRef HookMac::KeyHookCallback(CGEventTapProxy proxy, CGEventType type, CGE
             printf("Warning : Key hook timed out. Re-enabling.\n");
             
             // タイムアウトしたときは、モディファイアキーをニュートラルに戻す
-            modifier &= ~VkToFlag(vk);
+            modifier = (CGEventFlags)(modifier & ~VkToFlag(vk));
             
             CGEventTapEnable(eventTap, true);
         }
@@ -255,14 +256,17 @@ treat_flags:
             // 仮想のモディファイア状態を更新する
             if(down)
             {
-                modifier |= VkToFlag(vk);
+                modifier = (CGEventFlags)(modifier | VkToFlag(vk));
             }
             else
             {
-                modifier &= ~VkToFlag(vk);
+                modifier = (CGEventFlags)(modifier & ~VkToFlag(vk));
             }
             PRINTF( "updated modifier = %llx\n", modifier );
         }
+        break;
+
+    default:
         break;
     }
     

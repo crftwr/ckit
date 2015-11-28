@@ -712,7 +712,7 @@ enum
     NSWindow * window = [self window];
     
     caret_rect.origin = [self convertPoint:caret_rect.origin toView:nil];
-    caret_rect.origin = [window convertBaseToScreen:caret_rect.origin];
+    caret_rect = [window convertRectToScreen:caret_rect];
 
     return caret_rect;
 }
@@ -1096,10 +1096,12 @@ int ckit_Window_ClientToScreen( CocoaObject * _window, CGPoint * point )
     NSWindow * window = (__bridge NSWindow*)_window;
     NSView * view = window.contentView;
 
-    CGPoint window_point = [view convertPoint:*point toView:nil];
-    CGPoint screen_point = [window convertBaseToScreen:window_point];
+    CGRect rect = NSMakeRect(0,0,0,0);
     
-    *point = screen_point;
+    rect.origin = [view convertPoint:*point toView:nil];
+    rect = [window convertRectToScreen:rect];
+    
+    *point = rect.origin;
     
     return 0;
 }
@@ -1111,8 +1113,11 @@ int ckit_Window_ScreenToClient( CocoaObject * _window, CGPoint * point )
     NSWindow * window = (__bridge NSWindow*)_window;
     NSView * view = window.contentView;
     
-    CGPoint window_point = [window convertScreenToBase:*point];
-    CGPoint client_point = [view convertPoint:window_point fromView:nil];
+    CGRect rect = NSMakeRect(0,0,0,0);
+    rect.origin = *point;
+    
+    rect = [window convertRectFromScreen:rect];
+    CGPoint client_point = [view convertPoint:rect.origin fromView:nil];
     
     *point = client_point;
     
