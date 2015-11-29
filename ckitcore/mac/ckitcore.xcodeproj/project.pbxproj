@@ -33,33 +33,7 @@
 		3301E00B19C27D04000AA454 /* ckitcore_cocoa.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ckitcore_cocoa.m; sourceTree = "<group>"; };
 		3301E01119C27DD9000AA454 /* ckitcore_hook.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ckitcore_hook.h; path = ../../ckitcore_hook.h; sourceTree = "<group>"; };
 		3301E01219C27DD9000AA454 /* ckitcore_hook.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ckitcore_hook.cpp; path = ../../ckitcore_hook.cpp; sourceTree = "<group>"; };
-		333B02A0199ECC8200F33188 /* _config.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = _config.py; path = ../../../cfiler/_config.py; sourceTree = "<group>"; };
-		333B02A1199ECC9C00F33188 /* config.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = config.py; path = ../../../cfiler/CraftFiler/config.py; sourceTree = "<group>"; };
 		335238E4196997A900AAEB73 /* test.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = test.py; path = ../../test/test.py; sourceTree = "<group>"; };
-		3378E8F819A04F8D00B5CE40 /* _config.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = _config.py; path = ../../../lredit/_config.py; sourceTree = "<group>"; };
-		3378E8F919A04F8D00B5CE40 /* lredit_bookmark.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = lredit_bookmark.py; path = ../../../lredit/lredit_bookmark.py; sourceTree = "<group>"; };
-		3378E8FA19A04F8D00B5CE40 /* lredit_commandline.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = lredit_commandline.py; path = ../../../lredit/lredit_commandline.py; sourceTree = "<group>"; };
-		3378E8FB19A04F8D00B5CE40 /* lredit_configmenu.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = lredit_configmenu.py; path = ../../../lredit/lredit_configmenu.py; sourceTree = "<group>"; };
-		3378E8FC19A04F8D00B5CE40 /* lredit_debug.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = lredit_debug.py; path = ../../../lredit/lredit_debug.py; sourceTree = "<group>"; };
-		3378E8FD19A04F8D00B5CE40 /* lredit_grep.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = lredit_grep.py; path = ../../../lredit/lredit_grep.py; sourceTree = "<group>"; };
-		3378E8FE19A04F8D00B5CE40 /* lredit_history.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = lredit_history.py; path = ../../../lredit/lredit_history.py; sourceTree = "<group>"; };
-		3378E8FF19A04F8D00B5CE40 /* lredit_isearch.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = lredit_isearch.py; path = ../../../lredit/lredit_isearch.py; sourceTree = "<group>"; };
-		3378E90019A04F8D00B5CE40 /* lredit_lexer.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = lredit_lexer.py; path = ../../../lredit/lredit_lexer.py; sourceTree = "<group>"; };
-		3378E90119A04F8D00B5CE40 /* lredit_listwindow.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = lredit_listwindow.py; path = ../../../lredit/lredit_listwindow.py; sourceTree = "<group>"; };
-		3378E90219A04F8D00B5CE40 /* lredit_main.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = lredit_main.py; path = ../../../lredit/lredit_main.py; sourceTree = "<group>"; };
-		3378E90319A04F8D00B5CE40 /* lredit_mainwindow.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = lredit_mainwindow.py; path = ../../../lredit/lredit_mainwindow.py; sourceTree = "<group>"; };
-		3378E90419A04F8D00B5CE40 /* lredit_minormode.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = lredit_minormode.py; path = ../../../lredit/lredit_minormode.py; sourceTree = "<group>"; };
-		3378E90519A04F8D00B5CE40 /* lredit_misc.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = lredit_misc.py; path = ../../../lredit/lredit_misc.py; sourceTree = "<group>"; };
-		3378E90619A04F8D00B5CE40 /* lredit_mode.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = lredit_mode.py; path = ../../../lredit/lredit_mode.py; sourceTree = "<group>"; };
-		3378E90719A04F8D00B5CE40 /* lredit_msgbox.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = lredit_msgbox.py; path = ../../../lredit/lredit_msgbox.py; sourceTree = "<group>"; };
-		3378E91319A04F8D00B5CE40 /* lredit_project.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = lredit_project.py; path = ../../../lredit/lredit_project.py; sourceTree = "<group>"; };
-		3378E91419A04F8D00B5CE40 /* lredit_resource.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = lredit_resource.py; path = ../../../lredit/lredit_resource.py; sourceTree = "<group>"; };
-		3378E91519A04F8D00B5CE40 /* lredit_statusbar.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = lredit_statusbar.py; path = ../../../lredit/lredit_statusbar.py; sourceTree = "<group>"; };
-		3378E91619A04F8D00B5CE40 /* lredit_tabbar.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = lredit_tabbar.py; path = ../../../lredit/lredit_tabbar.py; sourceTree = "<group>"; };
-		3378E91719A04F8D00B5CE40 /* lredit_tags.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = lredit_tags.py; path = ../../../lredit/lredit_tags.py; sourceTree = "<group>"; };
-		3378E91819A04F8D00B5CE40 /* lredit_zenhan.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = lredit_zenhan.py; path = ../../../lredit/lredit_zenhan.py; sourceTree = "<group>"; };
-		3378E91919A04F8D00B5CE40 /* lredit.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = lredit.py; path = ../../../lredit/lredit.py; sourceTree = "<group>"; };
-		3378E92019A04FCF00B5CE40 /* config.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = config.py; path = ../../../lredit/LREdit/config.py; sourceTree = "<group>"; };
 		3393533919B1718C008BA442 /* ckitcore_hook_mac.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ckitcore_hook_mac.cpp; sourceTree = "<group>"; };
 		3393533A19B1718C008BA442 /* ckitcore_hook_mac.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ckitcore_hook_mac.h; sourceTree = "<group>"; };
 		33DBA72C19B2BBA10095DE67 /* _config.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = _config.py; path = ../../../keyhac/_config.py; sourceTree = "<group>"; };
@@ -105,37 +79,7 @@
 		33E3AA6B1967CC01004C7EDF /* ckit_wallpaper.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = ckit_wallpaper.py; path = ../../ckit_wallpaper.py; sourceTree = "<group>"; };
 		33E3AA6C1967CC01004C7EDF /* ckit_widget.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = ckit_widget.py; path = ../../ckit_widget.py; sourceTree = "<group>"; };
 		33E3AA6D1967CC17004C7EDF /* __init__.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = __init__.py; path = ../../__init__.py; sourceTree = "<group>"; };
-		33F95562197A084C00E57104 /* cfiler_archiver.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = cfiler_archiver.py; path = ../../../cfiler/cfiler_archiver.py; sourceTree = "<group>"; };
-		33F95563197A084C00E57104 /* cfiler_bookmark.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = cfiler_bookmark.py; path = ../../../cfiler/cfiler_bookmark.py; sourceTree = "<group>"; };
-		33F95564197A084C00E57104 /* cfiler_checkdir.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = cfiler_checkdir.py; path = ../../../cfiler/cfiler_checkdir.py; sourceTree = "<group>"; };
-		33F95565197A084C00E57104 /* cfiler_commandline.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = cfiler_commandline.py; path = ../../../cfiler/cfiler_commandline.py; sourceTree = "<group>"; };
-		33F95566197A084C00E57104 /* cfiler_configmenu.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = cfiler_configmenu.py; path = ../../../cfiler/cfiler_configmenu.py; sourceTree = "<group>"; };
-		33F95567197A084C00E57104 /* cfiler_consistency.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = cfiler_consistency.py; path = ../../../cfiler/cfiler_consistency.py; sourceTree = "<group>"; };
-		33F95568197A084C00E57104 /* cfiler_debug.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = cfiler_debug.py; path = ../../../cfiler/cfiler_debug.py; sourceTree = "<group>"; };
-		33F95569197A084C00E57104 /* cfiler_diffviewer.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = cfiler_diffviewer.py; path = ../../../cfiler/cfiler_diffviewer.py; sourceTree = "<group>"; };
-		33F9556A197A084C00E57104 /* cfiler_error.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = cfiler_error.py; path = ../../../cfiler/cfiler_error.py; sourceTree = "<group>"; };
-		33F9556B197A084C00E57104 /* cfiler_filecmp.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = cfiler_filecmp.py; path = ../../../cfiler/cfiler_filecmp.py; sourceTree = "<group>"; };
-		33F9556C197A084C00E57104 /* cfiler_filelist.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = cfiler_filelist.py; path = ../../../cfiler/cfiler_filelist.py; sourceTree = "<group>"; };
-		33F9556D197A084C00E57104 /* cfiler_fileoplock.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = cfiler_fileoplock.py; path = ../../../cfiler/cfiler_fileoplock.py; sourceTree = "<group>"; };
-		33F9556E197A084C00E57104 /* cfiler_grep.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = cfiler_grep.py; path = ../../../cfiler/cfiler_grep.py; sourceTree = "<group>"; };
-		33F9556F197A084C00E57104 /* cfiler_grepwindow.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = cfiler_grepwindow.py; path = ../../../cfiler/cfiler_grepwindow.py; sourceTree = "<group>"; };
-		33F95570197A084C00E57104 /* cfiler_history.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = cfiler_history.py; path = ../../../cfiler/cfiler_history.py; sourceTree = "<group>"; };
-		33F95571197A084C00E57104 /* cfiler_imageviewer.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = cfiler_imageviewer.py; path = ../../../cfiler/cfiler_imageviewer.py; sourceTree = "<group>"; };
-		33F95572197A084C00E57104 /* cfiler_isearch.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = cfiler_isearch.py; path = ../../../cfiler/cfiler_isearch.py; sourceTree = "<group>"; };
-		33F95573197A084C00E57104 /* cfiler_listwindow.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = cfiler_listwindow.py; path = ../../../cfiler/cfiler_listwindow.py; sourceTree = "<group>"; };
-		33F95574197A084C00E57104 /* cfiler_main.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = cfiler_main.py; path = ../../../cfiler/cfiler_main.py; sourceTree = "<group>"; };
-		33F95575197A084C00E57104 /* cfiler_mainwindow.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = cfiler_mainwindow.py; path = ../../../cfiler/cfiler_mainwindow.py; sourceTree = "<group>"; };
-		33F95576197A084C00E57104 /* cfiler_misc.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = cfiler_misc.py; path = ../../../cfiler/cfiler_misc.py; sourceTree = "<group>"; };
-		33F95577197A084C00E57104 /* cfiler_msgbox.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = cfiler_msgbox.py; path = ../../../cfiler/cfiler_msgbox.py; sourceTree = "<group>"; };
-		33F95578197A084C00E57104 /* cfiler_musicplayer.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = cfiler_musicplayer.py; path = ../../../cfiler/cfiler_musicplayer.py; sourceTree = "<group>"; };
-		33F95596197A084C00E57104 /* cfiler_networkplace.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = cfiler_networkplace.py; path = ../../../cfiler/cfiler_networkplace.py; sourceTree = "<group>"; };
-		33F95597197A084C00E57104 /* cfiler_overwritewindow.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = cfiler_overwritewindow.py; path = ../../../cfiler/cfiler_overwritewindow.py; sourceTree = "<group>"; };
-		33F95598197A084C00E57104 /* cfiler_renamewindow.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = cfiler_renamewindow.py; path = ../../../cfiler/cfiler_renamewindow.py; sourceTree = "<group>"; };
-		33F95599197A084C00E57104 /* cfiler_resource.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = cfiler_resource.py; path = ../../../cfiler/cfiler_resource.py; sourceTree = "<group>"; };
-		33F9559A197A084C00E57104 /* cfiler_resultwindow.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = cfiler_resultwindow.py; path = ../../../cfiler/cfiler_resultwindow.py; sourceTree = "<group>"; };
-		33F9559B197A084C00E57104 /* cfiler_statusbar.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = cfiler_statusbar.py; path = ../../../cfiler/cfiler_statusbar.py; sourceTree = "<group>"; };
-		33F9559C197A084C00E57104 /* cfiler_textviewer.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = cfiler_textviewer.py; path = ../../../cfiler/cfiler_textviewer.py; sourceTree = "<group>"; };
-		33F9559D197A084C00E57104 /* cfiler.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = cfiler.py; path = ../../../cfiler/cfiler.py; sourceTree = "<group>"; };
+		E226F9161C0B16E300F400F6 /* config.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = config.py; path = "../../../../Library/Application Support/Keyhac/config.py"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -157,37 +101,6 @@
 				335238E4196997A900AAEB73 /* test.py */,
 			);
 			name = test;
-			sourceTree = "<group>";
-		};
-		3378E8F719A04F5700B5CE40 /* lredit - python */ = {
-			isa = PBXGroup;
-			children = (
-				3378E92019A04FCF00B5CE40 /* config.py */,
-				3378E8F819A04F8D00B5CE40 /* _config.py */,
-				3378E8F919A04F8D00B5CE40 /* lredit_bookmark.py */,
-				3378E8FA19A04F8D00B5CE40 /* lredit_commandline.py */,
-				3378E8FB19A04F8D00B5CE40 /* lredit_configmenu.py */,
-				3378E8FC19A04F8D00B5CE40 /* lredit_debug.py */,
-				3378E8FD19A04F8D00B5CE40 /* lredit_grep.py */,
-				3378E8FE19A04F8D00B5CE40 /* lredit_history.py */,
-				3378E8FF19A04F8D00B5CE40 /* lredit_isearch.py */,
-				3378E90019A04F8D00B5CE40 /* lredit_lexer.py */,
-				3378E90119A04F8D00B5CE40 /* lredit_listwindow.py */,
-				3378E90219A04F8D00B5CE40 /* lredit_main.py */,
-				3378E90319A04F8D00B5CE40 /* lredit_mainwindow.py */,
-				3378E90419A04F8D00B5CE40 /* lredit_minormode.py */,
-				3378E90519A04F8D00B5CE40 /* lredit_misc.py */,
-				3378E90619A04F8D00B5CE40 /* lredit_mode.py */,
-				3378E90719A04F8D00B5CE40 /* lredit_msgbox.py */,
-				3378E91319A04F8D00B5CE40 /* lredit_project.py */,
-				3378E91419A04F8D00B5CE40 /* lredit_resource.py */,
-				3378E91519A04F8D00B5CE40 /* lredit_statusbar.py */,
-				3378E91619A04F8D00B5CE40 /* lredit_tabbar.py */,
-				3378E91719A04F8D00B5CE40 /* lredit_tags.py */,
-				3378E91819A04F8D00B5CE40 /* lredit_zenhan.py */,
-				3378E91919A04F8D00B5CE40 /* lredit.py */,
-			);
-			name = "lredit - python";
 			sourceTree = "<group>";
 		};
 		33CFAD0919CEA8C400561292 /* mac */ = {
@@ -221,6 +134,7 @@
 		33DBA72B19B2BB660095DE67 /* keyhac - python */ = {
 			isa = PBXGroup;
 			children = (
+				E226F9161C0B16E300F400F6 /* config.py */,
 				33DBA72C19B2BBA10095DE67 /* _config.py */,
 				33DBA72D19B2BBA10095DE67 /* keyhac_balloon.py */,
 				33DBA72E19B2BBA10095DE67 /* keyhac_clipboard.py */,
@@ -246,8 +160,6 @@
 				33E3AA3C19677B22004C7EDF /* ckitcore */,
 				33E3AA5C1967CBB2004C7EDF /* ckit - python */,
 				33DBA72B19B2BB660095DE67 /* keyhac - python */,
-				3378E8F719A04F5700B5CE40 /* lredit - python */,
-				33F95561197A080900E57104 /* cfiler - python */,
 				33E3AA3D19677B22004C7EDF /* Supporting Files */,
 				33E3AA3B19677B22004C7EDF /* Products */,
 			);
@@ -306,46 +218,6 @@
 				33E3AA6C1967CC01004C7EDF /* ckit_widget.py */,
 			);
 			name = "ckit - python";
-			sourceTree = "<group>";
-		};
-		33F95561197A080900E57104 /* cfiler - python */ = {
-			isa = PBXGroup;
-			children = (
-				333B02A1199ECC9C00F33188 /* config.py */,
-				333B02A0199ECC8200F33188 /* _config.py */,
-				33F95562197A084C00E57104 /* cfiler_archiver.py */,
-				33F95563197A084C00E57104 /* cfiler_bookmark.py */,
-				33F95564197A084C00E57104 /* cfiler_checkdir.py */,
-				33F95565197A084C00E57104 /* cfiler_commandline.py */,
-				33F95566197A084C00E57104 /* cfiler_configmenu.py */,
-				33F95567197A084C00E57104 /* cfiler_consistency.py */,
-				33F95568197A084C00E57104 /* cfiler_debug.py */,
-				33F95569197A084C00E57104 /* cfiler_diffviewer.py */,
-				33F9556A197A084C00E57104 /* cfiler_error.py */,
-				33F9556B197A084C00E57104 /* cfiler_filecmp.py */,
-				33F9556C197A084C00E57104 /* cfiler_filelist.py */,
-				33F9556D197A084C00E57104 /* cfiler_fileoplock.py */,
-				33F9556E197A084C00E57104 /* cfiler_grep.py */,
-				33F9556F197A084C00E57104 /* cfiler_grepwindow.py */,
-				33F95570197A084C00E57104 /* cfiler_history.py */,
-				33F95571197A084C00E57104 /* cfiler_imageviewer.py */,
-				33F95572197A084C00E57104 /* cfiler_isearch.py */,
-				33F95573197A084C00E57104 /* cfiler_listwindow.py */,
-				33F95574197A084C00E57104 /* cfiler_main.py */,
-				33F95575197A084C00E57104 /* cfiler_mainwindow.py */,
-				33F95576197A084C00E57104 /* cfiler_misc.py */,
-				33F95577197A084C00E57104 /* cfiler_msgbox.py */,
-				33F95578197A084C00E57104 /* cfiler_musicplayer.py */,
-				33F95596197A084C00E57104 /* cfiler_networkplace.py */,
-				33F95597197A084C00E57104 /* cfiler_overwritewindow.py */,
-				33F95598197A084C00E57104 /* cfiler_renamewindow.py */,
-				33F95599197A084C00E57104 /* cfiler_resource.py */,
-				33F9559A197A084C00E57104 /* cfiler_resultwindow.py */,
-				33F9559B197A084C00E57104 /* cfiler_statusbar.py */,
-				33F9559C197A084C00E57104 /* cfiler_textviewer.py */,
-				33F9559D197A084C00E57104 /* cfiler.py */,
-			);
-			name = "cfiler - python";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
