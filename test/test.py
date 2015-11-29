@@ -43,7 +43,7 @@ class Test1( ckit.TextWindow ):
     
         pil_img = Image.open("hello.png")
         pil_img = pil_img.convert( "RGBA" )
-        ckit_img = ckit.Image.fromString( pil_img.size, pil_img.tostring(), (0,0,0) )
+        ckit_img = ckit.Image.fromString( pil_img.size, pil_img.tobytes(), (0,0,0) )
 
         self.plane = ckit.ImagePlane( self, (50,50), (100,100), 0 )
         self.plane.setImage(ckit_img)

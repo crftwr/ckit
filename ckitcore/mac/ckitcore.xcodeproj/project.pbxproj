@@ -376,6 +376,7 @@
 				33E3AA3619677B22004C7EDF /* Sources */,
 				33E3AA3719677B22004C7EDF /* Frameworks */,
 				33E3AA3819677B22004C7EDF /* Headers */,
+				E226F9151C09F32000F400F6 /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -411,6 +412,22 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		E226F9151C09F32000F400F6 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "cp $BUILT_PRODUCTS_DIR/ckitcore.dylib $PROJECT_DIR/../../ckitcore.so";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		33E3AA3619677B22004C7EDF /* Sources */ = {
