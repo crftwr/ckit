@@ -80,6 +80,8 @@
 		33E3AA6C1967CC01004C7EDF /* ckit_widget.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = ckit_widget.py; path = ../../ckit_widget.py; sourceTree = "<group>"; };
 		33E3AA6D1967CC17004C7EDF /* __init__.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = __init__.py; path = ../../__init__.py; sourceTree = "<group>"; };
 		E226F9161C0B16E300F400F6 /* config.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = config.py; path = "../../../../Library/Application Support/Keyhac/config.py"; sourceTree = "<group>"; };
+		E226F9191C0B238400F400F6 /* index.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = index.txt; path = ../../../keyhac/doc/index.txt; sourceTree = "<group>"; };
+		E226F91A1C0B239C00F400F6 /* changes.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = changes.txt; path = ../../../keyhac/doc/changes.txt; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -134,6 +136,7 @@
 		33DBA72B19B2BB660095DE67 /* keyhac - python */ = {
 			isa = PBXGroup;
 			children = (
+				E226F9181C0B232B00F400F6 /* doc */,
 				E226F9161C0B16E300F400F6 /* config.py */,
 				33DBA72C19B2BBA10095DE67 /* _config.py */,
 				33DBA72D19B2BBA10095DE67 /* keyhac_balloon.py */,
@@ -218,6 +221,15 @@
 				33E3AA6C1967CC01004C7EDF /* ckit_widget.py */,
 			);
 			name = "ckit - python";
+			sourceTree = "<group>";
+		};
+		E226F9181C0B232B00F400F6 /* doc */ = {
+			isa = PBXGroup;
+			children = (
+				E226F9191C0B238400F400F6 /* index.txt */,
+				E226F91A1C0B239C00F400F6 /* changes.txt */,
+			);
+			name = doc;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
