@@ -43,21 +43,30 @@ class SubProcess:
     #
     def __call__(self):
 
-        class StartupInfo:
-            pass
-        
-        STARTF_USESHOWWINDOW = 1
-        SW_HIDE = 0
+        if ckit_misc.platform()=="win":
 
-        startupinfo = StartupInfo()
-        startupinfo.dwFlags = STARTF_USESHOWWINDOW
-        startupinfo.wShowWindow = SW_HIDE
-        
+            class StartupInfo:
+                pass
+            
+            STARTF_USESHOWWINDOW = 1
+            SW_HIDE = 0
+
+            startupinfo = StartupInfo()
+            startupinfo.dwFlags = STARTF_USESHOWWINDOW
+            startupinfo.wShowWindow = SW_HIDE
+        else:
+            startupinfo = None
+
         self.p = subprocess.Popen( self.cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=False, cwd=self.cwd, env=self.env, startupinfo=startupinfo )
 
+        if ckit_misc.platform()=="win":
+            encoding="mbcs"
+        else:
+            encoding="utf-8"
+
         while self.p.poll()==None:
-            self.stdout_write( self.p.stdout.readline().decode("mbcs") )
-        self.stdout_write( self.p.stdout.readline().decode("mbcs") )
+            self.stdout_write( self.p.stdout.read().decode(encoding) )
+        self.stdout_write( self.p.stdout.read().decode(encoding) )
 
         return self.p.returncode
 
