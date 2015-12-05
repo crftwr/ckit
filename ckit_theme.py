@@ -82,13 +82,13 @@ def getColor( name, section="COLOR" ):
 #
 def createThemeImage(filename):
 
+    path = getThemeAssetFullpath(filename)
     try:
-        path = getThemeAssetFullpath(filename)
         pil_img = Image.open(path)
         pil_img = pil_img.convert( "RGBA" )
         return ckitcore.Image.fromString( pil_img.size, pil_img.tobytes(), (0,0,0) )
     except:
-        print( "ERROR : image file cannot be loaded.", filename )
+        print( "ERROR : image file cannot be loaded.", path )
         return ckitcore.Image.fromString( (1,1), struct.pack( "BBBB", 0x10, 0x10, 0x10, 0xff ) ) 
 
 
@@ -96,12 +96,12 @@ def createThemeImage(filename):
 #
 def createThemeImage3x3(filename):
 
+    path = getThemeAssetFullpath(filename)
     try:
-        path = getThemeAssetFullpath(filename)
         pil_img = Image.open(path)
         pil_img = pil_img.convert( "RGBA" )
     except IOError:
-        print( "ERROR : image file cannot be loaded.", filename )
+        print( "ERROR : image file cannot be loaded.", path )
         img = ckitcore.Image.fromString( (1,1), struct.pack( "BBBB", 0x10, 0x10, 0x10, 0xff ) )
         img = [ [img,img,img], [img,img,img], [img,img,img] ]
         return img, 1, 1, 1, 1
