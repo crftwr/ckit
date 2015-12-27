@@ -7,7 +7,7 @@ import inspect
 
 import pyauto
 
-## @addtogroup misc その他雑多な機能
+## @addtogroup misc
 ## @{
 
 #--------------------------------------------------------------------
