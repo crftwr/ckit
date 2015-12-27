@@ -5,7 +5,7 @@ import traceback
 
 from ckit import ckitcore
 
-## @addtogroup threadutil スレッドサポート機能
+## @addtogroup threadutil
 ## @{
 
 #-------------------------------------------------------------------------

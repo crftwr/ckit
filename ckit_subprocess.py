@@ -4,7 +4,7 @@ import subprocess
 
 from ckit import ckit_misc
 
-## @addtogroup subprocess サブプロセス実行機能
+## @addtogroup subprocess
 ## @{
 
 #-------------------------------------------------------------------------

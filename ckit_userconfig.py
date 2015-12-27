@@ -3,7 +3,7 @@ import traceback
 
 from ckit import ckit_resource
 
-## @addtogroup userconfig 設定スクリプト関連
+## @addtogroup userconfig
 ## @{
 
 ## 設定スクリプトを再読み込みする

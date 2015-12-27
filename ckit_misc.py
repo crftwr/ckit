@@ -7,7 +7,7 @@ import inspect
 
 from ckit import ckitcore
 
-## @addtogroup misc その他雑多な機能
+## @addtogroup misc
 ## @{
 
 #--------------------------------------------------------------------
