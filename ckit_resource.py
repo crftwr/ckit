@@ -1,42 +1,62 @@
-﻿
-strings_ja = {
-    "readonly"                              : "編集禁止です.",
-    "search_found"                          : "[%s]が見つかりました.",
-    "search_not_found"                      : "[%s]が見つかりません.",
-    "modified_line_not_found"               : "変更行が見つかりません.",
-    "bookmark_not_found"                    : "ブックマークが見つかりません.",
-    "modified_line_or_bookmark_not_found"   : "変更行またはブックマークが見つかりません.",
+﻿import locale
 
-    "error_config_file_load_failed"         : "ERROR : 設定ファイルの読み込み中にエラーが発生しました.",
-    "error_config_file_exec_failed"         : "ERROR : 設定ファイルの実行中にエラーが発生しました.",
-}
+class TranslatedStrings:
 
-strings_en = {
-    "readonly"                              : "Read only.",
-    "search_found"                          : "[%s] is found.",
-    "search_not_found"                      : "[%s] is not found.",
-    "modified_line_not_found"               : "Modified line not found.",
-    "bookmark_not_found"                    : "Bookmark not found.",
-    "modified_line_or_bookmark_not_found"   : "Modified line or Bookmark not found.",
+    en_US = 0
+    ja_JP = 1
 
-    "error_config_file_load_failed"         : "ERROR : loading config file failed.",
-    "error_config_file_exec_failed"         : "ERROR : executing config file failed..",
-}
+    def __init__(self):
 
-strings = {}
+        self.setLocale(locale.getdefaultlocale()[0])
 
-def setLocale(locale):
+        self._strings = [
+            {}, # en_US
+            {}, # ja_JP
+        ]
+    
+    def setLocale(self,locale):
+        if locale=="ja_JP":
+            self.locale = TranslatedStrings.ja_JP
+        else:
+            self.locale = TranslatedStrings.en_US
 
-    global strings
+    def __getitem__(self,key):
+        return self._strings[self.locale][key]
 
-    # 日英両方に同じ文言が入っているかチェック
-    strings_keys_ja = set( strings_ja.keys() )
-    strings_keys_en = set( strings_en.keys() )
-    assert( strings_keys_ja==strings_keys_en )
+    def setString( self, key, en_US, ja_JP=None ):
 
-    # 日英の切り替え
-    if locale=='ja_JP':
-        strings.update(strings_ja)
-    else:
-        strings.update(strings_en)
+        if ja_JP==None:
+            ja_JP=en_US
+
+        self._strings[TranslatedStrings.en_US][key] = en_US
+        self._strings[TranslatedStrings.ja_JP][key] = ja_JP
+
+
+strings = TranslatedStrings()
+
+strings.setString( "readonly", 
+    en_US = "Read only.", 
+    ja_JP = "編集禁止です." )
+strings.setString( "search_found", 
+    en_US = "[%s] is found.",
+    ja_JP = "[%s]が見つかりました." )
+strings.setString( "search_not_found", 
+    en_US = "[%s] is not found.",
+    ja_JP = "[%s]が見つかりません." )
+strings.setString( "modified_line_not_found", 
+    en_US = "Modified line not found.",
+    ja_JP = "変更行が見つかりません." )
+strings.setString( "bookmark_not_found", 
+    en_US = "Bookmark not found.",
+    ja_JP = "ブックマークが見つかりません." )
+strings.setString( "modified_line_or_bookmark_not_found", 
+    en_US = "Modified line or Bookmark not found.",
+    ja_JP = "変更行またはブックマークが見つかりません." )
+
+strings.setString( "error_config_file_load_failed", 
+    en_US = "ERROR : loading config file failed.",
+    ja_JP = "ERROR : 設定ファイルの読み込み中にエラーが発生しました." )
+strings.setString( "error_config_file_exec_failed", 
+    en_US = "ERROR : executing config file failed.",
+    ja_JP = "ERROR : 設定ファイルの実行中にエラーが発生しました." )
 
