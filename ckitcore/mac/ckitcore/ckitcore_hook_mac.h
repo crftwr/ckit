@@ -49,6 +49,7 @@ namespace ckit
         virtual std::wstring ToString();
         
         static int Send( PyObject * py_input_list );
+        static bool IsKeyPressed( int vk );
         
         InputType type;
         

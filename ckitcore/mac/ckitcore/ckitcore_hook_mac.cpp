@@ -477,3 +477,22 @@ int InputMac::Send( PyObject * py_input_list )
     return 0;
 }
 
+bool InputMac::IsKeyPressed( int vk )
+{
+    TRACE;
+
+    if( 0<=vk && vk<=127 )
+    {
+        KeyMap keys;
+        GetKeys(keys);
+        //printf("GetKeys : %08x, %08x, %08x, %08x\n", keys[0].bigEndianValue, keys[1].bigEndianValue, keys[2].bigEndianValue, keys[3].bigEndianValue);
+        return (keys[ vk / 32 ].bigEndianValue & (1<<(vk%32))) != 0;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+
+

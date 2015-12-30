@@ -630,11 +630,33 @@ static PyObject * Input_send( PyObject * self, PyObject * args )
 	return Py_None;
 }
 
+static PyObject * Input_isKeyPressed( PyObject * self, PyObject * args )
+{
+    int vk;
+    
+    if( ! PyArg_ParseTuple(args,"i", &vk ) )
+        return NULL;
+    
+    bool pressed = Input::IsKeyPressed(vk);
+    
+    if(pressed)
+    {
+        Py_INCREF(Py_True);
+        return Py_True;
+    }
+    else
+    {
+        Py_INCREF(Py_False);
+        return Py_False;
+    }
+}
+
 static PyMethodDef Input_methods[] = {
     { "setKeyDown", Input_setKeyDown, METH_VARARGS, "" },
     { "setKeyUp", Input_setKeyUp, METH_VARARGS, "" },
     { "setKey", Input_setKey, METH_VARARGS, "" },
     { "send", Input_send, METH_STATIC|METH_VARARGS, "" },
+    { "isKeyPressed", Input_isKeyPressed, METH_STATIC|METH_VARARGS, "" },
 	{NULL,NULL}
 };
 
