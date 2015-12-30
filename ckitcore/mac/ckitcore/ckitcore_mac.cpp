@@ -2939,6 +2939,27 @@ int GlobalMac::activateApplicationByPid( ProcessId pid )
     return 0;
 }
 
+std::wstring GlobalMac::getLanguage()
+{
+    FUNC_TRACE;
+    
+    wchar_t * _lang = NULL;
+    
+    // mallocで確保された文字列が格納される
+    ckit_Global_GetLanguage(&_lang);
+    
+    std::wstring lang;
+    
+    if(_lang)
+    {
+        lang = _lang;
+    }
+    
+    free(_lang);
+    
+    return lang;
+}
+
 void GlobalMac::beep()
 {
 	FUNC_TRACE;

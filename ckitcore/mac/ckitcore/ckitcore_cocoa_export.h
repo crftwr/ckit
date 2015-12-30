@@ -169,6 +169,7 @@ EXTERN int ckit_Global_GetFocusChangeCount( int * change_count );
 EXTERN int ckit_Global_GetRunningApplications( pid_t ** applications, int * num );
 EXTERN int ckit_Global_GetApplicationNameByPid( pid_t pid, wchar_t ** name );
 EXTERN int ckit_Global_ActivateApplicationByPid(pid_t pid);
+EXTERN int ckit_Global_GetLanguage( wchar_t ** lang );
 EXTERN int ckit_Global_Beep();
 
 EXTERN int ckit_Global_Test();

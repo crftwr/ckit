@@ -194,6 +194,7 @@ namespace ckit
         virtual std::vector<ProcessId> getRunningApplications();
         virtual std::wstring getApplicationNameByPid( ProcessId pid );
         virtual int activateApplicationByPid( ProcessId pid );
+        virtual std::wstring getLanguage();
 
         virtual void beep();
         virtual int test();

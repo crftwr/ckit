@@ -5434,6 +5434,19 @@ static PyObject * Module_beep( PyObject * self, PyObject * args )
 	return Py_None;
 }
 
+static PyObject * Module_getLanguage( PyObject * self, PyObject * args )
+{
+    FUNC_TRACE;
+    
+    if( ! PyArg_ParseTuple(args, "" ) )
+        return NULL;
+    
+    std::wstring str = g->getLanguage();
+    
+    PyObject * pyret = Py_BuildValue( "u", str.c_str() );
+    return pyret;
+}
+
 static PyObject * Module_test( PyObject * self, PyObject * args )
 {
 	FUNC_TRACE;
@@ -5462,6 +5475,7 @@ static PyMethodDef ckit_funcs[] =
     { "getRunningApplications", Module_getRunningApplications, METH_VARARGS, "" },
     { "getApplicationNameByPid", Module_getApplicationNameByPid, METH_VARARGS, "" },
     { "activateApplicationByPid", Module_activateApplicationByPid, METH_VARARGS, "" },
+    { "getLanguage", Module_getLanguage, METH_VARARGS, "" },
     { "beep", Module_beep, METH_VARARGS, "" },
     { "test", Module_test, METH_VARARGS, "" },
     {NULL,NULL}

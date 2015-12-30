@@ -1,5 +1,7 @@
 ﻿import locale
 
+from ckit import ckitcore
+
 class TranslatedStrings:
 
     en_US = 0
@@ -7,13 +9,13 @@ class TranslatedStrings:
 
     def __init__(self):
 
-        self.setLocale(locale.getdefaultlocale()[0])
+        self.setLocale( ckitcore.getLanguage() )
 
         self._strings = [
             {}, # en_US
             {}, # ja_JP
         ]
-    
+
     def setLocale(self,locale):
         if locale=="ja_JP":
             self.locale = TranslatedStrings.ja_JP
@@ -34,29 +36,28 @@ class TranslatedStrings:
 
 strings = TranslatedStrings()
 
-strings.setString( "readonly", 
-    en_US = "Read only.", 
+strings.setString( "readonly",
+    en_US = "Read only.",
     ja_JP = "編集禁止です." )
-strings.setString( "search_found", 
+strings.setString( "search_found",
     en_US = "[%s] is found.",
     ja_JP = "[%s]が見つかりました." )
-strings.setString( "search_not_found", 
+strings.setString( "search_not_found",
     en_US = "[%s] is not found.",
     ja_JP = "[%s]が見つかりません." )
-strings.setString( "modified_line_not_found", 
+strings.setString( "modified_line_not_found",
     en_US = "Modified line not found.",
     ja_JP = "変更行が見つかりません." )
-strings.setString( "bookmark_not_found", 
+strings.setString( "bookmark_not_found",
     en_US = "Bookmark not found.",
     ja_JP = "ブックマークが見つかりません." )
-strings.setString( "modified_line_or_bookmark_not_found", 
+strings.setString( "modified_line_or_bookmark_not_found",
     en_US = "Modified line or Bookmark not found.",
     ja_JP = "変更行またはブックマークが見つかりません." )
 
-strings.setString( "error_config_file_load_failed", 
+strings.setString( "error_config_file_load_failed",
     en_US = "ERROR : loading config file failed.",
     ja_JP = "ERROR : 設定ファイルの読み込み中にエラーが発生しました." )
-strings.setString( "error_config_file_exec_failed", 
+strings.setString( "error_config_file_exec_failed",
     en_US = "ERROR : executing config file failed.",
     ja_JP = "ERROR : 設定ファイルの実行中にエラーが発生しました." )
-

@@ -1535,6 +1535,14 @@ int ckit_Global_ActivateApplicationByPid( pid_t pid )
     return 0;
 }
 
+int ckit_Global_GetLanguage( wchar_t ** lang )
+{
+    NSString * value = [[NSLocale currentLocale] localeIdentifier];
+    *lang = NSStringToMallocedWchar(value);
+    
+    return 0;
+}
+
 int ckit_Global_Beep()
 {
     NSBeep();
