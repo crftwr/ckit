@@ -435,6 +435,17 @@ static PyObject * Hook_reset( Hook_Object * self, PyObject* args )
 	return Py_None;
 }
 
+static PyObject * Hook_fixWierdModifierState( PyObject * self, PyObject * args )
+{
+    if( ! PyArg_ParseTuple(args,"") )
+        return NULL;
+    
+    ((Hook_Object*)self)->p->fixWierdModifierState();
+    
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
 static PyObject * Hook_isAllowed( PyObject * self, PyObject * args )
 {
     int prompt = 0;
@@ -459,6 +470,7 @@ static PyObject * Hook_isAllowed( PyObject * self, PyObject * args )
 static PyMethodDef Hook_methods[] = {
 	{ "destroy", Hook_destroy, METH_VARARGS, "" },
 	{ "reset", (PyCFunction)Hook_reset, METH_VARARGS, "" },
+    { "fixWierdModifierState", Hook_fixWierdModifierState, METH_VARARGS, "" },
     { "isAllowed", Hook_isAllowed, METH_STATIC|METH_VARARGS, "" },
 	{NULL,NULL}
 };

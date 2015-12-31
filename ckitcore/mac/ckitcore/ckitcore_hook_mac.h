@@ -13,6 +13,7 @@ namespace ckit
     	virtual ~HookMac();
         
         virtual int reset();
+        virtual void fixWierdModifierState();
 
         int InstallKeyHook();
         int UninstallKeyHook();

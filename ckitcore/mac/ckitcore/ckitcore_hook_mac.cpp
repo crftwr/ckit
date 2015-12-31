@@ -122,6 +122,72 @@ static CGEventFlags VkToFlag( int vk )
     return (CGEventFlags)0;
 }
 
+static inline bool LookupKeyState( const KeyMap & keys, int vk )
+{
+    // GetKeys / KeyMap では、左右のモディファイアキーの区別がつかないので、
+    // どちらかが押されていたら、両方押されているとみなす。
+    switch(vk)
+    {
+    case kVK_RightControl:
+        vk = kVK_Control;
+        break;
+        
+    case kVK_RightShift:
+        vk = kVK_Shift;
+        break;
+        
+    case kVK_RightCommand:
+        vk = kVK_Command;
+        break;
+        
+    case kVK_RightOption:
+        vk = kVK_Option;
+        break;
+        
+    default:
+        break;
+    }
+    
+    return (keys[ vk / 32 ].bigEndianValue & (1<<(vk%32))) != 0;
+}
+
+void HookMac::fixWierdModifierState()
+{
+    TRACE;
+
+    KeyMap keys;
+    GetKeys(keys);
+    
+    if( ! LookupKeyState(keys,kVK_Control) )
+    {
+        modifier = (CGEventFlags)( modifier & ~VkToFlag(kVK_Control) );
+        modifier = (CGEventFlags)( modifier & ~VkToFlag(kVK_RightControl) );
+    }
+    
+    if( ! LookupKeyState(keys,kVK_Shift) )
+    {
+        modifier = (CGEventFlags)( modifier & ~VkToFlag(kVK_Shift) );
+        modifier = (CGEventFlags)( modifier & ~VkToFlag(kVK_RightShift) );
+    }
+    
+    if( ! LookupKeyState(keys,kVK_Command) )
+    {
+        modifier = (CGEventFlags)( modifier & ~VkToFlag(kVK_Command) );
+        modifier = (CGEventFlags)( modifier & ~VkToFlag(kVK_RightCommand) );
+    }
+    
+    if( ! LookupKeyState(keys,kVK_Option) )
+    {
+        modifier = (CGEventFlags)( modifier & ~VkToFlag(kVK_Option) );
+        modifier = (CGEventFlags)( modifier & ~VkToFlag(kVK_RightOption) );
+    }
+    
+    if( ! LookupKeyState(keys,kVK_Function) )
+    {
+        modifier = (CGEventFlags)( modifier & ~VkToFlag(kVK_Function) );
+    }
+}
+
 static CGEventRef _KeyHookCallback(CGEventTapProxy proxy, CGEventType type, CGEventRef event, void * userdata )
 {
     HookMac * hook = (HookMac*)userdata;
@@ -177,8 +243,8 @@ CGEventRef HookMac::KeyHookCallback(CGEventTapProxy proxy, CGEventType type, CGE
         {
             printf("Warning : Key hook timed out. Re-enabling.\n");
             
-            // タイムアウトしたときは、モディファイアキーをニュートラルに戻す
-            modifier = (CGEventFlags)(modifier & ~VkToFlag(vk));
+            // タイムアウトしたときは、モディファイアキーの状態を訂正する
+            fixWierdModifierState();
             
             CGEventTapEnable(eventTap, true);
         }
@@ -271,6 +337,16 @@ treat_flags:
     }
     
 end:
+
+    /*
+    {
+        KeyMap keys;
+        GetKeys(keys);
+        printf("Keys : %08x, %08x, %08x, %08x\n", keys[0].bigEndianValue, keys[1].bigEndianValue, keys[2].bigEndianValue, keys[3].bigEndianValue);
+        
+        printf( "modifier = %llx\n", modifier );
+    }
+    */
 
     return event;
 }
@@ -485,14 +561,11 @@ bool InputMac::IsKeyPressed( int vk )
     {
         KeyMap keys;
         GetKeys(keys);
-        //printf("GetKeys : %08x, %08x, %08x, %08x\n", keys[0].bigEndianValue, keys[1].bigEndianValue, keys[2].bigEndianValue, keys[3].bigEndianValue);
-        return (keys[ vk / 32 ].bigEndianValue & (1<<(vk%32))) != 0;
+        return LookupKeyState(keys,vk);
     }
     else
     {
         return false;
     }
 }
-
-
 

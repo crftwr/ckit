@@ -19,6 +19,7 @@ namespace ckit
         virtual ~HookBase();
         
         virtual int reset() = 0;
+        virtual void fixWierdModifierState() = 0;
 
 		PyObject * keydown_handler;
 		PyObject * keyup_handler;
