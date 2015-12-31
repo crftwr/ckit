@@ -561,6 +561,9 @@ bool InputMac::IsKeyPressed( int vk )
     {
         KeyMap keys;
         GetKeys(keys);
+
+        //printf("Keys : %08x, %08x, %08x, %08x\n", keys[0].bigEndianValue, keys[1].bigEndianValue, keys[2].bigEndianValue, keys[3].bigEndianValue);
+        
         return LookupKeyState(keys,vk);
     }
     else
