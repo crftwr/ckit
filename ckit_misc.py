@@ -212,13 +212,20 @@ def getArgv():
 ## デスクトップディレクトリを取得する
 def getDesktopPath():
 
-    MAX_PATH = 260
-    CSIDL_DESKTOPDIRECTORY = 0x10
+    if platform()=="win":
 
-    buf = ctypes.create_unicode_buffer(MAX_PATH)
-    ctypes.windll.shell32.SHGetSpecialFolderPathW( None, buf, CSIDL_DESKTOPDIRECTORY, 0 )
+        MAX_PATH = 260
+        CSIDL_DESKTOPDIRECTORY = 0x10
 
-    return buf.value
+        buf = ctypes.create_unicode_buffer(MAX_PATH)
+        ctypes.windll.shell32.SHGetSpecialFolderPathW( None, buf, CSIDL_DESKTOPDIRECTORY, 0 )
+
+        return buf.value
+
+    else:
+        # FIXME : MACのAPIを使って取得できないか
+        return os.path.expanduser("~/Desktop")
+
 
 ## アプリケーションの実行ファイルのパスを取得する
 def getAppExePath():
@@ -244,24 +251,38 @@ def getAppDataPath():
 ## ドキュメントディレクトリのパスを取得する
 def getDocumentsPath():
 
-    MAX_PATH = 260
-    CSIDL_PERSONAL = 5
+    if platform()=="win":
+        
+        MAX_PATH = 260
+        CSIDL_PERSONAL = 5
 
-    buf = ctypes.create_unicode_buffer(MAX_PATH)
-    ctypes.windll.shell32.SHGetSpecialFolderPathW( None, buf, CSIDL_PERSONAL, 0 )
+        buf = ctypes.create_unicode_buffer(MAX_PATH)
+        ctypes.windll.shell32.SHGetSpecialFolderPathW( None, buf, CSIDL_PERSONAL, 0 )
 
-    return buf.value
+        return buf.value
+
+    else:
+        # FIXME : MACのAPIを使って取得できないか
+        return os.path.expanduser("~/Documents")
+
 
 ## ユーザプロファイルディレクトリのパスを取得する
 def getProfilePath():
 
-    MAX_PATH = 260
-    CSIDL_PROFILE = 40
+    if platform()=="win":
 
-    buf = ctypes.create_unicode_buffer(MAX_PATH)
-    ctypes.windll.shell32.SHGetSpecialFolderPathW( None, buf, CSIDL_PROFILE, 0 )
+        MAX_PATH = 260
+        CSIDL_PROFILE = 40
 
-    return buf.value
+        buf = ctypes.create_unicode_buffer(MAX_PATH)
+        ctypes.windll.shell32.SHGetSpecialFolderPathW( None, buf, CSIDL_PROFILE, 0 )
+
+        return buf.value
+
+    else:
+        # FIXME : MACのAPIを使って取得できないか
+        return os.path.expanduser("~")
+
 
 ## テンポラリファイル用ディレクトリのパスを取得する
 def getTempPath():
