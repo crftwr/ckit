@@ -80,6 +80,8 @@
 		33E3AA6D1967CC17004C7EDF /* __init__.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = __init__.py; path = ../../__init__.py; sourceTree = "<group>"; };
 		E226F9161C0B16E300F400F6 /* config.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = config.py; path = "../../../../Library/Application Support/Keyhac/config.py"; sourceTree = "<group>"; };
 		E226F91A1C0B239C00F400F6 /* changes.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = changes.txt; path = ../../../keyhac/doc/changes.txt; sourceTree = "<group>"; };
+		E25E25831C3648D100B350A9 /* makefile.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = makefile.py; path = ../../../keyhac/makefile.py; sourceTree = "<group>"; };
+		E25E25841C3648D100B350A9 /* setup.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = setup.py; path = ../../../keyhac/setup.py; sourceTree = "<group>"; };
 		E275A3071C35144700BD897F /* index_en.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = index_en.txt; path = ../../../keyhac/doc/index_en.txt; sourceTree = "<group>"; };
 		E275A3081C35144700BD897F /* index_ja.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = index_ja.txt; path = ../../../keyhac/doc/index_ja.txt; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -137,6 +139,8 @@
 			isa = PBXGroup;
 			children = (
 				E226F9181C0B232B00F400F6 /* doc */,
+				E25E25831C3648D100B350A9 /* makefile.py */,
+				E25E25841C3648D100B350A9 /* setup.py */,
 				E226F9161C0B16E300F400F6 /* config.py */,
 				33DBA72C19B2BBA10095DE67 /* _config.py */,
 				33DBA72D19B2BBA10095DE67 /* keyhac_balloon.py */,
