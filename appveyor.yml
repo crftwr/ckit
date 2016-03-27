@@ -1,0 +1,11 @@
+platform:
+#  - x64
+  - x86
+
+install:
+  - MSBuild.exe ckitcore/ckitcore.sln /target:Build /property:Configuration=Release,Platform=Win32
+#  - cinst -y doxygen.install
+
+build: off
+test: off
+deploy: off
