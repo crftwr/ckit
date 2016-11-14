@@ -1,4 +1,4 @@
-#include <vector>
+ï»¿#include <vector>
 #include <algorithm>
 
 #include <windows.h>
@@ -173,9 +173,9 @@ Font::Font( const wchar_t * name, int height )
     logfont.lfOutPrecision = OUT_DEFAULT_PRECIS;
     logfont.lfClipPrecision = CLIP_DEFAULT_PRECIS;
 
-    logfont.lfQuality = DEFAULT_QUALITY; // OS ‚Ìİ’è‚É‚æ‚Á‚Ä‚Í CLEARTYPE_QUALITY ‚Æ“¯‚¶“®‚«‚É‚È‚é
-	//logfont.lfQuality = CLEARTYPE_QUALITY; // ANTIALIASED_QUALITY‚æ‚è‚È‚º‚©‘¬‚¢
-	//logfont.lfQuality = ANTIALIASED_QUALITY; // ‚È‚º‚© ClearType —LŒø‚É’á‘¬‚É‚È‚Á‚Ä‚µ‚Ü‚¤
+    logfont.lfQuality = DEFAULT_QUALITY; // OS ã®è¨­å®šã«ã‚ˆã£ã¦ã¯ CLEARTYPE_QUALITY ã¨åŒã˜å‹•ãã«ãªã‚‹
+	//logfont.lfQuality = CLEARTYPE_QUALITY; // ANTIALIASED_QUALITYã‚ˆã‚Šãªãœã‹é€Ÿã„
+	//logfont.lfQuality = ANTIALIASED_QUALITY; // ãªãœã‹ ClearType æœ‰åŠ¹æ™‚ã«ä½é€Ÿã«ãªã£ã¦ã—ã¾ã†
 
     logfont.lfPitchAndFamily = FIXED_PITCH | FF_DONTCARE;
     lstrcpy( logfont.lfFaceName, name );
@@ -481,7 +481,7 @@ void TextPlane::SetFont( Font * _font )
 {
 	FUNC_TRACE;
 
-	// FIXME : SetFont‚µ‚È‚¢‚Å TextPlane ‚ğg‚¤‚Æ€‚ñ‚Å‚µ‚Ü‚¤‚Ì‚ğ’¼‚µ‚½‚¢
+	// FIXME : SetFontã—ãªã„ã§ TextPlane ã‚’ä½¿ã†ã¨æ­»ã‚“ã§ã—ã¾ã†ã®ã‚’ç›´ã—ãŸã„
 
 	if( font == _font ) return;
 
@@ -491,7 +491,7 @@ void TextPlane::SetFont( Font * _font )
 
 	if(font) font->AddRef();
 
-	// FIXME : ƒIƒtƒXƒNƒŠ[ƒ“‘Sˆæ‚Ì‹­§Ä•`‰æ
+	// FIXME : ã‚ªãƒ•ã‚¹ã‚¯ãƒªãƒ¼ãƒ³å…¨åŸŸã®å¼·åˆ¶å†æç”»
 	dirty = true;
 
 	RECT dirty_rect = { x, y, x+width, y+height };
@@ -536,7 +536,7 @@ void TextPlane::PutString( int x, int y, int width, int height, const Attribute 
 
     Line * line = char_buffer[y];
 
-	// –„‚Ü‚Á‚Ä‚¢‚È‚©‚Á‚½‚ç‹ó•¶š‚Åi‚ß‚é
+	// åŸ‹ã¾ã£ã¦ã„ãªã‹ã£ãŸã‚‰ç©ºæ–‡å­—ã§é€²ã‚ã‚‹
 	while( (int)line->size() < x )
 	{
         line->push_back( Char( L' ' ) );
@@ -548,13 +548,13 @@ void TextPlane::PutString( int x, int y, int width, int height, const Attribute 
 
     for( int i=0 ; str[i] ; i++ )
     {
-		// ‚¢‚Á‚Ï‚¢‚Ü‚Å•¶š‚ª–„‚Ü‚Á‚½‚ç”²‚¯‚é
+		// ã„ã£ã±ã„ã¾ã§æ–‡å­—ãŒåŸ‹ã¾ã£ãŸã‚‰æŠœã‘ã‚‹
     	if( pos + 1 > x + width )
     	{
     		break;
     	}
 
-		// ‘SŠp•¶š‚ğ“ü‚ê‚éŒ„ŠÔ‚ª‚È‚©‚Á‚½‚çAƒXƒy[ƒX‚ğ–„‚ß‚Ä”²‚¯‚é
+		// å…¨è§’æ–‡å­—ã‚’å…¥ã‚Œã‚‹éš™é–“ãŒãªã‹ã£ãŸã‚‰ã€ã‚¹ãƒšãƒ¼ã‚¹ã‚’åŸ‹ã‚ã¦æŠœã‘ã‚‹
     	if( font->zenkaku_table[str[i]] && pos + 2 > x + width )
     	{
 	        PutChar( line, pos, Char( L' ', attr ), &modified );
@@ -566,7 +566,7 @@ void TextPlane::PutString( int x, int y, int width, int height, const Attribute 
 	        PutChar( line, pos, Char( str[i], attr ), &modified );
 			pos++;
 
-	        // ‘SŠp•¶š‚ÍA•‚ğ‡‚í‚¹‚é‚½‚ß‚ÉAŒã‚ë‚É–³‘Ê‚È•¶š‚ğ“ü‚ê‚é
+	        // å…¨è§’æ–‡å­—ã¯ã€å¹…ã‚’åˆã‚ã›ã‚‹ãŸã‚ã«ã€å¾Œã‚ã«ç„¡é§„ãªæ–‡å­—ã‚’å…¥ã‚Œã‚‹
 	        if(font->zenkaku_table[str[i]])
 	        {
 		        PutChar( line, pos, Char(0), &modified );
@@ -578,7 +578,7 @@ void TextPlane::PutString( int x, int y, int width, int height, const Attribute 
 			pos++;
 	        if(font->zenkaku_table[str[i]])
 	        {
-	        	// ¶’[‚Å‘SŠp•¶š‚Ì”¼•ª‚ÌˆÊ’u‚©‚ç•`‰æ”ÍˆÍ‚É“ü‚éê‡‚ÍƒXƒy[ƒX‚Å–„‚ß‚é
+	        	// å·¦ç«¯ã§å…¨è§’æ–‡å­—ã®åŠåˆ†ã®ä½ç½®ã‹ã‚‰æç”»ç¯„å›²ã«å…¥ã‚‹å ´åˆã¯ã‚¹ãƒšãƒ¼ã‚¹ã§åŸ‹ã‚ã‚‹
 	        	if( pos>=x )
 	        	{
 			        PutChar( line, pos, Char( L' ', attr ), &modified );
@@ -592,7 +592,7 @@ void TextPlane::PutString( int x, int y, int width, int height, const Attribute 
     {
 		dirty = true;
 
-		// FIXME : PutString‘Sˆæ‚Å‚Í‚È‚­A•ÏX‚Ì‚ ‚Á‚½Å¬ŒÀ‚Ì—Ìˆæ‚ğ dirty_rect ‚É‚µ‚½‚¢
+		// FIXME : PutStringå…¨åŸŸã§ã¯ãªãã€å¤‰æ›´ã®ã‚ã£ãŸæœ€å°é™ã®é ˜åŸŸã‚’ dirty_rect ã«ã—ãŸã„
 		RECT dirty_rect = { x * font->char_width + this->x, y * font->char_height + this->y, pos * font->char_width + this->x, (y+height) * font->char_height + this->y };
 		window->appendDirtyRect( dirty_rect );
     }
@@ -640,17 +640,17 @@ void TextPlane::Scroll( int x, int y, int width, int height, int delta_x, int de
 
 	BOOL ret;
 
-	// ƒeƒLƒXƒg—pƒIƒtƒXƒNƒŠ[ƒ“‚É‚Ü‚¾•`‚¢‚Ä‚È‚¢‚à‚Ì‚ª‚ ‚ê‚Î•`‚­
+	// ãƒ†ã‚­ã‚¹ãƒˆç”¨ã‚ªãƒ•ã‚¹ã‚¯ãƒªãƒ¼ãƒ³ã«ã¾ã æã„ã¦ãªã„ã‚‚ã®ãŒã‚ã‚Œã°æã
     DrawOffscreen();
 
-	// –„‚Ü‚Á‚Ä‚¢‚È‚©‚Á‚½‚ç‹ó•¶š‚Åi‚ß‚é
+	// åŸ‹ã¾ã£ã¦ã„ãªã‹ã£ãŸã‚‰ç©ºæ–‡å­—ã§é€²ã‚ã‚‹
 	while( (int)char_buffer.size() <= y+height+delta_y )
 	{
         Line * line = new Line();
         char_buffer.push_back(line);
 	}
 
-	// ƒLƒƒƒ‰ƒNƒ^ƒoƒbƒtƒ@‚ğƒRƒs[
+	// ã‚­ãƒ£ãƒ©ã‚¯ã‚¿ãƒãƒƒãƒ•ã‚¡ã‚’ã‚³ãƒ”ãƒ¼
 	if(delta_y<0)
 	{
 		for( int i=0 ; i<height ; ++i )
@@ -667,7 +667,7 @@ void TextPlane::Scroll( int x, int y, int width, int height, int delta_x, int de
 	}
 	else
 	{
-		// –„‚Ü‚Á‚Ä‚¢‚È‚©‚Á‚½‚ç‹ó•¶š‚Åi‚ß‚é
+		// åŸ‹ã¾ã£ã¦ã„ãªã‹ã£ãŸã‚‰ç©ºæ–‡å­—ã§é€²ã‚ã‚‹
 		for( int i=0 ; i<height ; ++i )
 		{
 		    Line * line = char_buffer[y+i];
@@ -730,7 +730,7 @@ void TextPlane::DrawOffscreen()
 
 	bool offscreen_rebuilt = false;
 
-	// ƒIƒtƒXƒNƒŠ[ƒ“ƒoƒbƒtƒ@¶¬
+	// ã‚ªãƒ•ã‚¹ã‚¯ãƒªãƒ¼ãƒ³ãƒãƒƒãƒ•ã‚¡ç”Ÿæˆ
 	if( offscreen_dc==NULL || offscreen_bmp==NULL || offscreen_size.cx!=width || offscreen_size.cy!=height )
 	{
 		if(offscreen_dc){ DeleteObject(offscreen_dc); }
@@ -936,7 +936,7 @@ void TextPlane::DrawOffscreen()
                 		(y+1) * font->char_height
 					};
 
-					// Alpha‚ğ 255 ‚Å–„‚ß‚é
+					// Alphaã‚’ 255 ã§åŸ‹ã‚ã‚‹
 					for( int py=rect.top ; py<rect.bottom ; ++py )
 					{
 						for( int px=rect.left ; px<rect.right ; ++px )
@@ -954,7 +954,7 @@ void TextPlane::DrawOffscreen()
                 		(y+1) * font->char_height
 					};
 
-					// Premultiplied Alpha ˆ—
+					// Premultiplied Alpha å‡¦ç†
 					for( int py=rect.top ; py<rect.bottom ; ++py )
 					{
 						for( int px=rect.left ; px<rect.right ; ++px )
@@ -1085,10 +1085,10 @@ void TextPlane::Draw( const RECT & paint_rect )
 		return;
 	}
 
-	// ƒeƒLƒXƒg—pƒIƒtƒXƒNƒŠ[ƒ“ƒoƒbƒtƒ@‚Ì•`‰æ
+	// ãƒ†ã‚­ã‚¹ãƒˆç”¨ã‚ªãƒ•ã‚¹ã‚¯ãƒªãƒ¼ãƒ³ãƒãƒƒãƒ•ã‚¡ã®æç”»
 	DrawOffscreen();
 
-	// ƒeƒLƒXƒg—pƒIƒtƒXƒNƒŠ[ƒ“ƒoƒbƒtƒ@‚©‚ç‚Ì AlphaBlend
+	// ãƒ†ã‚­ã‚¹ãƒˆç”¨ã‚ªãƒ•ã‚¹ã‚¯ãƒªãƒ¼ãƒ³ãƒãƒƒãƒ•ã‚¡ã‹ã‚‰ã® AlphaBlend
 	{
 		RECT _paint_rect = paint_rect;
 		if( _paint_rect.left < plane_rect.left ){ _paint_rect.left = plane_rect.left; }
@@ -1444,7 +1444,7 @@ void Window::flushPaint( HDC hDC, bool bitblt )
 	if( dirty_rect.right > client_rect.right ) dirty_rect.right = client_rect.right;
 	if( dirty_rect.bottom > client_rect.bottom ) dirty_rect.bottom = client_rect.bottom;
 
-	// ƒIƒtƒXƒNƒŠ[ƒ“ƒoƒbƒtƒ@¶¬
+	// ã‚ªãƒ•ã‚¹ã‚¯ãƒªãƒ¼ãƒ³ãƒãƒƒãƒ•ã‚¡ç”Ÿæˆ
 	if( offscreen_dc==NULL || offscreen_bmp==NULL || offscreen_size.cx!=client_rect.right-client_rect.left || offscreen_size.cy!=client_rect.bottom-client_rect.top )
 	{
 		if(offscreen_dc){ DeleteObject(offscreen_dc); }
@@ -1455,7 +1455,7 @@ void Window::flushPaint( HDC hDC, bool bitblt )
 		if(width<1){ width=1; }
 		if(height<1){ height=1; }
 
-		// ƒIƒtƒXƒNƒŠ[ƒ“
+		// ã‚ªãƒ•ã‚¹ã‚¯ãƒªãƒ¼ãƒ³
 		offscreen_dc = CreateCompatibleDC(hDC);
 		offscreen_bmp = CreateCompatibleBitmap(hDC, width, height);
 		SelectObject(offscreen_dc, offscreen_bmp);
@@ -1463,12 +1463,12 @@ void Window::flushPaint( HDC hDC, bool bitblt )
 		offscreen_size.cx = client_rect.right-client_rect.left;
 		offscreen_size.cy = client_rect.bottom-client_rect.top;
 		
-		// ƒIƒtƒXƒNƒŠ[ƒ“‚ğì‚Á‚½’¼Œã‚Í‘S‚Ä•`‚­
+		// ã‚ªãƒ•ã‚¹ã‚¯ãƒªãƒ¼ãƒ³ã‚’ä½œã£ãŸç›´å¾Œã¯å…¨ã¦æã
 		dirty_rect = client_rect;
 		FillRect( offscreen_dc, &dirty_rect, bg_brush );
 	}
 
-	// ƒIƒtƒXƒNƒŠ[ƒ“‚Ö‚Ì•`‰æ
+	// ã‚ªãƒ•ã‚¹ã‚¯ãƒªãƒ¼ãƒ³ã¸ã®æç”»
 	{
 	    IntersectClipRect( offscreen_dc, dirty_rect.left, dirty_rect.top, dirty_rect.right, dirty_rect.bottom );
 
@@ -1479,7 +1479,7 @@ void Window::flushPaint( HDC hDC, bool bitblt )
 		SelectClipRgn( offscreen_dc, NULL );
 	}
 
-	// ƒIƒtƒXƒNƒŠ[ƒ“‚©‚çƒEƒCƒ“ƒhƒE‚É“]‘—
+	// ã‚ªãƒ•ã‚¹ã‚¯ãƒªãƒ¼ãƒ³ã‹ã‚‰ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã«è»¢é€
 	if(bitblt)
 	{
 	    BOOL ret = BitBlt( hDC, dirty_rect.left, dirty_rect.top, dirty_rect.right-dirty_rect.left, dirty_rect.bottom-dirty_rect.top, offscreen_dc, dirty_rect.left, dirty_rect.top, SRCCOPY );
@@ -1517,7 +1517,7 @@ void Window::_onNcPaint( HDC hDC )
 	SelectObject( hDC, bg_brush );
 	SelectObject( hDC, frame_pen );
 
-	// ã
+	// ä¸Š
 	RECT rect1 = { 
 		0, 
 		0,
@@ -1526,7 +1526,7 @@ void Window::_onNcPaint( HDC hDC )
 		};
 	FillRect( hDC, &rect1, bg_brush );
 
-	// ¶
+	// å·¦
 	RECT rect2 = { 
 		0, 
 		client_rect.top-window_rect.top, 
@@ -1535,7 +1535,7 @@ void Window::_onNcPaint( HDC hDC )
 		};
 	FillRect( hDC, &rect2, bg_brush );
 
-	// ‰E
+	// å³
 	RECT rect3 = { 
 		client_rect.right-window_rect.left,
 		client_rect.top-window_rect.top, 
@@ -1544,7 +1544,7 @@ void Window::_onNcPaint( HDC hDC )
 		};
 	FillRect( hDC, &rect3, bg_brush );
 
-	// ‰º
+	// ä¸‹
 	RECT rect4 = { 
 		0,
 		client_rect.bottom-window_rect.top, 
@@ -1553,7 +1553,7 @@ void Window::_onNcPaint( HDC hDC )
 		};
 	FillRect( hDC, &rect4, bg_brush );
 	
-	// ˜gü
+	// æ ç·š
 	MoveToEx( hDC, 0, 0, NULL );
 	LineTo( hDC, window_rect.right-window_rect.left-1, 0 );
 	LineTo( hDC, window_rect.right-window_rect.left-1, window_rect.bottom-window_rect.top-1 );
@@ -1659,7 +1659,7 @@ void Window::_onWindowPositionChange( WINDOWPOS * wndpos, bool send_event )
 				}
 			}
 		
-			// ƒEƒCƒ“ƒhƒE‚ÌƒTƒCƒY‚ª•Ï‚í‚Á‚½‚Ì‚ÅÄ•`‰æ‚·‚é
+			// ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã®ã‚µã‚¤ã‚ºãŒå¤‰ã‚ã£ãŸã®ã§å†æç”»ã™ã‚‹
 	        InvalidateRect( hwnd, NULL, TRUE );
 	    }
 	}
@@ -1669,8 +1669,8 @@ void Window::_updateWindowFrameRect()
 {
 	FUNC_TRACE;
 	
-	// ƒNƒ‰ƒCƒAƒ“ƒg—Ìˆæ‚ÆƒEƒCƒ“ƒhƒE‹éŒ`‚Ì·•ª‚ğŒvZ‚·‚é
-	// AdjustWindowRectEx ‚ğg‚¤•û–@‚¾‚ÆAƒƒjƒ…[ƒo[‚ª•¡”s‚ÉÜ‚è•Ô‚µ‚½‚±‚Æ‚É‘Î‰‚Å‚«‚È‚¢B
+	// ã‚¯ãƒ©ã‚¤ã‚¢ãƒ³ãƒˆé ˜åŸŸã¨ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦çŸ©å½¢ã®å·®åˆ†ã‚’è¨ˆç®—ã™ã‚‹
+	// AdjustWindowRectEx ã‚’ä½¿ã†æ–¹æ³•ã ã¨ã€ãƒ¡ãƒ‹ãƒ¥ãƒ¼ãƒãƒ¼ãŒè¤‡æ•°è¡Œã«æŠ˜ã‚Šè¿”ã—ãŸã“ã¨ã«å¯¾å¿œã§ããªã„ã€‚
 	
 	RECT window_rect;
 	if( ! GetWindowRect( hwnd, &window_rect ) )
@@ -2006,7 +2006,7 @@ LRESULT CALLBACK Window::_wndProc( HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 							i->timeout -= TIMER_PAINT_INTERVAL;
 							if(i->timeout<=0)
 							{
-								// ƒlƒXƒg‚µ‚½ŒÄ‚Ño‚µ‚ª‹N‚«‚È‚¢‚æ‚¤‚ÉAŒÄ‚Ño‚µ‘O‚ÉNULL‚É‚·‚éB
+								// ãƒã‚¹ãƒˆã—ãŸå‘¼ã³å‡ºã—ãŒèµ·ããªã„ã‚ˆã†ã«ã€å‘¼ã³å‡ºã—å‰ã«NULLã«ã™ã‚‹ã€‚
 								PyObject * pyobj = i->pyobj;
 								i->pyobj = NULL;
 
@@ -2029,7 +2029,7 @@ LRESULT CALLBACK Window::_wndProc( HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 
 					window->delayed_call_list_ref_count --;
 
-					// –³Œø‰»‚³‚ê‚½ƒm[ƒh‚ğíœ
+					// ç„¡åŠ¹åŒ–ã•ã‚ŒãŸãƒãƒ¼ãƒ‰ã‚’å‰Šé™¤
 		    		if(window->delayed_call_list_ref_count==0)
 		    		{
 						for( std::list<DelayedCallInfo>::iterator i=window->delayed_call_list.begin(); i!=window->delayed_call_list.end() ; )
@@ -2091,7 +2091,7 @@ LRESULT CALLBACK Window::_wndProc( HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 
 		    		window->timer_list_ref_count --;
 
-					// –³Œø‰»‚³‚ê‚½ƒm[ƒh‚ğíœ
+					// ç„¡åŠ¹åŒ–ã•ã‚ŒãŸãƒãƒ¼ãƒ‰ã‚’å‰Šé™¤
 		    		if(window->timer_list_ref_count==0)
 		    		{
 						for( std::list<TimerInfo>::iterator i=window->timer_list.begin(); i!=window->timer_list.end() ; )
@@ -2144,7 +2144,7 @@ LRESULT CALLBACK Window::_wndProc( HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 
     		window->hotkey_list_ref_count --;
 
-			// –³Œø‰»‚³‚ê‚½ƒm[ƒh‚ğíœ
+			// ç„¡åŠ¹åŒ–ã•ã‚ŒãŸãƒãƒ¼ãƒ‰ã‚’å‰Šé™¤
 			if(window->hotkey_list_ref_count==0)
 			{
 				for( std::list<HotKeyInfo>::iterator i=window->hotkey_list.begin(); i!=window->hotkey_list.end() ; )
@@ -2477,7 +2477,7 @@ LRESULT CALLBACK Window::_wndProc( HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
             window->ime_on = ImmGetOpenStatus(imc) != FALSE;
             ImmReleaseContext(hwnd, imc);
             
-			// FIXME : Ä•`‰æ‚ÌˆÊ’u‚ğCaret‚ÌˆÊ’u‚¾‚¯‚É‚µ‚½‚¢
+			// FIXME : å†æç”»ã®ä½ç½®ã‚’Caretã®ä½ç½®ã ã‘ã«ã—ãŸã„
 			InvalidateRect( hwnd, NULL, TRUE);
         }
         return( DefWindowProc(hwnd, msg, wp, lp) );
@@ -2692,7 +2692,7 @@ bool Window::_createWindow( Param & param )
         exstyle |= WS_EX_TOOLWINDOW;
     }
 	
-	// FIXME : _updateWindowFrameRect ‚ğg‚¤‚×‚«H
+	// FIXME : _updateWindowFrameRect ã‚’ä½¿ã†ã¹ãï¼Ÿ
 	RECT window_frame_rect;
 	memset( &window_frame_rect, 0, sizeof(window_frame_rect) );
     AdjustWindowRectEx( &window_frame_rect, style, (menu!=NULL), exstyle );
@@ -2759,10 +2759,10 @@ bool Window::_createWindow( Param & param )
 }
 
 static int CALLBACK cbEnumFont(
-  ENUMLOGFONTEX *lpelfe,    // ˜_—“I‚ÈƒtƒHƒ“ƒgƒf[ƒ^
-  NEWTEXTMETRICEX *lpntme,  // •¨—“I‚ÈƒtƒHƒ“ƒgƒf[ƒ^
-  DWORD FontType,           // ƒtƒHƒ“ƒg‚Ìí—Ş
-  LPARAM lParam             // ƒAƒvƒŠƒP[ƒVƒ‡ƒ“’è‹`‚Ìƒf[ƒ^
+  ENUMLOGFONTEX *lpelfe,    // è«–ç†çš„ãªãƒ•ã‚©ãƒ³ãƒˆãƒ‡ãƒ¼ã‚¿
+  NEWTEXTMETRICEX *lpntme,  // ç‰©ç†çš„ãªãƒ•ã‚©ãƒ³ãƒˆãƒ‡ãƒ¼ã‚¿
+  DWORD FontType,           // ãƒ•ã‚©ãƒ³ãƒˆã®ç¨®é¡
+  LPARAM lParam             // ã‚¢ãƒ—ãƒªã‚±ãƒ¼ã‚·ãƒ§ãƒ³å®šç¾©ã®ãƒ‡ãƒ¼ã‚¿
 )
 {
 	if( ( lpelfe->elfLogFont.lfPitchAndFamily & FIXED_PITCH )==0 ) return 1;
@@ -2991,7 +2991,7 @@ void Window::setMenu( PyObject * _menu )
 
 	_clearMenuCommands();
 
-	// MenuNode ‚É‚µ‚½‚ª‚Á‚Äƒƒjƒ…[‚ğÄ\’z‚·‚é
+	// MenuNode ã«ã—ãŸãŒã£ã¦ãƒ¡ãƒ‹ãƒ¥ãƒ¼ã‚’å†æ§‹ç¯‰ã™ã‚‹
 	if(menu)
 	{
 		HMENU menu_handle = CreateMenu();
@@ -3008,7 +3008,7 @@ void Window::setMenu( PyObject * _menu )
 		SetMenu( hwnd, NULL );
 	}
 
-	// ŒÃ‚¢ƒƒjƒ…[‚ğíœ‚·‚é
+	// å¤ã„ãƒ¡ãƒ‹ãƒ¥ãƒ¼ã‚’å‰Šé™¤ã™ã‚‹
 	if(old_menu_handle)
 	{
 		DestroyMenu(old_menu_handle);
@@ -3021,12 +3021,12 @@ void Window::_refreshMenu()
 {
 	_clearMenuCommands();
 
-	// MenuNode ‚É‚µ‚½‚ª‚Á‚Äƒƒjƒ…[‚ğÄ\’z‚·‚é
+	// MenuNode ã«ã—ãŸãŒã£ã¦ãƒ¡ãƒ‹ãƒ¥ãƒ¼ã‚’å†æ§‹ç¯‰ã™ã‚‹
 	if(menu)
 	{
 		HMENU menu_handle = GetMenu(hwnd);
 		
-		// ƒƒjƒ…[‚ğƒNƒŠƒA‚·‚é
+		// ãƒ¡ãƒ‹ãƒ¥ãƒ¼ã‚’ã‚¯ãƒªã‚¢ã™ã‚‹
 		while(true)
 		{
 			if( ! DeleteMenu( menu_handle, 0, MF_BYPOSITION ) )
@@ -3194,7 +3194,7 @@ void Window::destroy()
 {
 	FUNC_TRACE;
 
-	// ƒEƒCƒ“ƒhƒE”jŠü’†‚É activate_handler ‚È‚Ç‚ğŒÄ‚Î‚È‚¢‚æ‚¤‚É
+	// ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ç ´æ£„ä¸­ã« activate_handler ãªã©ã‚’å‘¼ã°ãªã„ã‚ˆã†ã«
 	_clearCallables();
 
 	DestroyWindow(hwnd);
@@ -3470,7 +3470,7 @@ TaskTrayIcon::TaskTrayIcon( Param & param )
 	icon_data.uCallbackMessage = WM_USER_NTFYICON;
 	lstrcpy( icon_data.szTip, param.title.c_str() );
 	
-	// Shell_NotifyIcon ‚É‚ÍƒŠƒgƒ‰ƒC‚ª•K—v
+	// Shell_NotifyIcon ã«ã¯ãƒªãƒˆãƒ©ã‚¤ãŒå¿…è¦
 	// http://support.microsoft.com/kb/418138/JA/
 	while(true)
 	{
@@ -3483,7 +3483,7 @@ TaskTrayIcon::TaskTrayIcon( Param & param )
 		        printf("retry\n");
 		        Sleep(1000);
 		        
-		        // ƒ^ƒCƒ€ƒAƒEƒgŒã‚ÉÀ‚Í¬Œ÷‚µ‚Ä‚¢‚½‚©‚à‚µ‚ê‚È‚¢‚Ì‚ÅA”O‚Ì‚½‚ßŠm”F‚·‚é
+		        // ã‚¿ã‚¤ãƒ ã‚¢ã‚¦ãƒˆå¾Œã«å®Ÿã¯æˆåŠŸã—ã¦ã„ãŸã‹ã‚‚ã—ã‚Œãªã„ã®ã§ã€å¿µã®ãŸã‚ç¢ºèªã™ã‚‹
 		        if( Shell_NotifyIcon( NIM_MODIFY , &icon_data ) )
 		        {
 			        printf("TaskTrayIcon : Shell_NotifyIcon(NIM_MODIFY) succeeded\n" );
@@ -6057,7 +6057,7 @@ static PyObject * Window_flushPaint(PyObject* self, PyObject* args)
     return Py_None;
 }
 
-// ƒIƒtƒXƒNƒŠ[ƒ“‚ğ‚»‚Ì‚Ü‚Üƒtƒƒ“ƒg‚ÉƒRƒs[‚·‚é (•`‰æƒVƒXƒeƒ€‚ÌƒfƒoƒbƒO—p)
+// ã‚ªãƒ•ã‚¹ã‚¯ãƒªãƒ¼ãƒ³ã‚’ãã®ã¾ã¾ãƒ•ãƒ­ãƒ³ãƒˆã«ã‚³ãƒ”ãƒ¼ã™ã‚‹ (æç”»ã‚·ã‚¹ãƒ†ãƒ ã®ãƒ‡ãƒãƒƒã‚°ç”¨)
 static PyObject * Window_bitBlt(PyObject* self, PyObject* args)
 {
 	FUNC_TRACE;
@@ -6581,7 +6581,7 @@ static PyObject * Window_setHotKey( PyObject * self, PyObject * args )
 
 	Window * window = ((Window_Object*)self)->p;
 	
-	// 0x0000 - 0xBFFF ‚Ì”ÍˆÍ‚ÅAg‚í‚ê‚Ä‚¢‚È‚¢ID‚ğŒŸõ‚·‚é
+	// 0x0000 - 0xBFFF ã®ç¯„å›²ã§ã€ä½¿ã‚ã‚Œã¦ã„ãªã„IDã‚’æ¤œç´¢ã™ã‚‹
 	int id;
 	for( id=0 ; id<0xc000 ; ++id )
 	{
@@ -7026,12 +7026,12 @@ static PyObject * Window_popupMenu(PyObject* self, PyObject* args, PyObject * kw
 	{
 		HWND hwnd = window->hwnd;
 	
-		SetForegroundWindow(hwnd); //ƒEƒBƒ“ƒhƒE‚ğƒtƒHƒAƒOƒ‰ƒEƒ“ƒh‚É‚Á‚Ä‚«‚Ü‚·B
-		SetFocus(hwnd);	//‚±‚ê‚ğ‚µ‚È‚¢‚ÆAƒƒjƒ…[‚ªÁ‚¦‚È‚­‚È‚è‚Ü‚·B
+		SetForegroundWindow(hwnd); //ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚’ãƒ•ã‚©ã‚¢ã‚°ãƒ©ã‚¦ãƒ³ãƒ‰ã«æŒã£ã¦ãã¾ã™ã€‚
+		SetFocus(hwnd);	//ã“ã‚Œã‚’ã—ãªã„ã¨ã€ãƒ¡ãƒ‹ãƒ¥ãƒ¼ãŒæ¶ˆãˆãªããªã‚Šã¾ã™ã€‚
 
 		TrackPopupMenu( menu, TPM_TOPALIGN | TPM_LEFTALIGN | TPM_RIGHTBUTTON, x, y, 0, hwnd, 0 );
 
-		PostMessage(hwnd,WM_NULL,0,0); //‚±‚ê‚ğ‚µ‚È‚¢‚ÆA‚Q“x–Ú‚Ìƒƒjƒ…[‚ª‚·‚®Á‚¦‚¿‚á‚¢‚Ü‚·B
+		PostMessage(hwnd,WM_NULL,0,0); //ã“ã‚Œã‚’ã—ãªã„ã¨ã€ï¼’åº¦ç›®ã®ãƒ¡ãƒ‹ãƒ¥ãƒ¼ãŒã™ãæ¶ˆãˆã¡ã‚ƒã„ã¾ã™ã€‚
 	}
 
 	DestroyMenu(menu);
@@ -7365,12 +7365,12 @@ static PyObject * TaskTrayIcon_popupMenu(PyObject* self, PyObject* args, PyObjec
 	{
 		HWND hwnd = task_tray_icon->hwnd;
 	
-		SetForegroundWindow(hwnd); //ƒEƒBƒ“ƒhƒE‚ğƒtƒHƒAƒOƒ‰ƒEƒ“ƒh‚É‚Á‚Ä‚«‚Ü‚·B
-		SetFocus(hwnd);	//‚±‚ê‚ğ‚µ‚È‚¢‚ÆAƒƒjƒ…[‚ªÁ‚¦‚È‚­‚È‚è‚Ü‚·B
+		SetForegroundWindow(hwnd); //ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚’ãƒ•ã‚©ã‚¢ã‚°ãƒ©ã‚¦ãƒ³ãƒ‰ã«æŒã£ã¦ãã¾ã™ã€‚
+		SetFocus(hwnd);	//ã“ã‚Œã‚’ã—ãªã„ã¨ã€ãƒ¡ãƒ‹ãƒ¥ãƒ¼ãŒæ¶ˆãˆãªããªã‚Šã¾ã™ã€‚
 
 		TrackPopupMenu( menu, TPM_TOPALIGN | TPM_LEFTALIGN | TPM_RIGHTBUTTON, x, y, 0, hwnd, 0 );
 
-		PostMessage(hwnd,WM_NULL,0,0); //‚±‚ê‚ğ‚µ‚È‚¢‚ÆA‚Q“x–Ú‚Ìƒƒjƒ…[‚ª‚·‚®Á‚¦‚¿‚á‚¢‚Ü‚·B
+		PostMessage(hwnd,WM_NULL,0,0); //ã“ã‚Œã‚’ã—ãªã„ã¨ã€ï¼’åº¦ç›®ã®ãƒ¡ãƒ‹ãƒ¥ãƒ¼ãŒã™ãæ¶ˆãˆã¡ã‚ƒã„ã¾ã™ã€‚
 	}
 
 	DestroyMenu(menu);

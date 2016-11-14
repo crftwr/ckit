@@ -1,4 +1,4 @@
-#ifndef __CKITCORE_H__
+ï»¿#ifndef __CKITCORE_H__
 #define __CKITCORE_H__
 
 #include <windows.h>
@@ -54,7 +54,7 @@ namespace ckit
         COLORREF bg_color[4];
         COLORREF line_color[2];
 
-		// ‘S‚Ä‚Ì—v‘f‚ğ”äŠr
+		// å…¨ã¦ã®è¦ç´ ã‚’æ¯”è¼ƒ
         bool Equal( const Attribute & rhs ) const
         {
         	return (
@@ -70,7 +70,7 @@ namespace ckit
         		line_color[1]==rhs.line_color[1] );
         }
 
-		// fg_color ‚ğœ‚­”äŠr
+		// fg_color ã‚’é™¤ãæ¯”è¼ƒ
         bool EqualWithoutFgColor( const Attribute & rhs ) const
         {
         	return (
@@ -413,7 +413,7 @@ namespace ckit
 	    DWORD style;
 	    DWORD exstyle;
         SIZE window_frame_size;
-        RECT last_valid_window_rect; // Å¬‰»‚³‚ê‚Ä‚¢‚È‚¢ó‘Ô‚ÌƒEƒCƒ“ƒhƒE‹éŒ`
+        RECT last_valid_window_rect; // æœ€å°åŒ–ã•ã‚Œã¦ã„ãªã„çŠ¶æ…‹ã®ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦çŸ©å½¢
 		HDC	offscreen_dc;
 		HBITMAP	offscreen_bmp;
 		SIZE offscreen_size;
@@ -467,9 +467,9 @@ namespace ckit
 	    std::list<HotKeyInfo> hotkey_list;
 	    int hotkey_list_ref_count;
 
-        PyObject * menu; 							// ƒƒjƒ…[ƒo[
-	    std::vector<PyObject*> menu_commands;		// ƒƒjƒ…[ƒo[—p‚ÌƒRƒ}ƒ“ƒh
-	    std::vector<PyObject*> popup_menu_commands; // popupƒƒjƒ…[—p‚ÌƒRƒ}ƒ“ƒh
+        PyObject * menu; 							// ãƒ¡ãƒ‹ãƒ¥ãƒ¼ãƒãƒ¼
+	    std::vector<PyObject*> menu_commands;		// ãƒ¡ãƒ‹ãƒ¥ãƒ¼ãƒãƒ¼ç”¨ã®ã‚³ãƒãƒ³ãƒ‰
+	    std::vector<PyObject*> popup_menu_commands; // popupãƒ¡ãƒ‹ãƒ¥ãƒ¼ç”¨ã®ã‚³ãƒãƒ³ãƒ‰
 	};
 
     struct TaskTrayIcon
@@ -507,7 +507,7 @@ namespace ckit
 	    PyObject * rbuttonup_handler;
 	    PyObject * lbuttondoubleclick_handler;
 	    
-	    std::vector<PyObject*> popup_menu_commands;	// popupƒƒjƒ…[—p‚ÌƒRƒ}ƒ“ƒh
+	    std::vector<PyObject*> popup_menu_commands;	// popupãƒ¡ãƒ‹ãƒ¥ãƒ¼ç”¨ã®ã‚³ãƒãƒ³ãƒ‰
 	};
 };
 
