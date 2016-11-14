@@ -25,6 +25,7 @@ using namespace ckit;
 
 static std::wstring WINDOW_CLASS_NAME 			= L"CkitWindowClass";
 static std::wstring TASKTRAY_WINDOW_CLASS_NAME  = L"CkitTaskTrayWindowClass";
+static UINT WM_TASKBAR_CREATED = RegisterWindowMessage(L"TaskbarCreated");
 
 static PyObject * Error;
 static PyObject * command_info_constructor;
@@ -3469,36 +3470,8 @@ TaskTrayIcon::TaskTrayIcon( Param & param )
 	icon_data.hIcon = (HICON)LoadImage( hInstance, (const wchar_t*)1, IMAGE_ICON, 16, 16, 0 );
 	icon_data.uCallbackMessage = WM_USER_NTFYICON;
 	lstrcpy( icon_data.szTip, param.title.c_str() );
-	
-	// Shell_NotifyIcon にはリトライが必要
-	// http://support.microsoft.com/kb/418138/JA/
-	while(true)
-	{
-		if( ! Shell_NotifyIcon( NIM_ADD, &icon_data ) )
-		{
-			int err = GetLastError();
-			if( err==ERROR_TIMEOUT || err==0 )
-			{
-		        printf("TaskTrayIcon : Shell_NotifyIcon(NIM_ADD) failed : %d\n", err );
-		        printf("retry\n");
-		        Sleep(1000);
-		        
-		        // タイムアウト後に実は成功していたかもしれないので、念のため確認する
-		        if( Shell_NotifyIcon( NIM_MODIFY , &icon_data ) )
-		        {
-			        printf("TaskTrayIcon : Shell_NotifyIcon(NIM_MODIFY) succeeded\n" );
-					break;
-		        }
-		        
-		        continue;
-			}
-			else
-			{
-		        printf("TaskTrayIcon : Shell_NotifyIcon failed : %d\n", err );
-			}
-		}
-		break;
-	}
+
+	_addIconWithRetry();
 
 	ShowWindow(hwnd, SW_HIDE);
 	UpdateWindow(hwnd);
@@ -3564,6 +3537,39 @@ bool TaskTrayIcon::_registerWindowClass()
     }
 
     return(TRUE);
+}
+
+void TaskTrayIcon::_addIconWithRetry()
+{
+	// Shell_NotifyIcon にはリトライが必要
+	// http://support.microsoft.com/kb/418138/JA/
+	while (true)
+	{
+		if (!Shell_NotifyIcon(NIM_ADD, &icon_data))
+		{
+			int err = GetLastError();
+			if (err == ERROR_TIMEOUT || err == 0)
+			{
+				printf("TaskTrayIcon : Shell_NotifyIcon(NIM_ADD) failed : %d\n", err);
+				printf("retry\n");
+				Sleep(1000);
+
+				// タイムアウト後に実は成功していたかもしれないので、念のため確認する
+				if (Shell_NotifyIcon(NIM_MODIFY, &icon_data))
+				{
+					printf("TaskTrayIcon : Shell_NotifyIcon(NIM_MODIFY) succeeded\n");
+					break;
+				}
+
+				continue;
+			}
+			else
+			{
+				printf("TaskTrayIcon : Shell_NotifyIcon failed : %d\n", err);
+			}
+		}
+		break;
+	}
 }
 
 void TaskTrayIcon::_clearPopupMenuCommands()
@@ -3762,6 +3768,11 @@ LRESULT CALLBACK TaskTrayIcon::_wndProc( HWND hwnd, UINT msg, WPARAM wp, LPARAM 
 		break;
 
 	default:
+		if (msg==WM_TASKBAR_CREATED)
+		{
+			Shell_NotifyIcon(NIM_DELETE, &task_tray_icon->icon_data);
+			task_tray_icon->_addIconWithRetry();
+		}
 		return DefWindowProc(hwnd, msg, wp, lp);
 	}
 	return 0;

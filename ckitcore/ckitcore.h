@@ -491,10 +491,11 @@ namespace ckit
 
         void SetPyObject( PyObject * pyobj );
         void destroy();
-
+		
         static LRESULT CALLBACK _wndProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp);
 	    static bool _registerWindowClass();
-	    void _clearPopupMenuCommands();
+		void _addIconWithRetry();
+		void _clearPopupMenuCommands();
 	
 		HWND hwnd;
 		PyObject * pyobj;
