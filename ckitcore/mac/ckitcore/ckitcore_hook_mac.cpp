@@ -46,7 +46,7 @@ struct FuncTrace
 
 enum AdditionalVk
 {
-    kVK_RightCommand = 0x36,
+    //kVK_RightCommand = 0x36,
 };
 
 CGEventFlags HookMac::modifier = (CGEventFlags)0;

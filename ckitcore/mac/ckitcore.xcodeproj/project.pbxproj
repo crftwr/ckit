@@ -22,7 +22,7 @@
 		33E3AA5219677C2B004C7EDF /* pythonutil.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 33E3AA4D19677C2B004C7EDF /* pythonutil.cpp */; };
 		33E3AA5319677C2B004C7EDF /* pythonutil.h in Headers */ = {isa = PBXBuildFile; fileRef = 33E3AA4E19677C2B004C7EDF /* pythonutil.h */; };
 		33E3AA5919678AC6004C7EDF /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 33E3AA5819678AC6004C7EDF /* Cocoa.framework */; };
-		33E3AA5B1967AE05004C7EDF /* Python in Frameworks */ = {isa = PBXBuildFile; fileRef = 33E3AA5A1967AE05004C7EDF /* Python */; };
+		E264E6BC1DBC3F470052B418 /* Python.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E264E6BB1DBC3F470052B418 /* Python.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -36,21 +36,6 @@
 		335238E4196997A900AAEB73 /* test.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = test.py; path = ../../test/test.py; sourceTree = "<group>"; };
 		3393533919B1718C008BA442 /* ckitcore_hook_mac.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ckitcore_hook_mac.cpp; sourceTree = "<group>"; };
 		3393533A19B1718C008BA442 /* ckitcore_hook_mac.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ckitcore_hook_mac.h; sourceTree = "<group>"; };
-		33DBA72C19B2BBA10095DE67 /* _config.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = _config.py; path = ../../../keyhac/_config.py; sourceTree = "<group>"; };
-		33DBA72D19B2BBA10095DE67 /* keyhac_balloon.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = keyhac_balloon.py; path = ../../../keyhac/keyhac_balloon.py; sourceTree = "<group>"; };
-		33DBA72E19B2BBA10095DE67 /* keyhac_clipboard.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = keyhac_clipboard.py; path = ../../../keyhac/keyhac_clipboard.py; sourceTree = "<group>"; };
-		33DBA72F19B2BBA10095DE67 /* keyhac_consolewindow.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = keyhac_consolewindow.py; path = ../../../keyhac/keyhac_consolewindow.py; sourceTree = "<group>"; };
-		33DBA73019B2BBA10095DE67 /* keyhac_hook.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = keyhac_hook.py; path = ../../../keyhac/keyhac_hook.py; sourceTree = "<group>"; };
-		33DBA73119B2BBA10095DE67 /* keyhac_ini.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = keyhac_ini.py; path = ../../../keyhac/keyhac_ini.py; sourceTree = "<group>"; };
-		33DBA73219B2BBA10095DE67 /* keyhac_isearch.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = keyhac_isearch.py; path = ../../../keyhac/keyhac_isearch.py; sourceTree = "<group>"; };
-		33DBA73319B2BBA10095DE67 /* keyhac_keymap.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = keyhac_keymap.py; path = ../../../keyhac/keyhac_keymap.py; sourceTree = "<group>"; };
-		33DBA73419B2BBA10095DE67 /* keyhac_listwindow.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = keyhac_listwindow.py; path = ../../../keyhac/keyhac_listwindow.py; sourceTree = "<group>"; };
-		33DBA73519B2BBA10095DE67 /* keyhac_main.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = keyhac_main.py; path = ../../../keyhac/keyhac_main.py; sourceTree = "<group>"; };
-		33DBA73619B2BBA10095DE67 /* keyhac_misc.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = keyhac_misc.py; path = ../../../keyhac/keyhac_misc.py; sourceTree = "<group>"; };
-		33DBA73719B2BBA10095DE67 /* keyhac_resource.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = keyhac_resource.py; path = ../../../keyhac/keyhac_resource.py; sourceTree = "<group>"; };
-		33DBA73819B2BBA10095DE67 /* keyhac_statusbar.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = keyhac_statusbar.py; path = ../../../keyhac/keyhac_statusbar.py; sourceTree = "<group>"; };
-		33DBA73919B2BBA10095DE67 /* keyhac_tasktrayicon.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = keyhac_tasktrayicon.py; path = ../../../keyhac/keyhac_tasktrayicon.py; sourceTree = "<group>"; };
-		33DBA73A19B2BBA10095DE67 /* keyhac.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = keyhac.py; path = ../../../keyhac/keyhac.py; sourceTree = "<group>"; };
 		33E3AA3A19677B22004C7EDF /* ckitcore.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = ckitcore.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		33E3AA3F19677B22004C7EDF /* ckitcoreProj.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = ckitcoreProj.xcconfig; sourceTree = "<group>"; };
 		33E3AA4019677B22004C7EDF /* ckitcoreTarget.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = ckitcoreTarget.xcconfig; sourceTree = "<group>"; };
@@ -60,7 +45,6 @@
 		33E3AA4D19677C2B004C7EDF /* pythonutil.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pythonutil.cpp; path = ../../pythonutil.cpp; sourceTree = "<group>"; };
 		33E3AA4E19677C2B004C7EDF /* pythonutil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pythonutil.h; path = ../../pythonutil.h; sourceTree = "<group>"; };
 		33E3AA5819678AC6004C7EDF /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
-		33E3AA5A1967AE05004C7EDF /* Python */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = Python; path = /Library/Frameworks/Python.framework/Versions/3.4/Python; sourceTree = "<absolute>"; };
 		33E3AA5D1967CC01004C7EDF /* ckit_command.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = ckit_command.py; path = ../../ckit_command.py; sourceTree = "<group>"; };
 		33E3AA5E1967CC01004C7EDF /* ckit_const.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = ckit_const.py; path = ../../ckit_const.py; sourceTree = "<group>"; };
 		33E3AA5F1967CC01004C7EDF /* ckit_dialog.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = ckit_dialog.py; path = ../../ckit_dialog.py; sourceTree = "<group>"; };
@@ -78,12 +62,7 @@
 		33E3AA6B1967CC01004C7EDF /* ckit_wallpaper.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = ckit_wallpaper.py; path = ../../ckit_wallpaper.py; sourceTree = "<group>"; };
 		33E3AA6C1967CC01004C7EDF /* ckit_widget.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = ckit_widget.py; path = ../../ckit_widget.py; sourceTree = "<group>"; };
 		33E3AA6D1967CC17004C7EDF /* __init__.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = __init__.py; path = ../../__init__.py; sourceTree = "<group>"; };
-		E226F9161C0B16E300F400F6 /* config.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = config.py; path = "../../../../Library/Application Support/Keyhac/config.py"; sourceTree = "<group>"; };
-		E226F91A1C0B239C00F400F6 /* changes.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = changes.txt; path = ../../../keyhac/doc/changes.txt; sourceTree = "<group>"; };
-		E25E25831C3648D100B350A9 /* makefile.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = makefile.py; path = ../../../keyhac/makefile.py; sourceTree = "<group>"; };
-		E25E25841C3648D100B350A9 /* setup.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = setup.py; path = ../../../keyhac/setup.py; sourceTree = "<group>"; };
-		E275A3071C35144700BD897F /* index_en.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = index_en.txt; path = ../../../keyhac/doc/index_en.txt; sourceTree = "<group>"; };
-		E275A3081C35144700BD897F /* index_ja.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = index_ja.txt; path = ../../../keyhac/doc/index_ja.txt; sourceTree = "<group>"; };
+		E264E6BB1DBC3F470052B418 /* Python.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Python.framework; path = ../../../../../../Library/Frameworks/Python.framework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -91,7 +70,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				33E3AA5B1967AE05004C7EDF /* Python in Frameworks */,
+				E264E6BC1DBC3F470052B418 /* Python.framework in Frameworks */,
 				33E3AA5919678AC6004C7EDF /* Cocoa.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -135,40 +114,14 @@
 			name = common;
 			sourceTree = "<group>";
 		};
-		33DBA72B19B2BB660095DE67 /* keyhac - python */ = {
-			isa = PBXGroup;
-			children = (
-				E226F9181C0B232B00F400F6 /* doc */,
-				E25E25831C3648D100B350A9 /* makefile.py */,
-				E25E25841C3648D100B350A9 /* setup.py */,
-				E226F9161C0B16E300F400F6 /* config.py */,
-				33DBA72C19B2BBA10095DE67 /* _config.py */,
-				33DBA72D19B2BBA10095DE67 /* keyhac_balloon.py */,
-				33DBA72E19B2BBA10095DE67 /* keyhac_clipboard.py */,
-				33DBA72F19B2BBA10095DE67 /* keyhac_consolewindow.py */,
-				33DBA73019B2BBA10095DE67 /* keyhac_hook.py */,
-				33DBA73119B2BBA10095DE67 /* keyhac_ini.py */,
-				33DBA73219B2BBA10095DE67 /* keyhac_isearch.py */,
-				33DBA73319B2BBA10095DE67 /* keyhac_keymap.py */,
-				33DBA73419B2BBA10095DE67 /* keyhac_listwindow.py */,
-				33DBA73519B2BBA10095DE67 /* keyhac_main.py */,
-				33DBA73619B2BBA10095DE67 /* keyhac_misc.py */,
-				33DBA73719B2BBA10095DE67 /* keyhac_resource.py */,
-				33DBA73819B2BBA10095DE67 /* keyhac_statusbar.py */,
-				33DBA73919B2BBA10095DE67 /* keyhac_tasktrayicon.py */,
-				33DBA73A19B2BBA10095DE67 /* keyhac.py */,
-			);
-			name = "keyhac - python";
-			sourceTree = "<group>";
-		};
 		33E3AA3119677B22004C7EDF = {
 			isa = PBXGroup;
 			children = (
 				33E3AA3C19677B22004C7EDF /* ckitcore */,
 				33E3AA5C1967CBB2004C7EDF /* ckit - python */,
-				33DBA72B19B2BB660095DE67 /* keyhac - python */,
 				33E3AA3D19677B22004C7EDF /* Supporting Files */,
 				33E3AA3B19677B22004C7EDF /* Products */,
+				E264E6BA1DBC3F460052B418 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -193,7 +146,6 @@
 			isa = PBXGroup;
 			children = (
 				33E3AA5819678AC6004C7EDF /* Cocoa.framework */,
-				33E3AA5A1967AE05004C7EDF /* Python */,
 				33E3AA3F19677B22004C7EDF /* ckitcoreProj.xcconfig */,
 				33E3AA4019677B22004C7EDF /* ckitcoreTarget.xcconfig */,
 			);
@@ -226,14 +178,12 @@
 			name = "ckit - python";
 			sourceTree = "<group>";
 		};
-		E226F9181C0B232B00F400F6 /* doc */ = {
+		E264E6BA1DBC3F460052B418 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				E275A3071C35144700BD897F /* index_en.txt */,
-				E275A3081C35144700BD897F /* index_ja.txt */,
-				E226F91A1C0B239C00F400F6 /* changes.txt */,
+				E264E6BB1DBC3F470052B418 /* Python.framework */,
 			);
-			name = doc;
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -281,7 +231,7 @@
 		33E3AA3219677B22004C7EDF /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0710;
+				LastUpgradeCheck = 0800;
 				ORGANIZATIONNAME = craftware;
 			};
 			buildConfigurationList = 33E3AA3519677B22004C7EDF /* Build configuration list for PBXProject "ckitcore" */;
@@ -347,14 +297,19 @@
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
@@ -370,11 +325,11 @@
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
-					/Library/Frameworks/Python.framework/Versions/3.4/Headers,
 					/System/Library/Frameworks/Carbon.framework/Frameworks/HIToolbox.framework/Headers,
 					/System/Library/Frameworks/ApplicationServices.framework/Frameworks/HIServices.framework/Headers,
+					/Library/Frameworks/Python.framework/Headers,
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
 			};
@@ -393,14 +348,19 @@
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
@@ -410,11 +370,11 @@
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
-					/Library/Frameworks/Python.framework/Versions/3.4/Headers,
 					/System/Library/Frameworks/Carbon.framework/Frameworks/HIToolbox.framework/Headers,
 					/System/Library/Frameworks/ApplicationServices.framework/Frameworks/HIServices.framework/Headers,
+					/Library/Frameworks/Python.framework/Headers,
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				SDKROOT = macosx;
 			};
 			name = Release;
@@ -423,10 +383,17 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				COMBINE_HIDPI_IMAGES = YES;
-				LIBRARY_SEARCH_PATHS = (
+				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(LOCAL_LIBRARY_DIR)/Frameworks/Python.framework/Versions/3.4",
+					"$(LOCAL_LIBRARY_DIR)/Frameworks",
 				);
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
+					/System/Library/Frameworks/Carbon.framework/Frameworks/HIToolbox.framework/Headers,
+					/System/Library/Frameworks/ApplicationServices.framework/Frameworks/HIServices.framework/Headers,
+				);
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -435,10 +402,17 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				COMBINE_HIDPI_IMAGES = YES;
-				LIBRARY_SEARCH_PATHS = (
+				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(LOCAL_LIBRARY_DIR)/Frameworks/Python.framework/Versions/3.4",
+					"$(LOCAL_LIBRARY_DIR)/Frameworks",
 				);
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
+					/System/Library/Frameworks/Carbon.framework/Frameworks/HIToolbox.framework/Headers,
+					/System/Library/Frameworks/ApplicationServices.framework/Frameworks/HIServices.framework/Headers,
+				);
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;

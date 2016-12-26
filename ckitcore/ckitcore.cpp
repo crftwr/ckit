@@ -720,7 +720,7 @@ void WindowBase::clearDirtyRect()
 {
 	if(dirty)
 	{
-		if(0)
+		if(/* DISABLES CODE */ (0))
 		{
 			printf( "perf info\n" );
 			printf( "  dirty_rect : %d, %d, %d, %d\n", dirty_rect.left, dirty_rect.top, dirty_rect.right, dirty_rect.bottom );

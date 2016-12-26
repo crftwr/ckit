@@ -888,7 +888,7 @@ int ckit_Window_MessageLoop( CocoaObject * _window, ckit_Window_MessageLoopCallb
     // キーイベントのタグを更新し、文字入力イベントをキャンセル
     g.keyevent_removal_tag ++;
     
-    if(0)
+    if(/* DISABLES CODE */ (0))
     {
         [NSApp runModalForWindow:window];
     }
