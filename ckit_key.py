@@ -405,15 +405,10 @@ class Keymap:
     def __init__(self):
         self.table = {}
 
-    def __setitem__( self, expression, value ):
-
+    def _toKeyEvent( self, expression ):
+        
         if isinstance(expression,KeyEvent):
             key_cond = expression
-            if key_cond.extra==None:
-                print( "OBSOLETE : Use string for key expression :", key_cond )
-        elif isinstance(expression,int):
-            key_cond = KeyEvent(expression,0)
-            print( "OBSOLETE : Use string for key expression :", key_cond )
         elif isinstance(expression,str):
             try:
                 key_cond = KeyEvent.fromString(expression)
@@ -422,24 +417,28 @@ class Keymap:
                 return
         else:
             raise TypeError
+        
+        return key_cond
+
+    def __setitem__( self, expression, value ):
+
+        key_cond = self._toKeyEvent(expression)
+    
+        # extra の違いを無視しつつ、既存のキーマップを削除する
+        while key_cond in self.table:
+            del self.table[key_cond]
 
         self.table[key_cond] = value
 
     def __getitem__( self, expression ):
-        try:
-            key_cond = KeyEvent.fromString(expression)
-        except ValueError:
-            print( "ERROR : Key expression is not valid :", expression )
-            return
-
+        key_cond = self._toKeyEvent(expression)
         return self.table[key_cond]
 
     def __delitem__( self, expression ):
-        try:
-            key_cond = KeyEvent.fromString(expression)
-        except ValueError:
-            print( "ERROR : Key expression is not valid :", expression )
-            return
 
-        del self.table[key_cond]
+        key_cond = self._toKeyEvent(expression)
+
+        # extra の違いを無視しつつ、既存のキーマップを削除する
+        while key_cond in self.table:
+            del self.table[key_cond]
 
