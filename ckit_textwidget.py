@@ -817,20 +817,24 @@ class Document:
         return s
 
     def readFile( self, fd, encoding=None ):
-
+    
         self.lines = []
 
         self.undo_list = []
         self.redo_list = []
         self.modcount = 0
-
+        
+        # エンコーディングを判定
         fd.seek( 0, os.SEEK_SET )
         data = fd.read( 1024 * 1024 )
         detected_encoding = ckit_misc.detectTextEncoding( data, ascii_as="utf-8" )
         
-        # BOMをスキップ        
+        # BOMをの直後に戻る
         if detected_encoding.bom:
-            fd.seek( len(detected_encoding.bom), os.SEEK_SET )
+            bom_len = len(detected_encoding.bom)
+        else:
+            bom_len = 0
+        fd.seek( bom_len, os.SEEK_SET )
 
         if not encoding:
             encoding = detected_encoding
@@ -841,7 +845,7 @@ class Document:
         self.encoding = encoding
         
         position = fd.tell()
-        
+
         while True:
 
             line_s = fd.readline()
