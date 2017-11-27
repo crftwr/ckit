@@ -85,7 +85,7 @@ class TextEncoding:
 #
 #  またバイナリデータであると推測された場合は、TextEncoding の encoding には None が入ります。
 #
-def detectTextEncoding( data, maxlen=100000, maxline=1000, ascii_as=None ):
+def detectTextEncoding( data, maxlen=1024*1024, maxline=1000, ascii_as=None ):
 
     result = TextEncoding()
 
