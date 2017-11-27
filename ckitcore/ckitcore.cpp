@@ -7509,14 +7509,20 @@ static int Line_init( PyObject * self, PyObject * args, PyObject * kwds)
 {
 	const wchar_t * s;
 	int len;
+	PyObject * reload_handler = NULL;
+	uint64_t reload_pos = 0;
+	uint64_t reload_len = 0;
 
     static char * kwlist[] = {
-        "s",
-        NULL
+		"s",
+		"reload_handler",
+		"reload_pos",
+		"reload_len",
+		NULL
     };
 
-    if(!PyArg_ParseTupleAndKeywords( args, kwds, "u#", kwlist,
-        &s, &len
+    if(!PyArg_ParseTupleAndKeywords( args, kwds, "u#|OKK", kwlist,
+        &s, &len, &reload_handler, &reload_pos, &reload_len
     ))
     {
         return -1;
@@ -7539,6 +7545,9 @@ static int Line_init( PyObject * self, PyObject * args, PyObject * kwds)
 	((Line_Object*)self)->ctx = NULL;
 	((Line_Object*)self)->tokens = NULL;
 	((Line_Object*)self)->flags = lineend;
+	((Line_Object*)self)->reload_handler = reload_handler; Py_XINCREF(((Line_Object*)self)->reload_handler);
+	((Line_Object*)self)->reload_pos = reload_pos;
+	((Line_Object*)self)->reload_len = reload_len;
 
 	return 0;
 }
@@ -7550,6 +7559,7 @@ static void Line_dealloc(PyObject* self)
 	Py_XDECREF(((Line_Object*)self)->s);
 	Py_XDECREF(((Line_Object*)self)->ctx);
 	Py_XDECREF(((Line_Object*)self)->tokens);
+	Py_XDECREF(((Line_Object*)self)->reload_handler);
 
     self->ob_type->tp_free(self);
 }
@@ -7562,10 +7572,52 @@ static PyObject * Line_GetAttrString( PyObject * self, const char * attr_name )
 		if( strcmp(attr_name,"s")==0 )
 		{
 			PyObject * value = ((Line_Object*)self)->s;
+
+			if( !value && ((Line_Object*)self)->reload_handler )
+			{
+				PyObject * pyarglist = Py_BuildValue("(KK)", ((Line_Object*)self)->reload_pos, ((Line_Object*)self)->reload_len );
+
+				PyObject * pyresult = PyEval_CallObject(((Line_Object*)self)->reload_handler, pyarglist);
+				Py_DECREF(pyarglist);
+				if (pyresult)
+				{
+					const wchar_t * s;
+					int len;
+					PyArg_Parse(pyresult,"u#", &s, &len );
+
+					int lineend = _Line_CheckLineEnd( s, len );
+					switch(lineend)
+					{
+					case Line_End_CR:
+					case Line_End_LF:
+						len -= 1;
+						break;
+		
+					case Line_End_CRLF:
+						len -= 2;
+						break;
+					}
+
+					((Line_Object*)self)->s = Py_BuildValue( "u#", s, len );
+
+					((Line_Object*)self)->flags &= ~(Line_End_CR|Line_End_LF);
+					((Line_Object*)self)->flags |= lineend;
+
+					value = ((Line_Object*)self)->s;
+
+					Py_DECREF(pyresult);
+				}
+				else
+				{
+					PyErr_Print();
+				}
+			}
+
 			if(!value)
 			{
 				value = Py_None;
 			}
+
 			Py_INCREF(value);
 			return value;
 		}
@@ -7787,8 +7839,56 @@ static int Line_SetAttrString( PyObject * self, const char * attr_name, PyObject
 	return -1;
 }
 
+static PyObject * Line_offload(PyObject* self, PyObject* args)
+{
+	FUNC_TRACE;
+
+	PyObject * o;
+
+    if(!PyArg_ParseTuple( args, "O", &o))
+    {
+        return NULL;
+	}
+
+	if( Line_Check(o) )
+	{
+		if( (((Line_Object*)o)->flags & Line_Modified) == 0
+		 && ((Line_Object*)o)->reload_handler != NULL )
+		{
+			Py_XDECREF(((Line_Object*)o)->s);
+			((Line_Object*)o)->s = NULL;
+		}
+	}
+	else if( PySequence_Check(o) )
+	{
+		int num_items = (int)PySequence_Length(o);
+		for( int i=0 ; i<num_items ; ++i )
+		{
+			PyObject * pyitem = PySequence_GetItem(o, i );
+			
+			if( Line_Check(pyitem) )
+			{
+				if( ((Line_Object*)pyitem)->flags & Line_Modified
+				 || ((Line_Object*)pyitem)->reload_handler==NULL )
+				{
+					continue;
+				}
+
+				Py_XDECREF(((Line_Object*)pyitem)->s);
+				((Line_Object*)pyitem)->s = NULL;
+			}
+
+			Py_XDECREF(pyitem);
+		}
+	}
+
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
 static PyMethodDef Line_methods[] = {
-    {NULL,NULL}
+	{ "offload", Line_offload, METH_STATIC|METH_VARARGS, "" },
+	{NULL,NULL}
 };
 
 PyTypeObject Line_Type = {

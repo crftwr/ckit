@@ -604,6 +604,11 @@ struct Line_Object
     PyObject * s;
     PyObject * ctx;
     PyObject * tokens;
+
+    PyObject * reload_handler;
+    uint64_t reload_pos;
+    uint64_t reload_len;
+
     int flags;
 };
 
