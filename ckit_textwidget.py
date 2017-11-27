@@ -680,6 +680,8 @@ class Document:
         if filename:
             filename = ckit_misc.normPath(filename)
 
+        self.fd = None
+
         self.lines = [ Line("") ]
         self.encoding = ckit_misc.TextEncoding('utf-8')
         self.lineend = DEFAULT_LINEEND
@@ -694,10 +696,9 @@ class Document:
         self.atomic_undo = None
         self.modcount = 0
         
-        # Documentの変更を所属する全てのTextWidgetに通知するためのハンドラ
-        self.text_modified_handler_list = []
-        self.bookmark_handler_list = []
-
+        # この Document を参照している TextWidget 等のリスト        
+        self.reference_list = []
+        
         self.mode = None
         self.lexer = None
         self.lex_ctx_dirty_top = 0
@@ -707,14 +708,26 @@ class Document:
         self.setMode(mode)
 
         if filename and os.path.exists(filename):
-            fd = open( filename, "rb" )
-            self.readFile( fd, encoding )
-            fd.close()
+            self.fd = open( filename, "rb" )
+            self.readFile( self.fd, encoding )
             
             if ckit_misc.getFileAttribute(filename) & ckit_misc.FILE_ATTRIBUTE_READONLY:
                 self.setReadOnly(True)
 
         self.clearFileModified()
+
+    def _destroy(self):
+        if self.fd:
+            self.fd.close()
+            self.fd = None
+
+    def addReference( self, textwidget ):
+        self.reference_list.append(textwidget)
+
+    def removeReference( self, textwidget ):
+        self.reference_list.remove(textwidget)
+        if not self.reference_list:
+            self._destroy()
 
     def getName(self):
         if self.filename:
@@ -786,6 +799,22 @@ class Document:
 
     def setBGColor( self, bg_color_name ):
         self.bg_color_name = bg_color_name
+    
+    def _decodeLine( self, b ):
+
+        s = b.decode( encoding=self.encoding.encoding, errors='replace' )
+
+        # 波ダッシュ → 全角チルダ
+        if self.encoding.encoding=="cp932":
+            s = s.replace( "\u301c", "\uff5e" )
+        
+        return s
+
+    def _reload( self, position, length ):
+        self.fd.seek( position, os.SEEK_SET )
+        b = self.fd.read( length )
+        s = self._decodeLine(b)
+        return s
 
     def readFile( self, fd, encoding=None ):
 
@@ -796,34 +825,49 @@ class Document:
         self.modcount = 0
 
         fd.seek( 0, os.SEEK_SET )
-        data = fd.read()
-        
+        data = fd.read( 1024 * 1024 )
         detected_encoding = ckit_misc.detectTextEncoding( data, ascii_as="utf-8" )
         
+        # BOMをスキップ        
         if detected_encoding.bom:
-            data = data[ len(detected_encoding.bom) : ]
+            fd.seek( len(detected_encoding.bom), os.SEEK_SET )
 
         if not encoding:
             encoding = detected_encoding
 
-        if encoding.encoding:
-            data = data.decode( encoding=encoding.encoding, errors='replace' )
-            
-            # 波ダッシュ → 全角チルダ
-            if encoding.encoding=="cp932":
-                data = data.replace( "\u301c", "\uff5e" )
-            
-            self.encoding = encoding
-        else:
+        if not encoding.encoding:
             raise UnicodeError
+        
+        self.encoding = encoding
+        
+        position = fd.tell()
+        
+        while True:
 
-        lines = data.splitlines(True)
-        self.lines = [ Line(line) for line in lines ]
+            line_s = fd.readline()
+            
+            if not line_s:
+                break
+                
+            line_s2 = self._decodeLine(line_s)
+
+            #print( self._reload, id(self._reload) )
+            
+            # FIXME : 最初からオフロード状態にしたほうがいいのでは？
+            line = Line( line_s2, reload_handler=self._reload, reload_pos=position, reload_len=len(line_s) )
+
+            self.lines.append(line)
+            
+            # FIXME : offloading test
+            Line.offload( line )
+            
+            position += len(line_s)
 
         # 空か、改行で終わっている場合は、最後に行を追加する
         if len(self.lines)==0 or self.lines[-1].end:
             self.lines.append( Line("") )
 
+        # 最初の行の改行コードを文書の改行コードとして採用する
         if len(self.lines)>0 and self.lines[0].end:
             self.lineend = self.lines[0].end
         else:
@@ -1093,8 +1137,7 @@ class TextWidget(ckit_widget.Widget):
 
         self.destroyThemePlane()
         
-        self.doc.text_modified_handler_list.remove( self.onDocumentTextModified )
-        self.doc.bookmark_handler_list.remove( self.onDocumentBookmark )
+        self.doc.removeReference(self)
 
     def show(self,visible):
         ckit_widget.Widget.show(self,visible)
@@ -1120,12 +1163,10 @@ class TextWidget(ckit_widget.Widget):
     def setDocument( self, doc ):
         
         if self.doc:
-            self.doc.text_modified_handler_list.remove( self.onDocumentTextModified )
-            self.doc.bookmark_handler_list.remove( self.onDocumentBookmark )
+            self.doc.removeReference(self)
         self.doc = doc
         if self.doc:
-            self.doc.text_modified_handler_list.append( self.onDocumentTextModified )
-            self.doc.bookmark_handler_list.append( self.onDocumentBookmark )
+            self.doc.addReference(self)
 
         self.setCursor( self.pointDocumentBegin() )
         
@@ -1344,8 +1385,9 @@ class TextWidget(ckit_widget.Widget):
             wheel += 1
 
     def _notifyTextModified( self, left, old_right, new_right ):
-        for text_modified_handler in self.doc.text_modified_handler_list:
-            text_modified_handler( self, left, old_right, new_right )
+        for reference in self.doc.reference_list:
+            if hasattr( reference, "onDocumentTextModified" ):
+                reference.onDocumentTextModified( self, left, old_right, new_right )
 
     def onDocumentTextModified( self, sender, left, old_right, new_right ):
 
@@ -1873,8 +1915,9 @@ class TextWidget(ckit_widget.Widget):
 
         self.doc.lines[line].bookmark = bookmark_list[i]
         
-        for bookmark_handler in self.doc.bookmark_handler_list:
-            bookmark_handler( self, line, bookmark_list[i] )
+        for reference in self.doc.reference_list:
+            if hasattr( reference, "onDocumentBookmark" ):
+                reference.onDocumentBookmark( self, line, bookmark_list[i] )
 
         if paint:
             self.paint()
@@ -3271,6 +3314,9 @@ class TextWidget(ckit_widget.Widget):
         print( [ self.doc.lines[cursor.line].s, self.doc.lines[cursor.line].end, self.doc.lines[cursor.line].bg ] )
         print( Token.unpack( self.doc.lines[cursor.line].tokens ) )
 
+    def command_DebugOffload( self, info ):
+        for line in self.doc.lines:
+            Line.offload( line )
 
 #--------------------------------------------------------------------
 
