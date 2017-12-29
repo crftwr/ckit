@@ -3,6 +3,8 @@ import sys
 import os
 import shutil
 import ctypes
+import ctypes.wintypes
+import msvcrt
 import inspect
 
 import pyauto
@@ -466,6 +468,72 @@ def setClipboardText(text):
 #
 def getClipboardSequenceNumber():
     return ctypes.windll.user32.GetClipboardSequenceNumber()
+
+#--------------------------------------------------------------------
+
+## ファイルが他のプロセスから変更されないように共有ロックするためのクラス
+#
+class FileReaderLock:
+    
+    class OVERLAPPED(ctypes.Structure):
+        _fields_ = [('Internal', ctypes.wintypes.LPVOID),
+                    ('InternalHigh', ctypes.wintypes.LPVOID),
+                    ('Offset', ctypes.wintypes.DWORD),
+                    ('OffsetHigh', ctypes.wintypes.DWORD),
+                    #('Pointer', ctypes.wintypes.LPVOID),
+                    ('hEvent', ctypes.wintypes.HANDLE),
+                    ]
+                
+    ## コンストラクタ
+    #
+    #  @param fileno  ロックしたいファイルのfileno
+    #
+    def __init__( self, fileno ):
+    
+        self.handle = msvcrt.get_osfhandle(fileno)
+
+        LOCKFILE_FAIL_IMMEDIATELY = 0x00000001
+        LOCKFILE_EXCLUSIVE_LOCK = 0x00000002
+
+        overlapped = FileReaderLock.OVERLAPPED()
+
+        result = ctypes.windll.kernel32.LockFileEx(
+            self.handle,
+            LOCKFILE_FAIL_IMMEDIATELY,
+            0,
+            0xffffffff,
+            0xffffffff,
+            ctypes.byref(overlapped),
+            )
+
+        if result==0:
+            e = ctypes.WinError()
+            print(e)
+            raise e
+            #raise ctypes.WinError()
+            
+        self.locked = True
+
+    ## ロック解除
+    #
+    def unlock(self):
+        
+        if not self.locked: return
+
+        overlapped = FileReaderLock.OVERLAPPED()
+
+        result = ctypes.windll.kernel32.UnlockFileEx(
+            self.handle,
+            0,
+            0xffffffff,
+            0xffffffff,
+            ctypes.byref(overlapped),
+            )
+
+        if result == 0:
+            raise ctypes.WinError()
+            
+        self.locked = False
 
 #--------------------------------------------------------------------
 
