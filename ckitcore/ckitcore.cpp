@@ -7886,8 +7886,32 @@ static PyObject * Line_offload(PyObject* self, PyObject* args)
 	return Py_None;
 }
 
+static PyObject * Line_updateReloadInfo(PyObject* self, PyObject* args)
+{
+	FUNC_TRACE;
+
+	PyObject * line;
+    uint64_t reload_pos;
+    uint64_t reload_len;
+
+    if(!PyArg_ParseTuple( args, "OKK", &line, &reload_pos, &reload_len ))
+    {
+        return NULL;
+	}
+
+	if( Line_Check(line) )
+	{
+		((Line_Object*)line)->reload_pos = reload_pos;
+		((Line_Object*)line)->reload_len = reload_len;
+	}
+
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
 static PyMethodDef Line_methods[] = {
 	{ "offload", Line_offload, METH_STATIC|METH_VARARGS, "" },
+	{ "updateReloadInfo", Line_updateReloadInfo, METH_STATIC|METH_VARARGS, "" },
 	{NULL,NULL}
 };
 
