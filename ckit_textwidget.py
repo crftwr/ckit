@@ -730,9 +730,8 @@ class Document:
         self.lex_token_dirty_top = 0
         self.minor_mode_list = []
 
-        self.setMode(mode)
-
         if filename and os.path.exists(filename):
+
             self.fd = open( filename, "rb+" )
             self.flock = ckit_misc.FileReaderLock( self.fd.fileno() )
 
@@ -740,6 +739,15 @@ class Document:
             
             if ckit_misc.getFileAttribute(filename) & ckit_misc.FILE_ATTRIBUTE_READONLY:
                 self.setReadOnly(True)
+        
+            # 大きいファイルは TextMode にする ( 100000 行 or 10 MB )
+            self.fd.seek( 0, os.SEEK_END )
+            file_size = self.fd.tell()
+            if len(self.lines) > 100000 or file_size > 10 * 1024 * 1024:
+                # FIXME : メッセージを表示するべき
+                mode = TextMode()
+
+        self.setMode(mode)
 
         self.clearFileModified()
 
