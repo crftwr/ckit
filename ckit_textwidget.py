@@ -955,7 +955,7 @@ class Document:
             if self.encoding.bom:
                 tmp_fd.write( self.encoding.bom )
 
-            for line in self.lines:
+            for i, line in enumerate(self.lines):
 
                 s = line.s + line.end
         
@@ -967,7 +967,8 @@ class Document:
                 Line.updateReloadInfo( line, tmp_fd.tell(), len(b) )
                 tmp_fd.write(b)
                 
-                self.checkMemoryUsageAndOffload()
+                if i % 10000 == 0:
+                    self.checkMemoryUsageAndOffload()
         
             if overwrite:
                 fd = self.fd
@@ -1870,7 +1871,8 @@ class TextWidget(ckit_widget.Widget):
             
                 point1.line += 1
                 
-                self.doc.checkMemoryUsageAndOffload()
+                if point1.line % 10000 == 0:
+                    self.doc.checkMemoryUsageAndOffload()
                 
         finally:
             self.atomicUndoEnd( left, right )
@@ -1912,7 +1914,8 @@ class TextWidget(ckit_widget.Widget):
                     self.modifyText( point1, point2.right(), "", move_cursor=False, notify_modified=False, paint=False )
                     right = right.up()
 
-                self.doc.checkMemoryUsageAndOffload()
+                if point1.line % 10000 == 0:
+                    self.doc.checkMemoryUsageAndOffload()
                 
         finally:
             self.atomicUndoEnd( left, right )
@@ -2094,7 +2097,8 @@ class TextWidget(ckit_widget.Widget):
                 cursor = self.point( line, 0 )
                 break
 
-            self.doc.checkMemoryUsageAndOffload()
+            if line % 10000 == 0:
+                self.doc.checkMemoryUsageAndOffload()
 
         else:
             return None
@@ -2179,8 +2183,9 @@ class TextWidget(ckit_widget.Widget):
             else:
                 point.line -= 1
                 point.index = len(self.doc.lines[point.line].s)
-
-            self.doc.checkMemoryUsageAndOffload()
+            
+            if point.line % 10000 == 0:
+                self.doc.checkMemoryUsageAndOffload()
 
         foundMessage()
 
