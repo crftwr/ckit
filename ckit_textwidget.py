@@ -903,8 +903,6 @@ class Document:
         
         position = fd.tell()
 
-        # FIXME : ファイルが大きい場合だけオフロード処理を有効にする
-
         while True:
 
             line_s = fd.readline()
@@ -913,14 +911,13 @@ class Document:
                 break
                 
             line_s2 = self._decodeLine(line_s)
-
-            # FIXME : 最初からオフロード状態にしたほうがいいのでは？
+            
             line = Line( line_s2, reload_handler=self._reload, reload_pos=position, reload_len=len(line_s) )
+            
+            # メモリ消費量を小さくするためにオフロード状態で読み込む
+            Line.offload(line)
 
             self.lines.append(line)
-            
-            # FIXME : offloading test
-            Line.offload( line )
             
             position += len(line_s)
 
