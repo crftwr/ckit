@@ -1870,6 +1870,8 @@ class TextWidget(ckit_widget.Widget):
             
                 point1.line += 1
                 
+                self.doc.checkMemoryUsageAndOffload()
+                
         finally:
             self.atomicUndoEnd( left, right )
 
@@ -1909,6 +1911,8 @@ class TextWidget(ckit_widget.Widget):
                 else:
                     self.modifyText( point1, point2.right(), "", move_cursor=False, notify_modified=False, paint=False )
                     right = right.up()
+
+                self.doc.checkMemoryUsageAndOffload()
                 
         finally:
             self.atomicUndoEnd( left, right )
@@ -2085,9 +2089,13 @@ class TextWidget(ckit_widget.Widget):
             line_range = range( cursor.line-1, -1, -1 )
         
         for line in line_range:
+
             if func(self.doc.lines[line]):
                 cursor = self.point( line, 0 )
                 break
+
+            self.doc.checkMemoryUsageAndOffload()
+
         else:
             return None
 
@@ -2171,6 +2179,8 @@ class TextWidget(ckit_widget.Widget):
             else:
                 point.line -= 1
                 point.index = len(self.doc.lines[point.line].s)
+
+            self.doc.checkMemoryUsageAndOffload()
 
         foundMessage()
 
