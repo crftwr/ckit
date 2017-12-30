@@ -600,7 +600,9 @@ class Point:
                 break
         else:
             return point
-            
+        
+        num_checked_lines = 0
+                    
         while True:
 
             s = self.edit.doc.lines[point.line].s
@@ -623,6 +625,12 @@ class Point:
                     point = point.lineEnd()
                 else:
                     point = point.lineBegin()
+                
+                # 1000行チェックしても見つからなかったら諦める
+                num_checked_lines += 1
+                if num_checked_lines > 1000:
+                    # FIXME : エラーメッセージをステータスバーに表示するべき
+                    return self.copy()
 
             if depth<=0 : break
 
