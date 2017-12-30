@@ -273,8 +273,19 @@ class WordCompletion(Completion):
         re_patern = re.compile( "\\b" + hint + "[a-zA-Z0-9_]+" )
         
         for edit in window.edit_list:
+            
+            # 速度のため、行数が大きすぎるファイルは無視
+            if len(edit.doc.lines) > 10000:
+                continue
+
             for line in edit.doc.lines:
+
                 s = line.s
+
+                # 速度のため、長すぎる行は無視
+                if len(s) > 1000:
+                    continue
+
                 pos = 0
                 while pos<len(s):
                     re_result = re_patern.search(s,pos)
