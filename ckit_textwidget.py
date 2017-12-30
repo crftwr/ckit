@@ -1152,7 +1152,7 @@ class Search:
                 if self.word:
                     re_pattern = r"\b" + re_pattern + r"\b"
 
-            re_option = re.UNICODE | re.LOCALE
+            re_option = re.UNICODE
             if not self.case:
                 re_option |= re.IGNORECASE
 
