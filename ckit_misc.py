@@ -425,7 +425,7 @@ def getDiskSize(drive):
     free_size_for_user = ctypes.c_longlong()
     total_size = ctypes.c_longlong()
     free_size = ctypes.c_longlong()
-    ctypes.windll.kernel32.GetDiskFreeSpaceExW( drive, ctypes.pointer(free_size_for_user), ctypes.pointer(total_size), ctypes.pointer(free_size) )
+    ctypes.windll.kernel32.GetDiskFreeSpaceExW( drive, ctypes.byref(free_size_for_user), ctypes.byref(total_size), ctypes.byref(free_size) )
 
     return (free_size.value,total_size.value)
 
@@ -468,6 +468,33 @@ def setClipboardText(text):
 #
 def getClipboardSequenceNumber():
     return ctypes.windll.user32.GetClipboardSequenceNumber()
+
+#--------------------------------------------------------------------
+
+def getProcessMemoryUsage():
+    
+    class PROCESS_MEMORY_COUNTERS(ctypes.Structure):
+        _fields_ = [
+            ("cb", ctypes.wintypes.DWORD),
+            ("PageFaultCount", ctypes.wintypes.DWORD),
+            ("PeakWorkingSetSize", ctypes.c_size_t),
+            ("WorkingSetSize", ctypes.c_size_t),
+            ("QuotaPeakPagedPoolUsage", ctypes.c_size_t),
+            ("QuotaPagedPoolUsage", ctypes.c_size_t),
+            ("QuotaPeakNonPagedPoolUsage", ctypes.c_size_t),
+            ("QuotaNonPagedPoolUsage", ctypes.c_size_t),
+            ("PagefileUsage", ctypes.c_size_t),
+            ("PeakPagefileUsage", ctypes.c_size_t)]
+    
+    pid = ctypes.windll.kernel32.GetCurrentProcess()
+    process_memory_info = PROCESS_MEMORY_COUNTERS()
+    
+    result = ctypes.windll.psapi.GetProcessMemoryInfo( pid, ctypes.byref(process_memory_info), ctypes.sizeof(process_memory_info) )
+    
+    if result == 0:
+        raise ctypes.WinError()
+    
+    return process_memory_info.WorkingSetSize
 
 #--------------------------------------------------------------------
 

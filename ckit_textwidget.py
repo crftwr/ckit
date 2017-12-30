@@ -1,6 +1,8 @@
 ﻿import os
 import re
+import gc
 import math
+import shutil
 import bisect
 import cProfile
 
@@ -79,12 +81,15 @@ class Lexer:
 
 ## テキストファイル用のシンタックス分析クラス
 class TextLexer(Lexer):
+    
+    tokens = [ ( 0, Token_Text ) ]
+    
     def __init__(self):
         Lexer.__init__(self)
 
     def lex( self, ctx, line, detail ):
         if detail:
-            return [ (0,Token_Text) ], ctx
+            return TextLexer.tokens, ctx
         else:
             return ctx
 
@@ -681,6 +686,7 @@ class Document:
             filename = ckit_misc.normPath(filename)
 
         self.fd = None
+        self.flock = None
 
         self.lines = [ Line("") ]
         self.encoding = ckit_misc.TextEncoding('utf-8')
@@ -708,7 +714,9 @@ class Document:
         self.setMode(mode)
 
         if filename and os.path.exists(filename):
-            self.fd = open( filename, "rb" )
+            self.fd = open( filename, "rb+" )
+            self.flock = ckit_misc.FileReaderLock( self.fd.fileno() )
+
             self.readFile( self.fd, encoding )
             
             if ckit_misc.getFileAttribute(filename) & ckit_misc.FILE_ATTRIBUTE_READONLY:
@@ -717,9 +725,18 @@ class Document:
         self.clearFileModified()
 
     def _destroy(self):
+        
+        #print("Document._destroy", self.filename )
+
+        if self.flock:
+            self.flock.unlock()
+            self.flock = None
+
         if self.fd:
             self.fd.close()
             self.fd = None
+            
+        self.lines = None
 
     def addReference( self, textwidget ):
         self.reference_list.append(textwidget)
@@ -811,10 +828,23 @@ class Document:
         return s
 
     def _reload( self, position, length ):
+        
+        # test
+        #print( "_reload", position, length )
+        
         self.fd.seek( position, os.SEEK_SET )
         b = self.fd.read( length )
         s = self._decodeLine(b)
         return s
+
+    def checkMemoryUsageAndOffload(self):
+
+        memory_usage = ckit_misc.getProcessMemoryUsage()
+
+        # FIXME : 閾値はもっと賢く決める
+        if memory_usage > 1024 * 1024 * 1024:
+            Line.offload( self.lines )
+            gc.collect()
 
     def readFile( self, fd, encoding=None ):
     
@@ -846,6 +876,8 @@ class Document:
         
         position = fd.tell()
 
+        # FIXME : ファイルが大きい場合だけオフロード処理を有効にする
+
         while True:
 
             line_s = fd.readline()
@@ -855,8 +887,6 @@ class Document:
                 
             line_s2 = self._decodeLine(line_s)
 
-            #print( self._reload, id(self._reload) )
-            
             # FIXME : 最初からオフロード状態にしたほうがいいのでは？
             line = Line( line_s2, reload_handler=self._reload, reload_pos=position, reload_len=len(line_s) )
 
@@ -880,22 +910,76 @@ class Document:
         self.lex_ctx_dirty_top = 0
         self.lex_token_dirty_top = 0
 
-    def writeFile( self, fd ):
+    def writeFile( self, filename ):
 
-        if self.encoding.bom:
-            fd.write( self.encoding.bom )
+        # FIXME : Offloadしている行がない場合は、テンポラリファイルを使う必要がない
 
-        for line in self.lines:
-            s = line.s
+        fd = None
+        tmp_fd = None
+        need_close_fd = False
+        
+        # 同一ファイルへの上書きかをチェック
+        overwrite = False
+        if self.fd and filename and os.path.exists(filename):
+            st1 = os.stat( self.fd.fileno() )
+            st2 = os.stat( filename )
+            overwrite = (st1.st_ino == st2.st_ino)
 
-            # 全角チルダ → 波ダッシュ
-            if self.encoding.encoding=="cp932":
-                s = s.replace( "\uff5e", "\u301c" )
+        # FIXME : overwrite = False のとき、テンポラリファイルを使う必要がない
+        
+        try:
 
-            s = s.encode( self.encoding.encoding, 'replace' )
-            fd.write(s)
-            end = line.end.encode( self.encoding.encoding )
-            fd.write(end)
+            # Offloadしている行を壊さないようにテンポラリファイルに保存
+            tmp_filename = ckit_misc.makeTempFile( "writeFile", ".tmp" )
+            tmp_fd = open( tmp_filename, "rb+" )
+
+            if self.encoding.bom:
+                tmp_fd.write( self.encoding.bom )
+
+            for line in self.lines:
+
+                s = line.s + line.end
+        
+                # 全角チルダ → 波ダッシュ
+                if self.encoding.encoding=="cp932":
+                    s = s.replace( "\uff5e", "\u301c" )
+        
+                b = s.encode( self.encoding.encoding, 'replace' )
+                Line.updateReloadInfo( line, tmp_fd.tell(), len(b) )
+                tmp_fd.write(b)
+                
+                self.checkMemoryUsageAndOffload()
+        
+            if overwrite:
+                fd = self.fd
+            else:
+                fd = open( filename, "wb" )
+
+            # テンポラリファイルからコピーする
+            tmp_fd.seek( 0, os.SEEK_SET )
+            
+            # なぜか、Unlockしないとwriteかflushでエラーになる。            
+            if overwrite:
+                self.flock.unlock()
+            
+            fd.seek( 0, os.SEEK_SET )
+            fd.truncate(0)
+            shutil.copyfileobj( tmp_fd, fd )
+
+            fd.flush()
+            os.fsync(fd.fileno())
+
+        finally:
+            if not overwrite and fd:
+                fd.close()
+            if tmp_fd:
+                tmp_fd.close()
+            if overwrite:
+                self.flock = ckit_misc.FileReaderLock( self.fd.fileno() )
+
+        # テンポラリファイルを削除
+        os.unlink(tmp_filename)
+
 
     def updateSyntaxContext( self, stop=None, max_lex=None ):
 
@@ -984,9 +1068,24 @@ class Document:
         if start<=self.lex_token_dirty_top and line==len(self.lines)-1:
             self.lex_token_dirty_top = None
 
+    def fillSyntaxContextAndTokens( self, start, stop, ctx, tokens ):
+
+        if start==None:
+            start = 0
+
+        if stop==None:
+            stop = len(self.lines)
+        else:
+            stop = min( stop, len(self.lines) )
+
+        for line in range( start, stop ):
+            self.lines[line].ctx = ctx
+            self.lines[line].tokens = Token.pack(tokens)
+
     def updateSyntaxTimer(self):
-        self.updateSyntaxContext( max_lex=1000 )
-        self.updateSyntaxTokens( start=self.lex_token_dirty_top, max_lex=100 )
+        if not isinstance( self.lexer, TextLexer ):
+            self.updateSyntaxContext( max_lex=1000 )
+            self.updateSyntaxTokens( start=self.lex_token_dirty_top, max_lex=100 )
 
     def isSyntaxDirty(self):
         return (self.lex_ctx_dirty_top!=None or self.lex_token_dirty_top!=None)
@@ -2278,8 +2377,11 @@ class TextWidget(ckit_widget.Widget):
 
         # テキストのシンタックスハイライトの更新
         visible_bottom = self.visible_first_line + self.height
-        self.doc.updateSyntaxContext( stop=visible_bottom )
-        self.doc.updateSyntaxTokens( start=self.visible_first_line, stop=visible_bottom )
+        if isinstance( self.doc.lexer, TextLexer ):
+            self.doc.fillSyntaxContextAndTokens( start=self.visible_first_line, stop=visible_bottom, ctx=rootContext(), tokens=TextLexer.tokens )
+        else:
+            self.doc.updateSyntaxContext( stop=visible_bottom )
+            self.doc.updateSyntaxTokens( start=self.visible_first_line, stop=visible_bottom )
 
         # テキストの描画
         x2 = x+lineno_width
@@ -2287,6 +2389,7 @@ class TextWidget(ckit_widget.Widget):
         
         attribute_whitespace = ckitcore.Attribute( fg=TextWidget.color_fg )
 
+        # FIXME : この処理を毎回やる必要なし？
         bookmark_line = ( LINE_RECTANGLE, TextWidget.color_bar_fg )
         attribute_lineno_table = {}
         attribute_lineno_table[ ( False, 0 ) ] = ckitcore.Attribute( fg=TextWidget.color_bar_fg,        bg=None,                            line1=None )
@@ -2302,6 +2405,7 @@ class TextWidget(ckit_widget.Widget):
         if self.doc.bg_color_name:
             default_bg_color = ckit_theme.getColor(self.doc.bg_color_name)
         
+        # FIXME : この処理を毎回やる必要なし？
         attribute_table = {}
         bg_color_list = ( default_bg_color, TextWidget.color_diff_bg1, TextWidget.color_diff_bg2, TextWidget.color_diff_bg3 )
         line0_list = ( None, ( LINE_DOT | LINE_BOTTOM, TextWidget.color_line_cursor ) )
@@ -2592,6 +2696,8 @@ class TextWidget(ckit_widget.Widget):
 
         # チラつきの原因になるのでコメントアウト
         #self.window.flushPaint()
+        
+        self.doc.checkMemoryUsageAndOffload()
 
     def setMessage( self, message, timeout=None, error=None ):
         if self.message_handler:
@@ -3313,14 +3419,11 @@ class TextWidget(ckit_widget.Widget):
         cursor = self.selection.cursor()
         self.bookmark( cursor.line, [ 1, 2, 3, 0 ] )
 
-    def command_DebugEdit( self, info ):
-        cursor = self.selection.cursor()
-        print( [ self.doc.lines[cursor.line].s, self.doc.lines[cursor.line].end, self.doc.lines[cursor.line].bg ] )
-        print( Token.unpack( self.doc.lines[cursor.line].tokens ) )
-
     def command_DebugOffload( self, info ):
-        for line in self.doc.lines:
-            Line.offload( line )
+        Line.offload( self.doc.lines )
+
+    def command_DebugGc( self, info ):
+        gc.collect()
 
 #--------------------------------------------------------------------
 
