@@ -1,4 +1,5 @@
 ﻿import os
+import io
 import re
 import gc
 import math
@@ -886,7 +887,7 @@ class Document:
         data = fd.read( 1024 * 1024 )
         detected_encoding = ckit_misc.detectTextEncoding( data, ascii_as="utf-8" )
         
-        # BOMをの直後に戻る
+        # BOMの直後に戻る
         if detected_encoding.bom:
             bom_len = len(detected_encoding.bom)
         else:
@@ -901,25 +902,47 @@ class Document:
         
         self.encoding = encoding
         
+        b_cr = "\r".encode( encoding=self.encoding.encoding )
+        b_lf = "\n".encode( encoding=self.encoding.encoding )
+        b_crlf = b_cr + b_lf
+        pattern_line = re.compile( b".*%s|.*%s|.*%s|.*" % (b_crlf, b_cr, b_lf) )
+        
         position = fd.tell()
+        
+        # バイナリモードで 1MB ずつ読み込んで、行に分割する        
+        chunk_size = 1024 * 1024
+        chunk = b""
 
         while True:
+        
+            new_chunk = fd.read( chunk_size )
+            chunk = chunk + new_chunk
 
-            line_s = fd.readline()
+            for match in pattern_line.finditer(chunk):
             
-            if not line_s:
-                break
+                # ファイルに続きがある場合は、Chunkの最後部を処理せず次に回す
+                if match.end() == len(chunk):
+                    if new_chunk:
+                        chunk = chunk[ match.start() : ]
+                        break
                 
-            line_s2 = self._decodeLine(line_s)
-            
-            line = Line( line_s2, reload_handler=self._reload, reload_pos=position, reload_len=len(line_s) )
-            
-            # メモリ消費量を小さくするためにオフロード状態で読み込む
-            Line.offload(line)
+                line_s = match.group(0)
+                if not line_s:
+                    continue
 
-            self.lines.append(line)
+                line_s2 = self._decodeLine(line_s)
+                
+                line = Line( line_s2, reload_handler=self._reload, reload_pos=position, reload_len=len(line_s) )
             
-            position += len(line_s)
+                # メモリ消費量を小さくするために初期状態はオフロード
+                Line.offload(line)
+
+                self.lines.append(line)
+            
+                position += len(line_s)
+            
+            else:
+                break
 
         # 空か、改行で終わっている場合は、最後に行を追加する
         if len(self.lines)==0 or self.lines[-1].end:
@@ -936,11 +959,9 @@ class Document:
 
     def writeFile( self, filename ):
 
-        # FIXME : Offloadしている行がない場合は、テンポラリファイルを使う必要がない
-
         fd = None
         tmp_fd = None
-        need_close_fd = False
+        tmp_filename = None
         
         # 同一ファイルへの上書きかをチェック
         overwrite = False
@@ -952,10 +973,9 @@ class Document:
         # FIXME : overwrite = False のとき、テンポラリファイルを使う必要がない
         
         try:
-
-            # Offloadしている行を壊さないようにテンポラリファイルに保存
-            tmp_filename = ckit_misc.makeTempFile( "writeFile", ".tmp" )
-            tmp_fd = open( tmp_filename, "rb+" )
+            
+            # Offloadしている行を壊さないようにBytesIOに保存
+            tmp_fd = io.BytesIO()
 
             if self.encoding.bom:
                 tmp_fd.write( self.encoding.bom )
@@ -972,6 +992,14 @@ class Document:
                 Line.updateReloadInfo( line, tmp_fd.tell(), len(b) )
                 tmp_fd.write(b)
                 
+                # 10MB より大きいファイルになる場合は、BytesIO ではなくテンポラリファイルを使う
+                if isinstance(tmp_fd,io.BytesIO) and tmp_fd.tell() > 10 * 1024 * 1024:
+                    bytes_fd = tmp_fd
+                    tmp_filename = ckit_misc.makeTempFile( "writeFile", ".tmp" )
+                    tmp_fd = open( tmp_filename, "rb+" )
+                    tmp_fd.write( bytes_fd.getbuffer() )
+                    bytes_fd.close()
+                
                 if i % 10000 == 0:
                     self.checkMemoryUsageAndOffload()
         
@@ -983,7 +1011,7 @@ class Document:
             # テンポラリファイルからコピーする
             tmp_fd.seek( 0, os.SEEK_SET )
             
-            # なぜか、Unlockしないとwriteかflushでエラーになる。            
+            # FIXME : なぜか、Unlockしないとwriteかflushでエラーになる。            
             if overwrite:
                 self.flock.unlock()
             
@@ -1003,7 +1031,8 @@ class Document:
                 self.flock = ckit_misc.FileReaderLock( self.fd.fileno() )
 
         # テンポラリファイルを削除
-        os.unlink(tmp_filename)
+        if tmp_filename:
+            os.unlink(tmp_filename)
 
 
     def updateSyntaxContext( self, stop=None, max_lex=None ):
