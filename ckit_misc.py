@@ -446,6 +446,8 @@ def getClipboardText():
         text = ctypes.windll.kernel32.GlobalLock(ctypes.c_int(hClipMem))
         ctypes.windll.kernel32.GlobalUnlock(ctypes.c_int(hClipMem))
         ctypes.windll.user32.CloseClipboard()
+    if text==None:
+        text = ""
     return text
 
 ## クリップボードにテキストを設定する
