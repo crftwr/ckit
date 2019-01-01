@@ -828,15 +828,8 @@ def pathDriveUpper():
 #
 #  ファイルパスの連結処理に加えて、ディレクトリ区切り文字の \\ と / の置き換え処理も行います。
 #
-#  この関数の動きは os.path.join() に似せてありますが、
-#  os.path.join() とは違い、UNC形式 ( //machine/share/ で始まるもの ) のパスを扱うことが出来ます。
-#
 def joinPath(*args):
-    left = 0
-    for i in range(len(args)):
-        if os.path.splitunc(args[i])[0]:
-            left = i
-    path = os.path.join( *args[left:] )
+    path = os.path.join( *args )
     path = replacePath(path)
     return path
 
