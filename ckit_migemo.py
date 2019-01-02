@@ -11,13 +11,31 @@ class Migemo:
     DICTID_ZEN2HAN    = 5
 
     def __init__( self, dict_dirname ):
+        
         self.dll = ctypes.WinDLL('migemo.dll')
         self.handle = self.dll.migemo_open(0)
-        self.dll.migemo_load( self.handle, Migemo.DICTID_MIGEMO,    os.path.join(dict_dirname,"migemo-dict").encode("mbcs") )
-        self.dll.migemo_load( self.handle, Migemo.DICTID_ROMA2HIRA, os.path.join(dict_dirname,"roma2hira.dat").encode("mbcs") )
-        self.dll.migemo_load( self.handle, Migemo.DICTID_HIRA2KATA, os.path.join(dict_dirname,"hira2kata.dat").encode("mbcs") )
-        self.dll.migemo_load( self.handle, Migemo.DICTID_HAN2ZEN,   os.path.join(dict_dirname,"han2zen.dat").encode("mbcs") )
-        self.dll.migemo_load( self.handle, Migemo.DICTID_ZEN2HAN,   os.path.join(dict_dirname,"zen2han.dat").encode("mbcs") )
+        
+        self.dictionary_ready = False
+        
+        result = self.dll.migemo_load( self.handle, Migemo.DICTID_MIGEMO,    os.path.join(dict_dirname,"migemo-dict").encode("mbcs") )
+        if not result : return
+
+        result = self.dll.migemo_load( self.handle, Migemo.DICTID_ROMA2HIRA, os.path.join(dict_dirname,"roma2hira.dat").encode("mbcs") )
+        if not result : return
+
+        result = self.dll.migemo_load( self.handle, Migemo.DICTID_HIRA2KATA, os.path.join(dict_dirname,"hira2kata.dat").encode("mbcs") )
+        if not result : return
+
+        result = self.dll.migemo_load( self.handle, Migemo.DICTID_HAN2ZEN,   os.path.join(dict_dirname,"han2zen.dat").encode("mbcs") )
+        if not result : return
+
+        result = self.dll.migemo_load( self.handle, Migemo.DICTID_ZEN2HAN,   os.path.join(dict_dirname,"zen2han.dat").encode("mbcs") )
+        if not result : return
+        
+        self.dictionary_ready = True
+    
+    def isDictionaryReady(self):
+        return self.dictionary_ready
 
     def query( self, q ):
         p = self.dll.migemo_query( self.handle, q.encode("utf-8") )
