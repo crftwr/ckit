@@ -384,6 +384,7 @@ def deleteFilesUsingRecycleBin( hwnd, filename_list ):
         joint_filenames += filename
         joint_filenames += '\0'
     joint_filenames += '\0'
+    c_joint_filenames = ctypes.create_unicode_buffer(joint_filenames)
 
     fileopdata = SHFILEOPSTRUCT()
     
@@ -404,10 +405,10 @@ def deleteFilesUsingRecycleBin( hwnd, filename_list ):
     FOF_NOCONFIRMMKDIR	        = 512
     FOF_NOERRORUI	            = 1024
     FOF_NOCOPYSECURITYATTRIBS   = 2048
-
+    
     fileopdata.hwnd = hwnd
     fileopdata.wFunc = FO_DELETE
-    fileopdata.pFrom = joint_filenames
+    fileopdata.pFrom = ctypes.cast( ctypes.byref(c_joint_filenames), ctypes.c_wchar_p )
     fileopdata.pTo = 0
     fileopdata.fFlags = FOF_ALLOWUNDO | FOF_NOCONFIRMATION
     #fileopdata.fFlags = FOF_ALLOWUNDO

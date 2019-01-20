@@ -7,10 +7,11 @@ ckitcore.lib
 ckitcore.pdb
 ckitcore/ckitcore.sdf
 ckitcore/ckitcore.suo
-ckitcore/ckitcore.vcxproj.user
+*.vcxproj.user
 ckitcore.pyd
 ckitcore/ckitcore.v12.suo
 ckitcore/tags
 tags
 ckitcore/.vs/
 *.ilk
+*.VC.db
