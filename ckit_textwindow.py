@@ -179,6 +179,10 @@ class TextWindow( ckitcore.Window ):
         font = ckitcore.Font( name, size )
         self.__text.setFont( font )
 
+    def setFontFromTextWindow( self, window ):
+        font = window.__text.getFont()
+        self.__text.setFont( font )
+
     def getCharSize(self):
         return self.__text.getCharSize()
 
