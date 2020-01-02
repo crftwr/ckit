@@ -4973,7 +4973,7 @@ static PyObject * TextPlane_getStringColumns(PyObject* self, PyObject* args)
 
     TextPlane * textPlane = ((TextPlane_Object*)self)->p;
 
-	int num = str.length()+1;
+	int num = (int)str.length()+1;
 	int * columns = new int[num];
 
     textPlane->GetStringWidth( str.c_str(), tab_width, offset, columns );
@@ -5497,7 +5497,7 @@ static int Window_init( PyObject * self, PyObject * args, PyObject * kwds)
     else if(PyLong_Check(parent_window))
     {
     	param.parent_window = NULL;
-    	param.parent_window_hwnd = (HWND)PyLong_AS_LONG(parent_window);
+    	param.parent_window_hwnd = (HWND)(intptr_t)PyLong_AS_LONG(parent_window);
     }
     else
     {
@@ -7677,7 +7677,7 @@ static int Line_SetAttrString( PyObject * self, const char * attr_name, PyObject
 		{
 			if(PyUnicode_Check(value))
 			{
-				int lineend = _Line_CheckLineEnd( PyUnicode_AS_UNICODE(value), PyUnicode_GET_SIZE(value) );
+				int lineend = _Line_CheckLineEnd( PyUnicode_AS_UNICODE(value), (int)PyUnicode_GET_SIZE(value) );
 				
 				((Line_Object*)self)->flags &= ~(Line_End_CR|Line_End_LF);
 				((Line_Object*)self)->flags |= lineend;
@@ -7999,7 +7999,7 @@ static PyModuleDef ckitcore_module =
 	NULL, NULL, NULL, NULL
 };
 
-extern "C" PyMODINIT_FUNC PyInit_ckitcore(void)
+PyMODINIT_FUNC PyInit_ckitcore(void)
 {
 	FUNC_TRACE;
 

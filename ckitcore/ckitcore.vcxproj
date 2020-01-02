@@ -80,6 +80,9 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>..\</OutDir>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>..\</OutDir>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
@@ -118,7 +121,6 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
-      <AdditionalOptions>/EXPORT:PyInit_ckitcore %(AdditionalOptions)</AdditionalOptions>
       <AdditionalDependencies>imm32.lib;msimg32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>..\$(ProjectName).pyd</OutputFile>
       <AdditionalLibraryDirectories>c:\Python38-64\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
@@ -174,7 +176,6 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
-      <AdditionalOptions>/EXPORT:PyInit_ckitcore %(AdditionalOptions)</AdditionalOptions>
       <AdditionalDependencies>imm32.lib;msimg32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>..\$(ProjectName).pyd</OutputFile>
       <AdditionalLibraryDirectories>c:\Python38-64\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>

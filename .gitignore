@@ -1,7 +1,4 @@
 *.pyc
-ckitcore/Debug/
-ckitcore/Release/
-ckitcore/ipch/
 ckitcore.exp
 ckitcore.lib
 ckitcore.pdb
@@ -14,4 +11,5 @@ ckitcore/tags
 tags
 ckitcore/.vs/
 *.ilk
-x64
+/ckitcore/x64
+/ckitcore/Win32
