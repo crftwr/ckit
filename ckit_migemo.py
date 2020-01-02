@@ -10,9 +10,9 @@ class Migemo:
     DICTID_HAN2ZEN    = 4
     DICTID_ZEN2HAN    = 5
 
-    def __init__( self, dict_dirname ):
+    def __init__( self, dll_dirname, dict_dirname ):
         
-        self.dll = ctypes.WinDLL('migemo.dll')
+        self.dll = ctypes.WinDLL( os.path.join( dll_dirname, 'migemo.dll' ) )
         self.dll.migemo_open.restype = ctypes.c_void_p
         self.dll.migemo_query.restype = ctypes.c_void_p
 
