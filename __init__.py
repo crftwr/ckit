@@ -7,7 +7,6 @@ from ckit.ckit_misc import *
 from ckit.ckit_theme import *
 from ckit.ckit_threadutil import *
 from ckit.ckit_subprocess import *
-from ckit.ckit_stdlib import *
 from ckit.ckit_migemo import *
 from ckit.ckit_textwindow import *
 from ckit.ckit_widget import *
