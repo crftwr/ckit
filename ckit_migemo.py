@@ -12,6 +12,8 @@ class Migemo:
 
     def __init__( self, dict_dirname ):
         
+        # FIXME : migemo.dll is 32bit
+
         self.dll = ctypes.WinDLL('migemo.dll')
         self.handle = self.dll.migemo_open(0)
         
