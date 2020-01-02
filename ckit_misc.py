@@ -473,33 +473,6 @@ def getClipboardSequenceNumber():
 
 #--------------------------------------------------------------------
 
-def getProcessMemoryUsage():
-    
-    class PROCESS_MEMORY_COUNTERS(ctypes.Structure):
-        _fields_ = [
-            ("cb", ctypes.wintypes.DWORD),
-            ("PageFaultCount", ctypes.wintypes.DWORD),
-            ("PeakWorkingSetSize", ctypes.c_size_t),
-            ("WorkingSetSize", ctypes.c_size_t),
-            ("QuotaPeakPagedPoolUsage", ctypes.c_size_t),
-            ("QuotaPagedPoolUsage", ctypes.c_size_t),
-            ("QuotaPeakNonPagedPoolUsage", ctypes.c_size_t),
-            ("QuotaNonPagedPoolUsage", ctypes.c_size_t),
-            ("PagefileUsage", ctypes.c_size_t),
-            ("PeakPagefileUsage", ctypes.c_size_t)]
-    
-    pid = ctypes.windll.kernel32.GetCurrentProcess()
-    process_memory_info = PROCESS_MEMORY_COUNTERS()
-    
-    result = ctypes.windll.psapi.GetProcessMemoryInfo( pid, ctypes.byref(process_memory_info), ctypes.sizeof(process_memory_info) )
-    
-    if result == 0:
-        raise ctypes.WinError()
-    
-    return process_memory_info.WorkingSetSize
-
-#--------------------------------------------------------------------
-
 ## ファイルが他のプロセスから変更されないように共有ロックするためのクラス
 #
 class FileReaderLock:
