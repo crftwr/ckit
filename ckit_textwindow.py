@@ -38,6 +38,12 @@ class TextWindow( ckitcore.Window ):
             height = 24
 
         try:
+            font = args["font"]
+            del args["font"]
+        except KeyError:
+            font = None
+
+        try:
             font_name = args["font_name"]
             del args["font_name"]
         except KeyError:
@@ -58,11 +64,12 @@ class TextWindow( ckitcore.Window ):
             self.__size_handler = args["size_handler"]
         except KeyError:
             self.__size_handler = None
-
-        if parent_window and not font_name:
-            font = parent_window.__text.getFont()
-        else:
-            font = ckitcore.Font( font_name, font_size )
+        
+        if not font:
+            if parent_window and not font_name:
+                font = parent_window.__text.getFont()
+            else:
+                font = ckitcore.Font( font_name, font_size )
         
         char_size = font.getCharSize()
 
@@ -174,6 +181,9 @@ class TextWindow( ckitcore.Window ):
 
     def height(self):
         return self.__size_in_char[1]
+
+    def getFont(self):
+        return self.__text.getFont()
 
     def setFont( self, name, size ):
         font = ckitcore.Font( name, size )
