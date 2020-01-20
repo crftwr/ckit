@@ -320,7 +320,8 @@ namespace ckit
 		    PyObject * move_handler;
 		    PyObject * sizing_handler;
 		    PyObject * size_handler;
-		    PyObject * dropfiles_handler;
+            PyObject * dpi_handler;
+            PyObject * dropfiles_handler;
 		    PyObject * ipc_handler;
 		    PyObject * keydown_handler;
 		    PyObject * keyup_handler;
@@ -364,6 +365,7 @@ namespace ckit
         void getWindowRect( RECT * rect );
         void getNormalWindowRect( RECT * rect );
         void getNormalClientSize( SIZE * size );
+        float getDisplayScaling();
         void clear();
         void setCaretRect( const RECT & rect );
         void setImeRect( const RECT & rect );
@@ -440,7 +442,8 @@ namespace ckit
 	    PyObject * move_handler;
 	    PyObject * sizing_handler;
 	    PyObject * size_handler;
-	    PyObject * dropfiles_handler;
+        PyObject * dpi_handler;
+        PyObject * dropfiles_handler;
 	    PyObject * ipc_handler;
 	    PyObject * keydown_handler;
 	    PyObject * keyup_handler;
