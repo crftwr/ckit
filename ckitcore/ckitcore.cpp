@@ -3449,6 +3449,8 @@ float Window::getDisplayScalingFromPosition( int x, int y )
 	FUNC_TRACE;
 
 	_FindMonitorFromPositionContext context;
+	context.x = x;
+	context.y = y;
 
 	EnumDisplayMonitors(NULL, NULL, _FindMonitorFromPosition, (LPARAM)&context);
 
