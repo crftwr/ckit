@@ -6964,38 +6964,6 @@ static PyObject * Window_drag(PyObject* self, PyObject* args)
 	return Py_None;
 }
 
-static PyObject * Window_enumFonts(PyObject* self, PyObject* args)
-{
-	//FUNC_TRACE;
-
-    if( ! PyArg_ParseTuple(args, "" ) )
-        return NULL;
-
-	if( ! ((Window_Object*)self)->p )
-	{
-		PyErr_SetString( PyExc_ValueError, "already destroyed." );
-		return NULL;
-	}
-
-	Window * window = ((Window_Object*)self)->p;
-
-	std::vector<std::wstring> font_list;
-	window->enumFonts( &font_list );
-
-	std::sort( font_list.begin(), font_list.end() );
-
-	PyObject * pyret = PyList_New(0);
-	for( std::vector<std::wstring>::const_iterator i=font_list.begin() ; i!=font_list.end() ; i++ )
-	{
-		PyObject * data = Py_BuildValue( "u", (*i).c_str() );
-		
-		PyList_Append( pyret, data );
-		
-		Py_XDECREF(data);
-	}
-	return pyret;
-}
-
 static PyObject * Window_popupMenu(PyObject* self, PyObject* args, PyObject * kwds)
 {
 	//FUNC_TRACE;
@@ -7116,6 +7084,30 @@ static PyObject * Window_popupMenu(PyObject* self, PyObject* args, PyObject * kw
     return Py_None;
 }
 
+static PyObject* Window_enumFonts(PyObject* self, PyObject* args)
+{
+	//FUNC_TRACE;
+
+	if (!PyArg_ParseTuple(args, ""))
+		return NULL;
+
+	std::vector<std::wstring> font_list;
+	Window::enumFonts(&font_list);
+
+	std::sort(font_list.begin(), font_list.end());
+
+	PyObject* pyret = PyList_New(0);
+	for (std::vector<std::wstring>::const_iterator i = font_list.begin(); i != font_list.end(); i++)
+	{
+		PyObject* data = Py_BuildValue("u", (*i).c_str());
+
+		PyList_Append(pyret, data);
+
+		Py_XDECREF(data);
+	}
+	return pyret;
+}
+
 static PyObject * Window_sendIpc(PyObject* self, PyObject* args)
 {
 	//FUNC_TRACE;
@@ -7186,9 +7178,9 @@ static PyMethodDef Window_methods[] = {
     { "releaseCapture", (PyCFunction)Window_releaseCapture, METH_VARARGS, "" },
     { "setMouseCursor", (PyCFunction)Window_setMouseCursor, METH_VARARGS, "" },
     { "drag", (PyCFunction)Window_drag, METH_VARARGS, "" },
-    { "enumFonts", (PyCFunction)Window_enumFonts, METH_VARARGS, "" },
     { "popupMenu", (PyCFunction)Window_popupMenu, METH_VARARGS|METH_KEYWORDS, "" },
-    { "sendIpc", (PyCFunction)Window_sendIpc, METH_STATIC|METH_VARARGS, "" },
+	{ "enumFonts", (PyCFunction)Window_enumFonts, METH_STATIC | METH_VARARGS, "" },
+	{ "sendIpc", (PyCFunction)Window_sendIpc, METH_STATIC|METH_VARARGS, "" },
     {NULL,NULL}
 };
 

@@ -374,7 +374,7 @@ namespace ckit
         void setPositionAndSize( int x, int y, int width, int height, int origin );
   		void appendDirtyRect( const RECT & rect );
 		void clearDirtyRect();
-  		void enumFonts( std::vector<std::wstring> * font_list );
+  		static void enumFonts( std::vector<std::wstring> * font_list );
   		void setBGColor( COLORREF color );
   		void setFrameColor( COLORREF color );
   		void setCaretColor( COLORREF color0, COLORREF color1 );
