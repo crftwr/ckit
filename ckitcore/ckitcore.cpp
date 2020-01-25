@@ -2,6 +2,7 @@
 #include <algorithm>
 
 #include <windows.h>
+#include <shellscalingapi.h>
 
 #if defined(_DEBUG)
 #undef _DEBUG
@@ -186,6 +187,7 @@ Font::Font( const wchar_t * name, int height )
     HDC	hDC = GetDC(NULL);
     HGDIOBJ	oldfont = SelectObject(hDC, handle);
 
+	// 文字の全角と半角の判定用テーブルを作る
 	{
 	    TEXTMETRIC met;
 	    GetTextMetrics(hDC, &met);
@@ -1220,6 +1222,7 @@ Window::Param::Param()
     move_handler = NULL;
     sizing_handler = NULL;
     size_handler = NULL;
+	dpi_handler = NULL;
     dropfiles_handler = NULL;
     ipc_handler = NULL;
     keydown_handler = NULL;
@@ -1278,7 +1281,8 @@ Window::Window( Param & param )
     move_handler = param.move_handler; Py_XINCREF(move_handler);
     sizing_handler = param.sizing_handler; Py_XINCREF(sizing_handler);
     size_handler = param.size_handler; Py_XINCREF(size_handler);
-    dropfiles_handler = param.dropfiles_handler; Py_XINCREF(dropfiles_handler);
+	dpi_handler = param.dpi_handler; Py_XINCREF(dpi_handler);
+	dropfiles_handler = param.dropfiles_handler; Py_XINCREF(dropfiles_handler);
     ipc_handler = param.ipc_handler; Py_XINCREF(ipc_handler);
     keydown_handler = param.keydown_handler; Py_XINCREF(keydown_handler);
     keyup_handler = param.keyup_handler; Py_XINCREF(keyup_handler);
@@ -1753,8 +1757,9 @@ void Window::_clearCallables()
     Py_XDECREF(endsession_handler); endsession_handler=NULL;
     Py_XDECREF(move_handler); move_handler=NULL;
     Py_XDECREF(sizing_handler); sizing_handler=NULL;
-    Py_XDECREF(size_handler); size_handler=NULL;
-    Py_XDECREF(dropfiles_handler); dropfiles_handler=NULL;
+	Py_XDECREF(size_handler); size_handler=NULL;
+	Py_XDECREF(dpi_handler); dpi_handler=NULL;
+	Py_XDECREF(dropfiles_handler); dropfiles_handler=NULL;
     Py_XDECREF(ipc_handler); ipc_handler=NULL;
     Py_XDECREF(keydown_handler); keydown_handler=NULL;
     Py_XDECREF(keyup_handler); keyup_handler=NULL;
@@ -1821,13 +1826,19 @@ LRESULT CALLBACK Window::_wndProc( HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 
     switch(msg)
     {
-    case WM_CREATE:
-        {
-            CREATESTRUCT * create_data = (CREATESTRUCT*)lp;
-            Window * window = (Window*)create_data->lpCreateParams;
-            window->hwnd = hwnd;
-            SetProp( hwnd, L"ckit_userdata", window );
+	case WM_NCCREATE:
+		{
+			CREATESTRUCT* create_data = (CREATESTRUCT*)lp;
+			Window* window = (Window*)create_data->lpCreateParams;
+			window->hwnd = hwnd;
+			SetProp(hwnd, L"ckit_userdata", window);
 
+			EnableNonClientDpiScaling(hwnd);
+		}
+		return( DefWindowProc(hwnd, msg, wp, lp) );
+
+	case WM_CREATE:
+        {
 	        window->enableIme(false);
 
             SetTimer(hwnd, TIMER_PAINT, TIMER_PAINT_INTERVAL, NULL);
@@ -2195,8 +2206,30 @@ LRESULT CALLBACK Window::_wndProc( HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
         break;
 
     case WM_WINDOWPOSCHANGED:
-        window->_onWindowPositionChange( (WINDOWPOS*)lp, true );
+		window->_onWindowPositionChange( (WINDOWPOS*)lp, true );
         break;
+
+	case WM_DPICHANGED:
+		{
+			int dpi = HIWORD(wp);
+			float scale = (float)dpi / USER_DEFAULT_SCREEN_DPI;
+
+			if (window->dpi_handler)
+			{
+				PyObject* pyarglist = Py_BuildValue("(f)", scale);
+				PyObject* pyresult = PyEval_CallObject(window->dpi_handler, pyarglist);
+				Py_DECREF(pyarglist);
+				if (pyresult)
+				{
+					Py_DECREF(pyresult);
+				}
+				else
+				{
+					PyErr_Print();
+				}
+			}
+		}
+		break;
 
     case WM_LBUTTONDOWN:
 		if(window->lbuttondown_handler)
@@ -3361,6 +3394,70 @@ void Window::getNormalClientSize( SIZE * size )
 
 	size->cx = window_place.rcNormalPosition.right - window_place.rcNormalPosition.left - window_frame_size.cx;
 	size->cy = window_place.rcNormalPosition.bottom - window_place.rcNormalPosition.top - window_frame_size.cy;
+}
+
+float Window::getDisplayScaling()
+{
+	FUNC_TRACE;
+
+	int dpi = GetDpiForWindow(hwnd);
+	return ((float)dpi) / USER_DEFAULT_SCREEN_DPI;
+}
+
+struct _FindMonitorFromPositionContext
+{
+	_FindMonitorFromPositionContext()
+		:
+		x(0),
+		y(0),
+		monitor(0)
+	{
+	}
+
+	int x;
+	int y;
+	HMONITOR monitor;
+};
+
+static BOOL CALLBACK _FindMonitorFromPosition(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMonitor, LPARAM dwData)
+{
+	_FindMonitorFromPositionContext * context = (_FindMonitorFromPositionContext*)dwData;
+
+	MONITORINFO mi;
+	mi.cbSize = sizeof(MONITORINFO);
+	GetMonitorInfo(hMonitor, &mi);
+
+	if(context->monitor == NULL && mi.dwFlags & MONITORINFOF_PRIMARY)
+	{
+		context->monitor = hMonitor;
+	}
+
+	if (context->x >= mi.rcMonitor.left &&
+		context->y >= mi.rcMonitor.top &&
+		context->x < mi.rcMonitor.right &&
+		context->y < mi.rcMonitor.bottom)
+	{
+		context->monitor = hMonitor;
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
+float Window::getDisplayScalingFromPosition( int x, int y )
+{
+	FUNC_TRACE;
+
+	_FindMonitorFromPositionContext context;
+	context.x = x;
+	context.y = y;
+
+	EnumDisplayMonitors(NULL, NULL, _FindMonitorFromPosition, (LPARAM)&context);
+
+	UINT dpi_x, dpi_y;
+	GetDpiForMonitor(context.monitor , MDT_EFFECTIVE_DPI, &dpi_x, &dpi_y );
+
+	return ((float)dpi_x) / USER_DEFAULT_SCREEN_DPI;
 }
 
 void Window::clear()
@@ -5329,8 +5426,9 @@ static int Window_init( PyObject * self, PyObject * args, PyObject * kwds)
     PyObject * endsession_handler = NULL;
     PyObject * move_handler = NULL;
     PyObject * sizing_handler = NULL;
-    PyObject * size_handler = NULL;
-    PyObject * dropfiles_handler = NULL;
+	PyObject * size_handler = NULL;
+	PyObject * dpi_handler = NULL;
+	PyObject * dropfiles_handler = NULL;
     PyObject * ipc_handler = NULL;
     PyObject * keydown_handler = NULL;
     PyObject * keyup_handler = NULL;
@@ -5384,7 +5482,8 @@ static int Window_init( PyObject * self, PyObject * args, PyObject * kwds)
         "move_handler",
         "sizing_handler",
         "size_handler",
-        "dropfiles_handler",
+		"dpi_handler",
+		"dropfiles_handler",
         "ipc_handler",
         "keydown_handler",
         "keyup_handler",
@@ -5409,7 +5508,7 @@ static int Window_init( PyObject * self, PyObject * args, PyObject * kwds)
     	"OOOOO"
     	"iOOiO"
     	"iiiiiiiii"
-    	"OOOOOOOOOOOOOOOOOOOOOOO", kwlist,
+    	"OOOOOOOOOOOOOOOOOOOOOOOO", kwlist,
 
         &x,
         &y,
@@ -5445,7 +5544,8 @@ static int Window_init( PyObject * self, PyObject * args, PyObject * kwds)
 	    &move_handler,
 	    &sizing_handler,
 	    &size_handler,
-	    &dropfiles_handler,
+		&dpi_handler,
+		&dropfiles_handler,
 	    &ipc_handler,
 	    &keydown_handler,
 	    &keyup_handler,
@@ -5565,7 +5665,8 @@ static int Window_init( PyObject * self, PyObject * args, PyObject * kwds)
     param.move_handler = move_handler;
     param.sizing_handler = sizing_handler;
     param.size_handler = size_handler;
-    param.dropfiles_handler = dropfiles_handler;
+	param.dpi_handler = dpi_handler;
+	param.dropfiles_handler = dropfiles_handler;
     param.ipc_handler = ipc_handler;
     param.keydown_handler = keydown_handler;
     param.keyup_handler = keyup_handler;
@@ -6429,6 +6530,43 @@ static PyObject * Window_getNormalClientSize(PyObject* self, PyObject* args)
 	return pyret;
 }
 
+static PyObject* Window_getDisplayScaling(PyObject* self, PyObject* args)
+{
+	//FUNC_TRACE;
+
+	if (!PyArg_ParseTuple(args, ""))
+		return NULL;
+
+	if (!((Window_Object*)self)->p)
+	{
+		PyErr_SetString(PyExc_ValueError, "already destroyed.");
+		return NULL;
+	}
+
+	Window* window = ((Window_Object*)self)->p;
+
+	float scale = window->getDisplayScaling();
+
+	PyObject* pyret = Py_BuildValue("f", scale);
+	return pyret;
+}
+
+static PyObject* Window_getDisplayScalingFromPosition(PyObject* self, PyObject* args)
+{
+	//FUNC_TRACE;
+
+	int x;
+	int y;
+
+	if (!PyArg_ParseTuple(args, "ii", &x, &y))
+		return NULL;
+
+	float scale = Window::getDisplayScalingFromPosition(x,y);
+
+	PyObject* pyret = Py_BuildValue("f", scale);
+	return pyret;
+}
+
 static PyObject * Window_screenToClient(PyObject* self, PyObject* args)
 {
 	//FUNC_TRACE;
@@ -6899,38 +7037,6 @@ static PyObject * Window_drag(PyObject* self, PyObject* args)
 	return Py_None;
 }
 
-static PyObject * Window_enumFonts(PyObject* self, PyObject* args)
-{
-	//FUNC_TRACE;
-
-    if( ! PyArg_ParseTuple(args, "" ) )
-        return NULL;
-
-	if( ! ((Window_Object*)self)->p )
-	{
-		PyErr_SetString( PyExc_ValueError, "already destroyed." );
-		return NULL;
-	}
-
-	Window * window = ((Window_Object*)self)->p;
-
-	std::vector<std::wstring> font_list;
-	window->enumFonts( &font_list );
-
-	std::sort( font_list.begin(), font_list.end() );
-
-	PyObject * pyret = PyList_New(0);
-	for( std::vector<std::wstring>::const_iterator i=font_list.begin() ; i!=font_list.end() ; i++ )
-	{
-		PyObject * data = Py_BuildValue( "u", (*i).c_str() );
-		
-		PyList_Append( pyret, data );
-		
-		Py_XDECREF(data);
-	}
-	return pyret;
-}
-
 static PyObject * Window_popupMenu(PyObject* self, PyObject* args, PyObject * kwds)
 {
 	//FUNC_TRACE;
@@ -7051,6 +7157,30 @@ static PyObject * Window_popupMenu(PyObject* self, PyObject* args, PyObject * kw
     return Py_None;
 }
 
+static PyObject* Window_enumFonts(PyObject* self, PyObject* args)
+{
+	//FUNC_TRACE;
+
+	if (!PyArg_ParseTuple(args, ""))
+		return NULL;
+
+	std::vector<std::wstring> font_list;
+	Window::enumFonts(&font_list);
+
+	std::sort(font_list.begin(), font_list.end());
+
+	PyObject* pyret = PyList_New(0);
+	for (std::vector<std::wstring>::const_iterator i = font_list.begin(); i != font_list.end(); i++)
+	{
+		PyObject* data = Py_BuildValue("u", (*i).c_str());
+
+		PyList_Append(pyret, data);
+
+		Py_XDECREF(data);
+	}
+	return pyret;
+}
+
 static PyObject * Window_sendIpc(PyObject* self, PyObject* args)
 {
 	//FUNC_TRACE;
@@ -7101,7 +7231,9 @@ static PyMethodDef Window_methods[] = {
     { "getClientSize", Window_getClientSize, METH_VARARGS, "" },
     { "getNormalWindowRect", Window_getNormalWindowRect, METH_VARARGS, "" },
     { "getNormalClientSize", Window_getNormalClientSize, METH_VARARGS, "" },
-    { "screenToClient", Window_screenToClient, METH_VARARGS, "" },
+	{ "getDisplayScaling", Window_getDisplayScaling, METH_VARARGS, "" },
+	{ "getDisplayScalingFromPosition", Window_getDisplayScalingFromPosition, METH_STATIC|METH_VARARGS, "" },
+	{ "screenToClient", Window_screenToClient, METH_VARARGS, "" },
     { "clientToScreen", Window_clientToScreen, METH_VARARGS, "" },
     { "setTimer", Window_setTimer, METH_VARARGS, "" },
     { "killTimer", Window_killTimer, METH_VARARGS, "" },
@@ -7120,9 +7252,9 @@ static PyMethodDef Window_methods[] = {
     { "releaseCapture", (PyCFunction)Window_releaseCapture, METH_VARARGS, "" },
     { "setMouseCursor", (PyCFunction)Window_setMouseCursor, METH_VARARGS, "" },
     { "drag", (PyCFunction)Window_drag, METH_VARARGS, "" },
-    { "enumFonts", (PyCFunction)Window_enumFonts, METH_VARARGS, "" },
     { "popupMenu", (PyCFunction)Window_popupMenu, METH_VARARGS|METH_KEYWORDS, "" },
-    { "sendIpc", (PyCFunction)Window_sendIpc, METH_STATIC|METH_VARARGS, "" },
+	{ "enumFonts", (PyCFunction)Window_enumFonts, METH_STATIC | METH_VARARGS, "" },
+	{ "sendIpc", (PyCFunction)Window_sendIpc, METH_STATIC|METH_VARARGS, "" },
     {NULL,NULL}
 };
 
