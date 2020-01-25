@@ -1825,13 +1825,19 @@ LRESULT CALLBACK Window::_wndProc( HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 
     switch(msg)
     {
-    case WM_CREATE:
-        {
-            CREATESTRUCT * create_data = (CREATESTRUCT*)lp;
-            Window * window = (Window*)create_data->lpCreateParams;
-            window->hwnd = hwnd;
-            SetProp( hwnd, L"ckit_userdata", window );
+	case WM_NCCREATE:
+		{
+			CREATESTRUCT* create_data = (CREATESTRUCT*)lp;
+			Window* window = (Window*)create_data->lpCreateParams;
+			window->hwnd = hwnd;
+			SetProp(hwnd, L"ckit_userdata", window);
 
+			EnableNonClientDpiScaling(hwnd);
+		}
+		return( DefWindowProc(hwnd, msg, wp, lp) );
+
+	case WM_CREATE:
+        {
 	        window->enableIme(false);
 
             SetTimer(hwnd, TIMER_PAINT, TIMER_PAINT_INTERVAL, NULL);
