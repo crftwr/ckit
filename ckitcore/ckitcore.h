@@ -366,6 +366,7 @@ namespace ckit
         void getNormalWindowRect( RECT * rect );
         void getNormalClientSize( SIZE * size );
         float getDisplayScaling();
+        static float getDisplayScalingFromPosition(int x, int y);
         void clear();
         void setCaretRect( const RECT & rect );
         void setImeRect( const RECT & rect );

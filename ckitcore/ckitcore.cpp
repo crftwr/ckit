@@ -2,6 +2,7 @@
 #include <algorithm>
 
 #include <windows.h>
+#include <shellscalingapi.h>
 
 #if defined(_DEBUG)
 #undef _DEBUG
@@ -3403,6 +3404,60 @@ float Window::getDisplayScaling()
 	return ((float)dpi) / USER_DEFAULT_SCREEN_DPI;
 }
 
+struct _FindMonitorFromPositionContext
+{
+	_FindMonitorFromPositionContext()
+		:
+		x(0),
+		y(0),
+		monitor(0)
+	{
+	}
+
+	int x;
+	int y;
+	HMONITOR monitor;
+};
+
+static BOOL CALLBACK _FindMonitorFromPosition(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMonitor, LPARAM dwData)
+{
+	_FindMonitorFromPositionContext * context = (_FindMonitorFromPositionContext*)dwData;
+
+	MONITORINFO mi;
+	mi.cbSize = sizeof(MONITORINFO);
+	GetMonitorInfo(hMonitor, &mi);
+
+	if(context->monitor == NULL && mi.dwFlags & MONITORINFOF_PRIMARY)
+	{
+		context->monitor = hMonitor;
+	}
+
+	if (context->x >= mi.rcMonitor.left &&
+		context->y >= mi.rcMonitor.top &&
+		context->x < mi.rcMonitor.right &&
+		context->y < mi.rcMonitor.bottom)
+	{
+		context->monitor = hMonitor;
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
+float Window::getDisplayScalingFromPosition( int x, int y )
+{
+	FUNC_TRACE;
+
+	_FindMonitorFromPositionContext context;
+
+	EnumDisplayMonitors(NULL, NULL, _FindMonitorFromPosition, (LPARAM)&context);
+
+	UINT dpi_x, dpi_y;
+	GetDpiForMonitor(context.monitor , MDT_EFFECTIVE_DPI, &dpi_x, &dpi_y );
+
+	return ((float)dpi_x) / USER_DEFAULT_SCREEN_DPI;
+}
+
 void Window::clear()
 {
 	FUNC_TRACE;
@@ -6494,6 +6549,22 @@ static PyObject* Window_getDisplayScaling(PyObject* self, PyObject* args)
 	return pyret;
 }
 
+static PyObject* Window_getDisplayScalingFromPosition(PyObject* self, PyObject* args)
+{
+	//FUNC_TRACE;
+
+	int x;
+	int y;
+
+	if (!PyArg_ParseTuple(args, "ii", &x, &y))
+		return NULL;
+
+	float scale = Window::getDisplayScalingFromPosition(x,y);
+
+	PyObject* pyret = Py_BuildValue("f", scale);
+	return pyret;
+}
+
 static PyObject * Window_screenToClient(PyObject* self, PyObject* args)
 {
 	//FUNC_TRACE;
@@ -7159,6 +7230,7 @@ static PyMethodDef Window_methods[] = {
     { "getNormalWindowRect", Window_getNormalWindowRect, METH_VARARGS, "" },
     { "getNormalClientSize", Window_getNormalClientSize, METH_VARARGS, "" },
 	{ "getDisplayScaling", Window_getDisplayScaling, METH_VARARGS, "" },
+	{ "getDisplayScalingFromPosition", Window_getDisplayScalingFromPosition, METH_STATIC|METH_VARARGS, "" },
 	{ "screenToClient", Window_screenToClient, METH_VARARGS, "" },
     { "clientToScreen", Window_clientToScreen, METH_VARARGS, "" },
     { "setTimer", Window_setTimer, METH_VARARGS, "" },
