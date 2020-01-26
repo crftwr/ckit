@@ -2725,11 +2725,12 @@ bool Window::_createWindow( Param & param )
     {
         exstyle |= WS_EX_TOOLWINDOW;
     }
+
+	int dpi = getDpiFromPosition(param.winpos_x, param.winpos_y);
 	
-	// FIXME : _updateWindowFrameRect を使うべき？
 	RECT window_frame_rect;
 	memset( &window_frame_rect, 0, sizeof(window_frame_rect) );
-    AdjustWindowRectEx( &window_frame_rect, style, (menu!=NULL), exstyle );
+	AdjustWindowRectExForDpi( &window_frame_rect, style, (menu!=NULL), exstyle, dpi );
 	window_frame_size.cx = window_frame_rect.right - window_frame_rect.left;
 	window_frame_size.cy = window_frame_rect.bottom - window_frame_rect.top;
 
@@ -3104,32 +3105,49 @@ void Window::_refreshMenu()
 void Window::setPositionAndSize( int x, int y, int width, int height, int origin )
 {
 	FUNC_TRACE;
+
+	int client_w = width;
+	int client_h = height;
+
+	for (int i = 0; i < 2; i++)
+	{
+		_updateWindowFrameRect();
+
+		int window_x = x;
+		int window_y = y;
+		int window_w = client_w + window_frame_size.cx;
+		int window_h = client_h + window_frame_size.cy;
+
+		if (origin & ORIGIN_X_CENTER)
+		{
+			window_x -= window_w / 2;
+		}
+		else if (origin & ORIGIN_X_RIGHT)
+		{
+			window_x -= window_w;
+		}
+
+		if (origin & ORIGIN_Y_CENTER)
+		{
+			window_y -= window_h / 2;
+		}
+		else if (origin & ORIGIN_Y_BOTTOM)
+		{
+			window_y -= window_h;
+		}
+
+		::SetWindowPos(hwnd, NULL, window_x, window_y, window_w, window_h, SWP_NOZORDER | SWP_NOACTIVATE);
+
+		// DPI変更後に SetWindowPos を呼ぶと、非クライアント領域のスケーリングの影響で、クライアント領域が期待したサイズにならない
+		// クライアント領域のサイズをチェックして、必要に応じて再処理する。
+		RECT client_rect;
+		::GetClientRect(hwnd, &client_rect);
+		if (client_rect.right - client_rect.left == client_w && client_rect.bottom - client_rect.top == client_h)
+		{
+			break;
+		}
+	}
 	
-    int client_w = width;
-    int client_h = height;
-    int window_w = client_w + window_frame_size.cx;
-    int window_h = client_h + window_frame_size.cy;
-
-    if( origin & ORIGIN_X_CENTER )
-    {
-    	x -= window_w / 2;
-    }
-    else if( origin & ORIGIN_X_RIGHT )
-    {
-    	x -= window_w;
-    }
-
-    if( origin & ORIGIN_Y_CENTER )
-    {
-    	y -= window_h / 2;
-    }
-    else if( origin & ORIGIN_Y_BOTTOM )
-    {
-    	y -= window_h;
-    }
-    
-	::SetWindowPos( hwnd, NULL, x, y, window_w, window_h, SWP_NOZORDER | SWP_NOACTIVATE );
-
 	RECT dirty_rect = { 0, 0, client_w, client_h };
 	appendDirtyRect( dirty_rect );
 }
@@ -3444,7 +3462,7 @@ static BOOL CALLBACK _FindMonitorFromPosition(HMONITOR hMonitor, HDC hdcMonitor,
 	return TRUE;
 }
 
-float Window::getDisplayScalingFromPosition( int x, int y )
+int Window::getDpiFromPosition(int x, int y)
 {
 	FUNC_TRACE;
 
@@ -3455,9 +3473,16 @@ float Window::getDisplayScalingFromPosition( int x, int y )
 	EnumDisplayMonitors(NULL, NULL, _FindMonitorFromPosition, (LPARAM)&context);
 
 	UINT dpi_x, dpi_y;
-	GetDpiForMonitor(context.monitor , MDT_EFFECTIVE_DPI, &dpi_x, &dpi_y );
+	GetDpiForMonitor(context.monitor, MDT_EFFECTIVE_DPI, &dpi_x, &dpi_y);
 
-	return ((float)dpi_x) / USER_DEFAULT_SCREEN_DPI;
+	return dpi_x;
+}
+
+float Window::getDisplayScalingFromPosition( int x, int y )
+{
+	FUNC_TRACE;
+
+	return ((float)getDpiFromPosition(x,y)) / USER_DEFAULT_SCREEN_DPI;
 }
 
 void Window::clear()
