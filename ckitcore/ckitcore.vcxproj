@@ -121,7 +121,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>imm32.lib;msimg32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>imm32.lib;msimg32.lib;shcore.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>..\$(ProjectName).pyd</OutputFile>
       <AdditionalLibraryDirectories>c:\Python38-64\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -176,7 +176,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>imm32.lib;msimg32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>imm32.lib;msimg32.lib;shcore.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>..\$(ProjectName).pyd</OutputFile>
       <AdditionalLibraryDirectories>c:\Python38-64\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
