@@ -320,7 +320,8 @@ namespace ckit
 		    PyObject * move_handler;
 		    PyObject * sizing_handler;
 		    PyObject * size_handler;
-		    PyObject * dropfiles_handler;
+            PyObject * dpi_handler;
+            PyObject * dropfiles_handler;
 		    PyObject * ipc_handler;
 		    PyObject * keydown_handler;
 		    PyObject * keyup_handler;
@@ -364,6 +365,9 @@ namespace ckit
         void getWindowRect( RECT * rect );
         void getNormalWindowRect( RECT * rect );
         void getNormalClientSize( SIZE * size );
+        float getDisplayScaling();
+        static int getDpiFromPosition(int x, int y);
+        static float getDisplayScalingFromPosition(int x, int y);
         void clear();
         void setCaretRect( const RECT & rect );
         void setImeRect( const RECT & rect );
@@ -372,7 +376,7 @@ namespace ckit
         void setPositionAndSize( int x, int y, int width, int height, int origin );
   		void appendDirtyRect( const RECT & rect );
 		void clearDirtyRect();
-  		void enumFonts( std::vector<std::wstring> * font_list );
+  		static void enumFonts( std::vector<std::wstring> * font_list );
   		void setBGColor( COLORREF color );
   		void setFrameColor( COLORREF color );
   		void setCaretColor( COLORREF color0, COLORREF color1 );
@@ -440,7 +444,8 @@ namespace ckit
 	    PyObject * move_handler;
 	    PyObject * sizing_handler;
 	    PyObject * size_handler;
-	    PyObject * dropfiles_handler;
+        PyObject * dpi_handler;
+        PyObject * dropfiles_handler;
 	    PyObject * ipc_handler;
 	    PyObject * keydown_handler;
 	    PyObject * keyup_handler;
@@ -604,11 +609,6 @@ struct Line_Object
     PyObject * s;
     PyObject * ctx;
     PyObject * tokens;
-
-    PyObject * reload_handler;
-    uint64_t reload_pos;
-    uint64_t reload_len;
-
     int flags;
 };
 

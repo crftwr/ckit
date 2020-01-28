@@ -7,7 +7,6 @@ ckit_key.py
 ckit_migemo.py
 ckit_misc.py
 ckit_resource.py
-ckit_stdlib.py
 ckit_subprocess.py
 ckit_textwidget.py
 ckit_textwindow.py

@@ -440,12 +440,15 @@ GHND = 66
 #  @return クリップボードから取得した文字列
 #
 def getClipboardText():
+
+    ctypes.windll.user32.GetClipboardData.restype = ctypes.c_void_p
+    ctypes.windll.kernel32.GlobalLock.restype = ctypes.c_wchar_p
+
     text = ""
     if ctypes.windll.user32.OpenClipboard(ctypes.c_int(0)):
         hClipMem = ctypes.windll.user32.GetClipboardData(ctypes.c_int(CF_UNICODETEXT))
-        ctypes.windll.kernel32.GlobalLock.restype = ctypes.c_wchar_p
-        text = ctypes.windll.kernel32.GlobalLock(ctypes.c_int(hClipMem))
-        ctypes.windll.kernel32.GlobalUnlock(ctypes.c_int(hClipMem))
+        text = ctypes.windll.kernel32.GlobalLock(ctypes.c_void_p(hClipMem))
+        ctypes.windll.kernel32.GlobalUnlock(ctypes.c_void_p(hClipMem))
         ctypes.windll.user32.CloseClipboard()
     if text==None:
         text = ""
@@ -456,48 +459,24 @@ def getClipboardText():
 #  @param text  クリップボードに設定する文字列
 #
 def setClipboardText(text):
-    bufferSize = (len(text)+1)*2
-    hGlobalMem = ctypes.windll.kernel32.GlobalAlloc(ctypes.c_int(GHND), ctypes.c_int(bufferSize))
+
+    ctypes.windll.kernel32.GlobalAlloc.restype = ctypes.c_void_p
     ctypes.windll.kernel32.GlobalLock.restype = ctypes.c_void_p
-    lpGlobalMem = ctypes.windll.kernel32.GlobalLock(ctypes.c_int(hGlobalMem))
-    ctypes.cdll.msvcrt.memcpy(lpGlobalMem, ctypes.c_wchar_p(text), ctypes.c_int(bufferSize))
-    ctypes.windll.kernel32.GlobalUnlock(ctypes.c_int(hGlobalMem))
+
+    bufferSize = (len(text)+1)*2
+    hGlobalMem = ctypes.windll.kernel32.GlobalAlloc(ctypes.c_uint(GHND), ctypes.c_size_t(bufferSize))
+    lpGlobalMem = ctypes.windll.kernel32.GlobalLock(ctypes.c_void_p(hGlobalMem))
+    ctypes.cdll.msvcrt.memcpy( ctypes.c_void_p(lpGlobalMem), ctypes.c_wchar_p(text), ctypes.c_int(bufferSize))
+    ctypes.windll.kernel32.GlobalUnlock(ctypes.c_void_p(hGlobalMem))
     if ctypes.windll.user32.OpenClipboard(0):
         ctypes.windll.user32.EmptyClipboard()
-        ctypes.windll.user32.SetClipboardData(ctypes.c_int(CF_UNICODETEXT), ctypes.c_int(hGlobalMem))
+        ctypes.windll.user32.SetClipboardData( ctypes.c_int(CF_UNICODETEXT), ctypes.c_void_p(hGlobalMem) )
         ctypes.windll.user32.CloseClipboard()
 
 ## クリップボードのシーケンスナンバーを取得する
 #
 def getClipboardSequenceNumber():
     return ctypes.windll.user32.GetClipboardSequenceNumber()
-
-#--------------------------------------------------------------------
-
-def getProcessMemoryUsage():
-    
-    class PROCESS_MEMORY_COUNTERS(ctypes.Structure):
-        _fields_ = [
-            ("cb", ctypes.wintypes.DWORD),
-            ("PageFaultCount", ctypes.wintypes.DWORD),
-            ("PeakWorkingSetSize", ctypes.c_size_t),
-            ("WorkingSetSize", ctypes.c_size_t),
-            ("QuotaPeakPagedPoolUsage", ctypes.c_size_t),
-            ("QuotaPagedPoolUsage", ctypes.c_size_t),
-            ("QuotaPeakNonPagedPoolUsage", ctypes.c_size_t),
-            ("QuotaNonPagedPoolUsage", ctypes.c_size_t),
-            ("PagefileUsage", ctypes.c_size_t),
-            ("PeakPagefileUsage", ctypes.c_size_t)]
-    
-    pid = ctypes.windll.kernel32.GetCurrentProcess()
-    process_memory_info = PROCESS_MEMORY_COUNTERS()
-    
-    result = ctypes.windll.psapi.GetProcessMemoryInfo( pid, ctypes.byref(process_memory_info), ctypes.sizeof(process_memory_info) )
-    
-    if result == 0:
-        raise ctypes.WinError()
-    
-    return process_memory_info.WorkingSetSize
 
 #--------------------------------------------------------------------
 
