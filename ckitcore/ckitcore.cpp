@@ -3547,6 +3547,14 @@ void Window::setImeFont( const LOGFONT & logfont )
 	FUNC_TRACE;
 
 	ime_logfont = logfont;
+
+	// すでに IME が開いていたら即座にFontを設定する
+	HIMC imc = ImmGetContext(hwnd);
+	if (imc)
+	{
+		ImmSetCompositionFontW(imc, &ime_logfont);
+	}
+	ImmReleaseContext(hwnd, imc);
 }
 
 // ----------------------------------------------------------------------------
