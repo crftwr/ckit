@@ -2760,11 +2760,24 @@ bool Window::_createWindow( Param & param )
         posy = CW_USEDEFAULT;
     }
 
+	// DPI Handler を設定していないWindowは、非クライアント領域も含めて、DPI変更対応をしない
+	DPI_AWARENESS_CONTEXT original_dpi_aware_context = 0;
+	if (!dpi_handler)
+	{
+		original_dpi_aware_context = SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE);
+	}
+
     CreateWindowEx( exstyle, WINDOW_CLASS_NAME.c_str(), param.title.c_str(), style,
                     posx, posy, w, h,
                     param.parent_window_hwnd, NULL, hInstance, this );
 
-    if(!hwnd)
+	// DPI Awareness を戻す
+	if (!dpi_handler)
+	{
+		SetThreadDpiAwarenessContext(original_dpi_aware_context);
+	}
+
+	if(!hwnd)
     {
         printf("CreateWindowEx failed\n");
         return(FALSE);
