@@ -2419,8 +2419,8 @@ LRESULT CALLBACK Window::_wndProc( HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 		if(window->mousewheel_handler)
 		{
 			int mod = _getModKey();
-
-			PyObject * pyarglist = Py_BuildValue("(iiii)", (short)LOWORD(lp), (short)HIWORD(lp), ((short)HIWORD(wp))/WHEEL_DELTA, mod );
+			
+			PyObject * pyarglist = Py_BuildValue("(iifi)", (short)LOWORD(lp), (short)HIWORD(lp), (float)GET_WHEEL_DELTA_WPARAM(wp)/WHEEL_DELTA, mod );
 			PyObject * pyresult = PyEval_CallObject( window->mousewheel_handler, pyarglist );
 			Py_DECREF(pyarglist);
 			if(pyresult)

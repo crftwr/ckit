@@ -1380,13 +1380,19 @@ class TextWidget(ckit_widget.Widget):
 
 
     def onMouseWheel( self, char_x, char_y, sub_x, sub_y, wheel, mod ):
-        #print( "onMouseWheel", char_x, char_y, wheel, mod )
-        while wheel>0:
-            self.scrollV(-3)
-            wheel -= 1
-        while wheel<0:
-            self.scrollV(3)
-            wheel += 1
+        
+        #print( "TextWidget.onMouseWheel", char_x, char_y, wheel, mod )
+        
+        wheel_per_line = 0.34
+        
+        if wheel>0:
+            while wheel>0:
+                self.scrollV(-1)
+                wheel -= wheel_per_line
+        else:
+            while wheel<0:
+                self.scrollV(1)
+                wheel += wheel_per_line
 
     def _notifyTextModified( self, left, old_right, new_right ):
         for text_modified_handler in self.doc.text_modified_handler_list:
