@@ -81,12 +81,12 @@ const int GLOBAL_OPTION_XXXX = 0x101;
 			funcname = _funcname;
 			lineno   = _lineno;
 
-			printf( "FuncTrace : Enter : %s(%)\n", funcname, lineno );
+			printf( "FuncTrace : Enter : %s(%d)\n", funcname, lineno );
 		}
 
 		~FuncTrace()
 		{
-			printf( "FuncTrace : Leave : %s(%)\n", funcname, lineno );
+			printf( "FuncTrace : Leave : %s(%d)\n", funcname, lineno );
 		}
 
 		const char * funcname;
@@ -6378,53 +6378,57 @@ static PyObject * Window_messageLoop(PyObject* self, PyObject* args, PyObject * 
 		return NULL;
 	}
 
-    MSG msg;
     for(;;)
     {
-        while( PeekMessage( &msg, NULL, 0, 0, PM_REMOVE ) )
+		// メッセージがなくなるまで処理
+		MSG msg;
+		while( PeekMessage( &msg, NULL, 0, 0, PM_REMOVE ) )
         {
             if(msg.message==WM_QUIT)
             {
                 goto end;
             }
 
-            Window * window = ((Window_Object*)self)->p;
-
-            if( window==NULL )
-            {
-                goto end;
-            }
-
-            if( window->quit_requested )
-            {
-                window->quit_requested = false;
-                goto end;
-            }
-
-            if( continue_cond_func )
-            {
-                PyObject * pyarglist = Py_BuildValue("()");
-                PyObject * pyresult = PyEval_CallObject( continue_cond_func, pyarglist );
-                Py_DECREF(pyarglist);
-                if(pyresult)
-                {
-                    int result;
-                    PyArg_Parse(pyresult,"i", &result );
-                    Py_DECREF(pyresult);
-                    if(!result)
-                    {
-                        goto end;
-                    }
-                }
-                else
-                {
-                    PyErr_Print();
-                }
-            }
-
             TranslateMessage(&msg);
             DispatchMessage(&msg);
         }
+
+		// メッセージループを抜けるのは、メッセージがなくなってから
+		{
+			Window* window = ((Window_Object*)self)->p;
+
+			if (window == NULL)
+			{
+				goto end;
+			}
+
+			if (window->quit_requested)
+			{
+				window->quit_requested = false;
+				goto end;
+			}
+
+			if (continue_cond_func)
+			{
+				PyObject* pyarglist = Py_BuildValue("()");
+				PyObject* pyresult = PyEval_CallObject(continue_cond_func, pyarglist);
+				Py_DECREF(pyarglist);
+				if (pyresult)
+				{
+					int result;
+					PyArg_Parse(pyresult, "i", &result);
+					Py_DECREF(pyresult);
+					if (!result)
+					{
+						goto end;
+					}
+				}
+				else
+				{
+					PyErr_Print();
+				}
+			}
+		}
 
         Py_BEGIN_ALLOW_THREADS
 
