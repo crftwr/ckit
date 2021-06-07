@@ -305,12 +305,11 @@ def getDriveType(drive):
 def getDriveDisplayName(drive):
 
     MAX_PATH = 260
-    HICON = ctypes.c_int
 
     class SHFILEINFO(ctypes.Structure):
-        _fields_ = [("hIcon", HICON),
+        _fields_ = [("hIcon", ctypes.wintypes.HICON),
                     ("iIcon", ctypes.c_int),
-                    ("dwAttributes", ctypes.c_uint),
+                    ("dwAttributes", ctypes.wintypes.DWORD),
                     ("szDisplayName", ctypes.c_wchar * MAX_PATH),
                     ("szTypeName", ctypes.c_wchar * 80)]
 
