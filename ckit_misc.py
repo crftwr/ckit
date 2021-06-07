@@ -1,5 +1,4 @@
-﻿
-import sys
+﻿import sys
 import os
 import shutil
 import ctypes
@@ -369,12 +368,12 @@ def setFileAttribute(filename,attribute):
 def deleteFilesUsingRecycleBin( hwnd, filename_list ):
 
     class SHFILEOPSTRUCT(ctypes.Structure):
-        _fields_ = [("hwnd", ctypes.c_int),
-                    ("wFunc", ctypes.c_int),
+        _fields_ = [("hwnd", ctypes.wintypes.HWND),
+                    ("wFunc", ctypes.wintypes.UINT),
                     ("pFrom", ctypes.c_wchar_p),
                     ("pTo", ctypes.c_wchar_p),
-                    ("fFlags", ctypes.c_short),
-                    ("fAnyOperationsAborted", ctypes.c_byte),
+                    ("fFlags", ctypes.wintypes.WORD),
+                    ("fAnyOperationsAborted", ctypes.wintypes.BOOL),
                     ("hNameMappings", ctypes.c_void_p),
                     ("lpszProgressTitle", ctypes.c_wchar_p)]
 
