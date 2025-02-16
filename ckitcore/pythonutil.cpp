@@ -1,11 +1,14 @@
 ﻿#include "strutil.h"
 #include "pythonutil.h"
 
-bool PythonUtil::PyStringToString( const PyObject * pystr, std::string * str )
+bool PythonUtil::PyStringToString( PyObject * pystr, std::string * str )
 {
 	if( PyUnicode_Check(pystr) )
 	{
-		*str = StringUtil::WideCharToMultiByte( (const wchar_t*)PyUnicode_AS_UNICODE(pystr), (int)PyUnicode_GET_SIZE(pystr) );
+		Py_ssize_t len;
+		const wchar_t* s = PyUnicode_AsWideCharString(pystr, &len);
+
+		*str = StringUtil::WideCharToMultiByte(s, (int)len);
 		return true;
 	}
 	else
@@ -16,11 +19,14 @@ bool PythonUtil::PyStringToString( const PyObject * pystr, std::string * str )
 	}
 }
 
-bool PythonUtil::PyStringToWideString( const PyObject * pystr, std::wstring * str )
+bool PythonUtil::PyStringToWideString( PyObject * pystr, std::wstring * str )
 {
 	if( PyUnicode_Check(pystr) )
 	{
-		*str = (wchar_t*)PyUnicode_AS_UNICODE(pystr);
+		Py_ssize_t len;
+		const wchar_t* s = PyUnicode_AsWideCharString(pystr, &len);
+
+		*str = s;
 		return true;
 	}
 	else

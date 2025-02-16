@@ -1578,7 +1578,7 @@ void Window::_onSizing( DWORD edge, LPRECT rect )
 		PyObject * pysize = Py_BuildValue("[ii]", width, height );
 
 		PyObject * pyarglist = Py_BuildValue("(O)", pysize );
-		PyObject * pyresult = PyEval_CallObject( sizing_handler, pyarglist );
+		PyObject * pyresult = PyObject_Call( sizing_handler, pyarglist, NULL );
 		Py_DECREF(pyarglist);
 		if(pyresult)
 		{
@@ -1629,7 +1629,7 @@ void Window::_onWindowPositionChange( WINDOWPOS * wndpos, bool send_event )
 	        if( send_event && move_handler )
 			{
 				PyObject * pyarglist = Py_BuildValue("(ii)", wndpos->x, wndpos->y );
-				PyObject * pyresult = PyEval_CallObject( move_handler, pyarglist );
+				PyObject * pyresult = PyObject_Call( move_handler, pyarglist, NULL );
 				Py_DECREF(pyarglist);
 				if(pyresult)
 				{
@@ -1652,7 +1652,7 @@ void Window::_onWindowPositionChange( WINDOWPOS * wndpos, bool send_event )
 				GetClientRect( hwnd, &client_rect );
 
 				PyObject * pyarglist = Py_BuildValue("(ii)", client_rect.right  - client_rect.left, client_rect.bottom - client_rect.top );
-				PyObject * pyresult = PyEval_CallObject( size_handler, pyarglist );
+				PyObject * pyresult = PyObject_Call( size_handler, pyarglist, NULL );
 				Py_DECREF(pyarglist);
 				if(pyresult)
 				{
@@ -1855,7 +1855,7 @@ LRESULT CALLBACK Window::_wndProc( HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 		if(window->close_handler)
 		{
 			PyObject * pyarglist = Py_BuildValue("()");
-			PyObject * pyresult = PyEval_CallObject( window->close_handler, pyarglist );
+			PyObject * pyresult = PyObject_Call( window->close_handler, pyarglist, NULL );
 			Py_DECREF(pyarglist);
 			if(pyresult)
 			{
@@ -1889,7 +1889,7 @@ LRESULT CALLBACK Window::_wndProc( HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 			if(window->activate_handler)
 			{
 				PyObject * pyarglist = Py_BuildValue("(i)", window->active );
-				PyObject * pyresult = PyEval_CallObject( window->activate_handler, pyarglist );
+				PyObject * pyresult = PyObject_Call( window->activate_handler, pyarglist, NULL );
 				Py_DECREF(pyarglist);
 				if(pyresult)
 				{
@@ -1923,7 +1923,7 @@ LRESULT CALLBACK Window::_wndProc( HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 					if(command_info_constructor)
 					{
 						PyObject * pyarglist2 = Py_BuildValue( "()" );
-						command_info = PyEval_CallObject( command_info_constructor, pyarglist2 );
+						command_info = PyObject_Call( command_info_constructor, pyarglist2, NULL );
 						Py_DECREF(pyarglist2);
 						if(!command_info)
 						{
@@ -1939,7 +1939,7 @@ LRESULT CALLBACK Window::_wndProc( HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 				
 					PyObject * pyarglist = Py_BuildValue( "(O)", command_info );
 					Py_DECREF(command_info);
-					PyObject * pyresult = PyEval_CallObject( func, pyarglist );
+					PyObject * pyresult = PyObject_Call( func, pyarglist, NULL );
 					Py_DECREF(pyarglist);
 					if(pyresult)
 					{
@@ -1960,7 +1960,7 @@ LRESULT CALLBACK Window::_wndProc( HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 					if(command_info_constructor)
 					{
 						PyObject * pyarglist2 = Py_BuildValue( "()" );
-						command_info = PyEval_CallObject( command_info_constructor, pyarglist2 );
+						command_info = PyObject_Call( command_info_constructor, pyarglist2, NULL );
 						Py_DECREF(pyarglist2);
 						if(!command_info)
 						{
@@ -1976,7 +1976,7 @@ LRESULT CALLBACK Window::_wndProc( HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 				
 					PyObject * pyarglist = Py_BuildValue( "(O)", command_info );
 					Py_DECREF(command_info);
-					PyObject * pyresult = PyEval_CallObject( func, pyarglist );
+					PyObject * pyresult = PyObject_Call( func, pyarglist, NULL );
 					Py_DECREF(pyarglist);
 					if(pyresult)
 					{
@@ -2017,7 +2017,7 @@ LRESULT CALLBACK Window::_wndProc( HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 								i->pyobj = NULL;
 
 								PyObject * pyarglist = Py_BuildValue("()" );
-								PyObject * pyresult = PyEval_CallObject( pyobj, pyarglist );
+								PyObject * pyresult = PyObject_Call( pyobj, pyarglist, NULL );
 								Py_DECREF(pyarglist);
 								if(pyresult)
 								{
@@ -2072,7 +2072,7 @@ LRESULT CALLBACK Window::_wndProc( HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 							i->calling = true;
 
 							PyObject * pyarglist = Py_BuildValue("()" );
-							PyObject * pyresult = PyEval_CallObject( (i->pyobj), pyarglist );
+							PyObject * pyresult = PyObject_Call( (i->pyobj), pyarglist, NULL );
 							Py_DECREF(pyarglist);
 							if(pyresult)
 							{
@@ -2131,7 +2131,7 @@ LRESULT CALLBACK Window::_wndProc( HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 					i->calling = true;
 
 					PyObject * pyarglist = Py_BuildValue("()" );
-					PyObject * pyresult = PyEval_CallObject( i->pyobj, pyarglist );
+					PyObject * pyresult = PyObject_Call( i->pyobj, pyarglist, NULL );
 					Py_DECREF(pyarglist);
 					if(pyresult)
 					{
@@ -2211,7 +2211,7 @@ LRESULT CALLBACK Window::_wndProc( HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 			if (window->dpi_handler)
 			{
 				PyObject* pyarglist = Py_BuildValue("(f)", scale);
-				PyObject* pyresult = PyEval_CallObject(window->dpi_handler, pyarglist);
+				PyObject* pyresult = PyObject_Call(window->dpi_handler, pyarglist, NULL);
 				Py_DECREF(pyarglist);
 				if (pyresult)
 				{
@@ -2231,7 +2231,7 @@ LRESULT CALLBACK Window::_wndProc( HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 			int mod = _getModKey();
 			
 			PyObject * pyarglist = Py_BuildValue("(iii)", (short)LOWORD(lp), (short)HIWORD(lp), mod );
-			PyObject * pyresult = PyEval_CallObject( window->lbuttondown_handler, pyarglist );
+			PyObject * pyresult = PyObject_Call( window->lbuttondown_handler, pyarglist, NULL );
 			Py_DECREF(pyarglist);
 			if(pyresult)
 			{
@@ -2250,7 +2250,7 @@ LRESULT CALLBACK Window::_wndProc( HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 			int mod = _getModKey();
 
 			PyObject * pyarglist = Py_BuildValue("(iii)", (short)LOWORD(lp), (short)HIWORD(lp), mod );
-			PyObject * pyresult = PyEval_CallObject( window->lbuttonup_handler, pyarglist );
+			PyObject * pyresult = PyObject_Call( window->lbuttonup_handler, pyarglist, NULL );
 			Py_DECREF(pyarglist);
 			if(pyresult)
 			{
@@ -2269,7 +2269,7 @@ LRESULT CALLBACK Window::_wndProc( HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 			int mod = _getModKey();
 
 			PyObject * pyarglist = Py_BuildValue("(iii)", (short)LOWORD(lp), (short)HIWORD(lp), mod );
-			PyObject * pyresult = PyEval_CallObject( window->mbuttondown_handler, pyarglist );
+			PyObject * pyresult = PyObject_Call( window->mbuttondown_handler, pyarglist, NULL );
 			Py_DECREF(pyarglist);
 			if(pyresult)
 			{
@@ -2288,7 +2288,7 @@ LRESULT CALLBACK Window::_wndProc( HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 			int mod = _getModKey();
 
 			PyObject * pyarglist = Py_BuildValue("(iii)", (short)LOWORD(lp), (short)HIWORD(lp), mod );
-			PyObject * pyresult = PyEval_CallObject( window->mbuttonup_handler, pyarglist );
+			PyObject * pyresult = PyObject_Call( window->mbuttonup_handler, pyarglist, NULL );
 			Py_DECREF(pyarglist);
 			if(pyresult)
 			{
@@ -2307,7 +2307,7 @@ LRESULT CALLBACK Window::_wndProc( HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 			int mod = _getModKey();
 
 			PyObject * pyarglist = Py_BuildValue("(iii)", (short)LOWORD(lp), (short)HIWORD(lp), mod );
-			PyObject * pyresult = PyEval_CallObject( window->rbuttondown_handler, pyarglist );
+			PyObject * pyresult = PyObject_Call( window->rbuttondown_handler, pyarglist, NULL );
 			Py_DECREF(pyarglist);
 			if(pyresult)
 			{
@@ -2326,7 +2326,7 @@ LRESULT CALLBACK Window::_wndProc( HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 			int mod = _getModKey();
 
 			PyObject * pyarglist = Py_BuildValue("(iii)", (short)LOWORD(lp), (short)HIWORD(lp), mod );
-			PyObject * pyresult = PyEval_CallObject( window->rbuttonup_handler, pyarglist );
+			PyObject * pyresult = PyObject_Call( window->rbuttonup_handler, pyarglist, NULL );
 			Py_DECREF(pyarglist);
 			if(pyresult)
 			{
@@ -2345,7 +2345,7 @@ LRESULT CALLBACK Window::_wndProc( HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 			int mod = _getModKey();
 
 			PyObject * pyarglist = Py_BuildValue("(iii)", (short)LOWORD(lp), (short)HIWORD(lp), mod );
-			PyObject * pyresult = PyEval_CallObject( window->lbuttondoubleclick_handler, pyarglist );
+			PyObject * pyresult = PyObject_Call( window->lbuttondoubleclick_handler, pyarglist, NULL );
 			Py_DECREF(pyarglist);
 			if(pyresult)
 			{
@@ -2364,7 +2364,7 @@ LRESULT CALLBACK Window::_wndProc( HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 			int mod = _getModKey();
 
 			PyObject * pyarglist = Py_BuildValue("(iii)", (short)LOWORD(lp), (short)HIWORD(lp), mod );
-			PyObject * pyresult = PyEval_CallObject( window->mbuttondoubleclick_handler, pyarglist );
+			PyObject * pyresult = PyObject_Call( window->mbuttondoubleclick_handler, pyarglist, NULL );
 			Py_DECREF(pyarglist);
 			if(pyresult)
 			{
@@ -2383,7 +2383,7 @@ LRESULT CALLBACK Window::_wndProc( HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 			int mod = _getModKey();
 
 			PyObject * pyarglist = Py_BuildValue("(iii)", (short)LOWORD(lp), (short)HIWORD(lp), mod );
-			PyObject * pyresult = PyEval_CallObject( window->rbuttondoubleclick_handler, pyarglist );
+			PyObject * pyresult = PyObject_Call( window->rbuttondoubleclick_handler, pyarglist, NULL );
 			Py_DECREF(pyarglist);
 			if(pyresult)
 			{
@@ -2402,7 +2402,7 @@ LRESULT CALLBACK Window::_wndProc( HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 			int mod = _getModKey();
 
 			PyObject * pyarglist = Py_BuildValue("(iii)", (short)LOWORD(lp), (short)HIWORD(lp), mod );
-			PyObject * pyresult = PyEval_CallObject( window->mousemove_handler, pyarglist );
+			PyObject * pyresult = PyObject_Call( window->mousemove_handler, pyarglist, NULL );
 			Py_DECREF(pyarglist);
 			if(pyresult)
 			{
@@ -2421,7 +2421,7 @@ LRESULT CALLBACK Window::_wndProc( HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 			int mod = _getModKey();
 			
 			PyObject * pyarglist = Py_BuildValue("(iifi)", (short)LOWORD(lp), (short)HIWORD(lp), (float)GET_WHEEL_DELTA_WPARAM(wp)/WHEEL_DELTA, mod );
-			PyObject * pyresult = PyEval_CallObject( window->mousewheel_handler, pyarglist );
+			PyObject * pyresult = PyObject_Call( window->mousewheel_handler, pyarglist, NULL );
 			Py_DECREF(pyarglist);
 			if(pyresult)
 			{
@@ -2457,7 +2457,7 @@ LRESULT CALLBACK Window::_wndProc( HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 			{
 				PyObject * pyarglist = Py_BuildValue("(iiO)", point.x, point.y, pyfiles );
 				Py_XDECREF(pyfiles);
-				PyObject * pyresult = PyEval_CallObject( window->dropfiles_handler, pyarglist );
+				PyObject * pyresult = PyObject_Call( window->dropfiles_handler, pyarglist, NULL );
 				Py_DECREF(pyarglist);
 				if(pyresult)
 				{
@@ -2480,7 +2480,7 @@ LRESULT CALLBACK Window::_wndProc( HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 			{
 		
 				PyObject * pyarglist = Py_BuildValue("(s#)", data->lpData, data->cbData );
-				PyObject * pyresult = PyEval_CallObject( window->ipc_handler, pyarglist );
+				PyObject * pyresult = PyObject_Call( window->ipc_handler, pyarglist, NULL );
 				Py_DECREF(pyarglist);
 				if(pyresult)
 				{
@@ -2521,7 +2521,7 @@ LRESULT CALLBACK Window::_wndProc( HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 			int mod = _getModKey();
 
 			PyObject * pyarglist = Py_BuildValue("(ii)", vk, mod );
-			PyObject * pyresult = PyEval_CallObject( window->keydown_handler, pyarglist );
+			PyObject * pyresult = PyObject_Call( window->keydown_handler, pyarglist, NULL );
 			Py_DECREF(pyarglist);
 			if(pyresult)
 			{
@@ -2542,7 +2542,7 @@ LRESULT CALLBACK Window::_wndProc( HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 			int mod = _getModKey();
 
 			PyObject * pyarglist = Py_BuildValue("(ii)", vk, mod );
-			PyObject * pyresult = PyEval_CallObject( window->keyup_handler, pyarglist );
+			PyObject * pyresult = PyObject_Call( window->keyup_handler, pyarglist, NULL );
 			Py_DECREF(pyarglist);
 			if(pyresult)
 			{
@@ -2563,7 +2563,7 @@ LRESULT CALLBACK Window::_wndProc( HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 			int mod = _getModKey();
 
 			PyObject * pyarglist = Py_BuildValue("(ii)", ch, mod );
-			PyObject * pyresult = PyEval_CallObject( window->char_handler, pyarglist );
+			PyObject * pyresult = PyObject_Call( window->char_handler, pyarglist, NULL );
 			Py_DECREF(pyarglist);
 			if(pyresult)
 			{
@@ -2582,7 +2582,7 @@ LRESULT CALLBACK Window::_wndProc( HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 			if(window->endsession_handler)
 			{
 				PyObject * pyarglist = Py_BuildValue("()");
-				PyObject * pyresult = PyEval_CallObject( window->endsession_handler, pyarglist );
+				PyObject * pyresult = PyObject_Call( window->endsession_handler, pyarglist, NULL );
 				Py_DECREF(pyarglist);
 				if(pyresult)
 				{
@@ -2613,7 +2613,7 @@ LRESULT CALLBACK Window::_wndProc( HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 		if( window->nchittest_handler )
 		{
 			PyObject * pyarglist = Py_BuildValue("(ii)", (short)LOWORD(lp), (short)HIWORD(lp) );
-			PyObject * pyresult = PyEval_CallObject( window->nchittest_handler, pyarglist );
+			PyObject * pyresult = PyObject_Call( window->nchittest_handler, pyarglist, NULL );
 			Py_DECREF(pyarglist);
 			if(pyresult)
 			{
@@ -2890,7 +2890,7 @@ void Window::_buildMenu( HMENU menu_handle, PyObject * pysequence, int depth, bo
 		        if( depth && child_node->visible )
 				{
 					PyObject * pyarglist = Py_BuildValue("()");
-					PyObject * pyresult = PyEval_CallObject( child_node->visible, pyarglist );
+					PyObject * pyresult = PyObject_Call( child_node->visible, pyarglist, NULL );
 					Py_DECREF(pyarglist);
 					if(pyresult)
 					{
@@ -2914,7 +2914,7 @@ void Window::_buildMenu( HMENU menu_handle, PyObject * pysequence, int depth, bo
 			        if( child_node->enabled )
 					{
 						PyObject * pyarglist = Py_BuildValue("()");
-						PyObject * pyresult = PyEval_CallObject( child_node->enabled, pyarglist );
+						PyObject * pyresult = PyObject_Call( child_node->enabled, pyarglist, NULL );
 						Py_DECREF(pyarglist);
 						if(pyresult)
 						{
@@ -2949,7 +2949,7 @@ void Window::_buildMenu( HMENU menu_handle, PyObject * pysequence, int depth, bo
 		        if( depth && child_node->checked )
 				{
 					PyObject * pyarglist = Py_BuildValue("()");
-					PyObject * pyresult = PyEval_CallObject( child_node->checked, pyarglist );
+					PyObject * pyresult = PyObject_Call( child_node->checked, pyarglist, NULL );
 					Py_DECREF(pyarglist);
 					if(pyresult)
 					{
@@ -3000,7 +3000,7 @@ void Window::_buildMenu( HMENU menu_handle, PyObject * pysequence, int depth, bo
 			else if( depth && PyCallable_Check(pychild_node) )
 			{
 				PyObject * pyarglist = Py_BuildValue("()");
-				PyObject * pyresult = PyEval_CallObject( pychild_node, pyarglist );
+				PyObject * pyresult = PyObject_Call( pychild_node, pyarglist, NULL );
 				Py_DECREF(pyarglist);
 				if(pyresult)
 				{
@@ -3083,7 +3083,7 @@ void Window::_refreshMenu()
 	        if( ((MenuNode_Object*)menu)->p->enabled )
 			{
 				PyObject * pyarglist = Py_BuildValue("()");
-				PyObject * pyresult = PyEval_CallObject( ((MenuNode_Object*)menu)->p->enabled, pyarglist );
+				PyObject * pyresult = PyObject_Call( ((MenuNode_Object*)menu)->p->enabled, pyarglist, NULL );
 				Py_DECREF(pyarglist);
 				if(pyresult)
 				{
@@ -3756,7 +3756,7 @@ LRESULT CALLBACK TaskTrayIcon::_wndProc( HWND hwnd, UINT msg, WPARAM wp, LPARAM 
 					if(command_info_constructor)
 					{
 						PyObject * pyarglist2 = Py_BuildValue( "()" );
-						command_info = PyEval_CallObject( command_info_constructor, pyarglist2 );
+						command_info = PyObject_Call( command_info_constructor, pyarglist2, NULL );
 						Py_DECREF(pyarglist2);
 						if(!command_info)
 						{
@@ -3772,7 +3772,7 @@ LRESULT CALLBACK TaskTrayIcon::_wndProc( HWND hwnd, UINT msg, WPARAM wp, LPARAM 
 				
 					PyObject * pyarglist = Py_BuildValue( "(O)", command_info );
 					Py_DECREF(command_info);
-					PyObject * pyresult = PyEval_CallObject( func, pyarglist );
+					PyObject * pyresult = PyObject_Call( func, pyarglist, NULL );
 					Py_DECREF(pyarglist);
 					if(pyresult)
 					{
@@ -3801,7 +3801,7 @@ LRESULT CALLBACK TaskTrayIcon::_wndProc( HWND hwnd, UINT msg, WPARAM wp, LPARAM 
 					int mod = Window::_getModKey();
 
 					PyObject * pyarglist = Py_BuildValue("(iii)", (short)LOWORD(lp), (short)HIWORD(lp), mod );
-					PyObject * pyresult = PyEval_CallObject( task_tray_icon->lbuttondown_handler, pyarglist );
+					PyObject * pyresult = PyObject_Call( task_tray_icon->lbuttondown_handler, pyarglist, NULL );
 					Py_DECREF(pyarglist);
 					if(pyresult)
 					{
@@ -3820,7 +3820,7 @@ LRESULT CALLBACK TaskTrayIcon::_wndProc( HWND hwnd, UINT msg, WPARAM wp, LPARAM 
 					int mod = Window::_getModKey();
 
 					PyObject * pyarglist = Py_BuildValue("(iii)", (short)LOWORD(lp), (short)HIWORD(lp), mod );
-					PyObject * pyresult = PyEval_CallObject( task_tray_icon->lbuttonup_handler, pyarglist );
+					PyObject * pyresult = PyObject_Call( task_tray_icon->lbuttonup_handler, pyarglist, NULL );
 					Py_DECREF(pyarglist);
 					if(pyresult)
 					{
@@ -3839,7 +3839,7 @@ LRESULT CALLBACK TaskTrayIcon::_wndProc( HWND hwnd, UINT msg, WPARAM wp, LPARAM 
 					int mod = Window::_getModKey();
 
 					PyObject * pyarglist = Py_BuildValue("(iii)", (short)LOWORD(lp), (short)HIWORD(lp), mod );
-					PyObject * pyresult = PyEval_CallObject( task_tray_icon->rbuttondown_handler, pyarglist );
+					PyObject * pyresult = PyObject_Call( task_tray_icon->rbuttondown_handler, pyarglist, NULL );
 					Py_DECREF(pyarglist);
 					if(pyresult)
 					{
@@ -3858,7 +3858,7 @@ LRESULT CALLBACK TaskTrayIcon::_wndProc( HWND hwnd, UINT msg, WPARAM wp, LPARAM 
 					int mod = Window::_getModKey();
 
 					PyObject * pyarglist = Py_BuildValue("(iii)", (short)LOWORD(lp), (short)HIWORD(lp), mod );
-					PyObject * pyresult = PyEval_CallObject( task_tray_icon->rbuttonup_handler, pyarglist );
+					PyObject * pyresult = PyObject_Call( task_tray_icon->rbuttonup_handler, pyarglist, NULL );
 					Py_DECREF(pyarglist);
 					if(pyresult)
 					{
@@ -3877,7 +3877,7 @@ LRESULT CALLBACK TaskTrayIcon::_wndProc( HWND hwnd, UINT msg, WPARAM wp, LPARAM 
 					int mod = Window::_getModKey();
 
 					PyObject * pyarglist = Py_BuildValue("(iii)", (short)LOWORD(lp), (short)HIWORD(lp), mod );
-					PyObject * pyresult = PyEval_CallObject( task_tray_icon->lbuttondoubleclick_handler, pyarglist );
+					PyObject * pyresult = PyObject_Call( task_tray_icon->lbuttondoubleclick_handler, pyarglist, NULL );
 					Py_DECREF(pyarglist);
 					if(pyresult)
 					{
@@ -4113,11 +4113,11 @@ static PyObject * Image_fromBytes( PyObject * self, PyObject * args )
 	int width;
 	int height;
 	const char * buf;
-	unsigned int bufsize;
+	Py_ssize_t bufsize;
 	PyObject * py_transparent_color = NULL;
 	int halftone=0;
 
-	if( ! PyArg_ParseTuple(args,"(ii)s#|Oi", &width, &height, &buf, &bufsize, &py_transparent_color, &halftone ) )
+	if( ! PyArg_ParseTuple(args,"(ii)y#|Oi", &width, &height, &buf, &bufsize, &py_transparent_color, &halftone ) )
 		return NULL;
 		
 	if( py_transparent_color==Py_None )
@@ -6411,7 +6411,7 @@ static PyObject * Window_messageLoop(PyObject* self, PyObject* args, PyObject * 
 			if (continue_cond_func)
 			{
 				PyObject* pyarglist = Py_BuildValue("()");
-				PyObject* pyresult = PyEval_CallObject(continue_cond_func, pyarglist);
+				PyObject* pyresult = PyObject_Call(continue_cond_func, pyarglist, NULL);
 				Py_DECREF(pyarglist);
 				if (pyresult)
 				{
@@ -7664,7 +7664,7 @@ static void Line_static_term()
 	Py_DECREF(line_empty);
 }
 
-static int _Line_CheckLineEnd( const wchar_t * s, int len )
+static int _Line_CheckLineEnd(const wchar_t * s, Py_ssize_t len)
 {
 	if( len>=2 && s[len-2]=='\r' && s[len-1]=='\n' )
 	{
@@ -7698,7 +7698,7 @@ static int Line_init( PyObject * self, PyObject * args, PyObject * kwds)
         return -1;
 	}
 	
-	int lineend = _Line_CheckLineEnd( s, len );
+	int lineend = _Line_CheckLineEnd(s, len);
 	switch(lineend)
 	{
 	case Line_End_CR:
@@ -7853,7 +7853,9 @@ static int Line_SetAttrString( PyObject * self, const char * attr_name, PyObject
 		{
 			if(PyUnicode_Check(value))
 			{
-				int lineend = _Line_CheckLineEnd( PyUnicode_AS_UNICODE(value), (int)PyUnicode_GET_SIZE(value) );
+				Py_ssize_t len;
+				wchar_t* s = PyUnicode_AsWideCharString(value, &len);
+				int lineend = _Line_CheckLineEnd(s, len);
 				
 				((Line_Object*)self)->flags &= ~(Line_End_CR|Line_End_LF);
 				((Line_Object*)self)->flags |= lineend;
@@ -8105,7 +8107,7 @@ static int _blockDetectorCallback( PyObject * py_report_func, PyFrameObject * fr
 	if( delta > 1000 )
 	{
 		PyObject * pyarglist = Py_BuildValue("()");
-		PyObject * pyresult = PyEval_CallObject( py_report_func, pyarglist );
+		PyObject * pyresult = PyObject_Call( py_report_func, pyarglist, NULL );
 		Py_DECREF(pyarglist);
 		if(pyresult)
 		{
