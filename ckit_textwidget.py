@@ -321,7 +321,7 @@ class Mode:
 
     wordbreak = ckit_misc.WordBreak(
         ( 
-            "\"!@#$%^&*()+|~-=\`[]{};:',./<>?", # 0
+            "\"!@#$%^&*()+|~-=\\`[]{};:',./<>?", # 0
             ckit_misc.UnicodeRange('0','z'),       # 1
             ckit_misc.UnicodeRange('、','〟'),     # 2
             ckit_misc.UnicodeRange('ぁ','ゖ'),     # 3
